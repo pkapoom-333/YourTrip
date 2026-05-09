@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { use, useState } from "react";
 import AppShell from "@/components/AppShell";
 import Link from "next/link";
 import {
@@ -189,8 +189,9 @@ function TransportTab({ icon: Icon, label, content }: { icon: React.ElementType;
 }
 
 /* ── main page ─────────────────────────────────────────── */
-export default function PlacePage({ params }: { params: { slug: string } }) {
-  const place = places[params.slug] ?? places["doi-ang-khang"];
+export default function PlacePage({ params }: { params: Promise<{ slug: string }> }) {
+  const { slug } = use(params);
+  const place = places[slug] ?? places["doi-ang-khang"];
   const [imgIndex, setImgIndex] = useState(0);
   const [saved, setSaved] = useState(false);
   const [liked, setLiked] = useState(false);
