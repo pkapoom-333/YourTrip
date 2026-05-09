@@ -1,0 +1,28 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(pandoc \"C:\\\\Users\\\\user\\\\Downloads\\\\ClaudeCode_MasterPromptSystem.docx\" -o - --to markdown)",
+      "PowerShell(pandoc \"C:\\\\Users\\\\user\\\\Downloads\\\\ClaudeCode_MasterPromptSystem.docx\" -o - --to markdown 2>&1)",
+      "Bash(git add *)",
+      "Bash(git commit -m ' *)",
+      "mcp__Claude_in_Chrome__navigate",
+      "mcp__Claude_in_Chrome__computer",
+      "Bash(npx tsc *)",
+      "PowerShell($env:DATABASE_URL=\"postgresql://user:pass@localhost:5432/db\"; cd \"C:\\\\Users\\\\user\\\\Documents\\\\your-trip\\\\.claude\\\\worktrees\\\\frosty-stonebraker-edf565\\\\your-trip-web\"; npx prisma generate 2>&1)",
+      "Bash(mkdir -p \"C:\\\\Users\\\\user\\\\Documents\\\\your-trip\\\\.claude\\\\worktrees\\\\frosty-stonebraker-edf565\\\\your-trip-web\\\\src\\\\app\\\\place\\\\[slug]\")",
+      "Bash(powershell -Command ' *)",
+      "Bash(mkdir -p \"C:\\\\Users\\\\user\\\\Documents\\\\your-trip\\\\.claude\\\\commands\" && mkdir -p \"C:\\\\Users\\\\user\\\\Documents\\\\your-trip\\\\feature-prompts\")",
+      "Bash(package\")",
+      "Bash(dir \"C:\\\\Users\\\\user\\\\Documents\\\\your-trip\\\\.claude\\\\worktrees\\\\frosty-stonebraker-edf565\\\\your-trip-web\" /b)",
+      "Bash(findstr /i \"env package\")",
+      "PowerShell(Get-ChildItem \"C:\\\\Users\\\\user\\\\Documents\\\\your-trip\\\\.claude\\\\worktrees\\\\frosty-stonebraker-edf565\\\\your-trip-web\" -Name | Where-Object { $_ -match \"env|package\" })",
+      "Bash(npm run *)",
+      "mcp__Claude_Preview__preview_start",
+      "Bash(python -c \"import sys,json; d=json.load\\(sys.stdin\\); [print\\(k,v\\) for k,v in {**d.get\\('dependencies',{}\\), **d.get\\('devDependencies',{}\\)}.items\\(\\) if 'tailwind' in k or 'postcss' in k]\")",
+      "Bash(python3 -c \"import sys,json; d=json.load\\(sys.stdin\\); print\\(d.get\\('version','?'\\)\\)\")",
+      "Bash(node -e \"const z=require\\('zod'\\); console.log\\(z.ZodError && 'issues' in new z.ZodError\\([]\\) ? 'issues' : 'errors'\\)\")",
+      "Bash(node -e \"const p=require\\('./node_modules/zod/package.json'\\); console.log\\(p.version\\)\")",
+      "Bash(git commit -m 'Day 2: chore: update PROGRESS.md night session log *)"
+    ]
+  }
+}
