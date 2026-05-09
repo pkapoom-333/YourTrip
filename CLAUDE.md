@@ -108,15 +108,78 @@ your-trip/
 
 ---
 
+## Coding Rules (ห้ามละเมิด — จากเอกสาร Master Prompt System)
+1. **TypeScript strict** — ห้ามใช้ `any` → ใช้ `unknown` + type guard แทน
+2. **Tailwind only** — ห้ามสร้าง custom CSS files
+3. **Server Components by default** — ใช้ `"use client"` เฉพาะเมื่อต้องการ interactivity จริงๆ
+4. **Error boundary ทุก page** — wrap ด้วย `<ErrorBoundary>` หรือ Next.js `error.tsx`
+5. **Loading skeleton ทุก async component** — ใช้ `loading.tsx` หรือ Suspense + skeleton
+6. **Mobile-first responsive** — เขียน sm: → md: → lg: เสมอ
+7. **Mock data ก่อน** — สร้าง UI ให้ work กับ mock ก่อน แล้วค่อย wire real API
+8. **Commit หลังทุก feature** — format: `Day N: feat/fix/chore: description`
+9. **ห้าม over-engineer** — simplest solution ที่ work
+10. **Add TODO: comment** สำหรับทุกอย่างที่ defer ไว้
+
+## Anti-Patterns (ห้ามทำเด็ดขาด)
+- ❌ เริ่ม feature ใหม่เมื่อ token < 20% → ให้ `/handoff` แทน
+- ❌ เขียน code ที่ compile ไม่ได้ หรือ feature ไม่ครบ แล้วค้างไว้
+- ❌ ใช้ `any` ใน TypeScript
+- ❌ สร้าง backend ซับซ้อนก่อนที่ UI จะ work
+- ❌ Payment / booking / marketplace → Phase 5+ ข้ามไปก่อน
+- ❌ Realtime WebSocket ก่อน MVP → Supabase Realtime เปิดทีหลัง
+- ❌ Redux / Zustand → ใช้ useState + Context + React Query เท่านั้น
+- ❌ เขียน code โดยไม่อ่าน PROGRESS.md ก่อน
+
+## File Structure (ตามเอกสาร)
+```
+your-trip-web/src/
+├── app/          ← pages + layouts (App Router)
+├── components/
+│   ├── ui/       ← shadcn components
+│   ├── shared/   ← shared across features
+│   └── features/ ← feature-specific components
+├── lib/
+│   ├── supabase/ ← client.ts | server.ts
+│   ├── prisma.ts
+│   ├── utils.ts  ← cn() helper
+│   └── validations.ts  ← zod schemas (TODO: สร้าง)
+├── types/
+│   └── index.ts  ← all TypeScript types (TODO: สร้าง)
+├── hooks/
+│   └── use*.ts   ← custom hooks (TODO: สร้าง)
+└── server/
+    └── actions/  ← Server Actions (TODO: สร้าง)
+```
+
 ## Session Protocol
-**ทุก session เริ่มด้วย:**
+**ทุก session เริ่มด้วย (ใช้ /morning):**
 1. อ่าน `PROGRESS.md` ดู current sprint + last session log
 2. อ่าน `DAILYWORK.md` ดูว่าวันนี้ควรทำอะไร
-3. เริ่มทำงาน task ต่อจากที่ค้างไว้ทันที
-4. ก่อนจบ session: อัปเดต `PROGRESS.md` + commit
+3. เริ่มทำงาน task ต่อจากที่ค้างไว้ทันที ไม่ถามก่อน
+4. ก่อนจบ session: อัปเดต `PROGRESS.md` + commit (ใช้ /night แล้ว /handoff)
 
-**Token Budget:**
-- 80% → หยุด, อัปเดต PROGRESS.md, commit, แจ้งผู้ใช้
+## Slash Commands (พิมพ์ใน chat ได้เลย)
+| Command | ใช้เมื่อ |
+|---------|---------|
+| `/morning` | เริ่ม session ใหม่ทุกวัน |
+| `/night` | ก่อนปิดคอม — review + อัปเดต PROGRESS |
+| `/handoff` | token ถึง 80% — generate handoff + commit |
+
+## Feature Prompts (ใช้เมื่อจะเริ่ม feature ใหม่)
+อยู่ใน `/feature-prompts/` directory:
+- `auth.md` — Auth / Register / Login
+- `posts-feed.md` — Posts, Feed, Like, Comment
+- `my-trip.md` — Trip planning + itinerary
+- `travel-buddy.md` — Buddy matching
+- `backend-scale.md` — Stage 2: Hono + Redis + BullMQ
+
+## Token Budget
+| Zone | % | วิธีทำ |
+|------|---|--------|
+| 🟢 Green | 0–50% | ทำงานเต็มที่ feature ใหญ่ |
+| 🟡 Yellow | 50–70% | จบ task ปัจจุบัน ไม่เริ่มใหม่ใหญ่ |
+| 🟠 Orange | 70–80% | จบ task เดี๋ยวนี้เท่านั้น |
+| 🔴 Red | 80%+ | หยุดทันที → รัน `/handoff` |
 
 ---
 
