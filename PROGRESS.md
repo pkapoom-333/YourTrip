@@ -1,10 +1,11 @@
 # PROGRESS.md
 # Travel Community App — Dev Log
 
-## Status: Phase 1 | Day 1 | 2026-05-09
+## Status: Phase 1 | Day 2 | 2026-05-09
 
 ## Current sprint task
 → **NEXT TASK: Setup Supabase project + .env.local → run `npx prisma migrate dev`**
+→ Then: wire real auth to /login /register pages (Supabase Google OAuth)
 
 ---
 
@@ -16,9 +17,18 @@
   - [x] Shadcn/ui setup (Button component)
   - [ ] Supabase project created + .env.local configured
   - [ ] DB migration run (`prisma migrate dev`)
-  - [ ] Auth pages: /login, /register
-  - [ ] Middleware protecting /feed /profile /trips
-  - [ ] User profile page (view)
+  - [x] Auth pages: /login, /register (UI complete, needs real Supabase wiring)
+  - [x] Middleware protecting /feed /profile /trips
+  - [x] User profile page (/profile — UI complete)
+  - [x] PWA manifest + mobile meta tags
+  - [x] Responsive AppShell (sidebar desktop + bottom nav mobile)
+  - [x] Feed page redesign (stories + posts + right panel)
+  - [x] Place Detail page (/place/[slug]) — full info: carousel, hours, map, transport, caution, parking, reviews, nearby
+  - [x] Explore/Search page (/explore) — filter by category + region + keyword
+  - [x] Trips page (/trips) — trip planning list
+  - [ ] Supabase project created + .env.local configured
+  - [ ] DB migration run (`prisma migrate dev`)
+  - [ ] Connect auth to real Supabase OAuth
 - [ ] Phase 2: Core Features (target: 13 Jun 2026)
   - [ ] Posts & Feed (create, list, like)
   - [ ] My Trip (CRUD + itinerary)
@@ -42,16 +52,24 @@
 - Shadcn/ui Button component
 - Middleware auth guard (protect /feed /profile /trips /buddy)
 - Google OAuth via Supabase Auth
+- PWA manifest + viewport meta (installable on iOS/Android)
+- Responsive AppShell (desktop sidebar + mobile bottom nav)
+- Landing page (/) with hero + destinations grid
+- Feed page (/feed) — stories, posts, trending sidebar
+- Place Detail page (/place/[slug]) — comprehensive travel info
+- Explore page (/explore) — search + category + region filters
+- Trips page (/trips) — trip planning
+- Profile page (/profile) — user stats + posts grid
 
 ### In progress 🔧
 - Supabase project setup (user needs to create project + .env.local)
+- Auth wiring (UI exists, needs real Supabase OAuth integration)
 
 ### Not started ⬜
-- Auth pages (/login /register)
-- Posts / Feed
-- My Trip
+- Posts create/like (real data)
+- My Trip CRUD
 - Travel Buddy
-- Search
+- Image upload (Cloudinary)
 
 ---
 
@@ -80,3 +98,4 @@
 | Date | Completed | Token% | Next |
 |------|-----------|--------|------|
 | 2026-05-09 | Foundation: Supabase migration + bug fixes + Shadcn/ui | ~40% | Create Supabase project + auth pages |
+| 2026-05-09 | UI Sprint: AppShell + Feed + Place Detail + Explore + Trips + Profile (all pages with mock data) | ~70% | Supabase project setup + wire real auth |
