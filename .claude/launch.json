@@ -1,0 +1,12 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "yourtrip-dev",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": ["run", "--prefix", "your-trip-web", "dev"],
+      "port": 3000,
+      "autoPort": true
+    }
+  ]
+}
