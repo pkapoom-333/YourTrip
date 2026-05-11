@@ -4,10 +4,20 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
   Home, Search, PlusSquare, MapPin, User,
-  Compass, Bell, Settings, LogOut,
+  Compass, Bell, Settings, Users,
 } from "lucide-react";
 
-const navItems = [
+// Desktop sidebar nav (all items)
+const sidebarItems = [
+  { href: "/feed",    icon: Home,       label: "หน้าหลัก" },
+  { href: "/explore", icon: Compass,    label: "สำรวจ" },
+  { href: "/trips",   icon: MapPin,     label: "ทริป" },
+  { href: "/buddy",   icon: Users,      label: "Travel Buddy" },
+  { href: "/profile", icon: User,       label: "โปรไฟล์" },
+];
+
+// Mobile bottom nav (4 items only — create button is separate)
+const mobileNavItems = [
   { href: "/feed",    icon: Home,       label: "หน้าหลัก" },
   { href: "/explore", icon: Compass,    label: "สำรวจ" },
   { href: "/trips",   icon: MapPin,     label: "ทริป" },
@@ -26,7 +36,7 @@ function Sidebar() {
 
       {/* Nav */}
       <nav className="flex-1 space-y-1">
-        {navItems.map(({ href, icon: Icon, label }) => {
+        {sidebarItems.map(({ href, icon: Icon, label }) => {
           const active = path === href || path.startsWith(href + "/");
           return (
             <Link key={href} href={href}
@@ -72,7 +82,7 @@ function BottomNav() {
   return (
     <nav className="md:hidden fixed bottom-0 left-0 right-0 z-50 bg-white border-t border-gray-100">
       <div className="flex items-center justify-around px-2 py-2">
-        {navItems.map(({ href, icon: Icon, label }) => {
+        {mobileNavItems.map(({ href, icon: Icon, label }) => {
           const active = path === href;
           return (
             <Link key={href} href={href}

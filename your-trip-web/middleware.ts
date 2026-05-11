@@ -37,7 +37,7 @@ export async function middleware(request: NextRequest) {
     // Supabase unreachable — allow through in dev
   }
 
-  const protectedRoutes = ["/feed", "/profile", "/trips", "/buddy"];
+  const protectedRoutes = ["/feed", "/profile", "/trips", "/buddy", "/notifications", "/settings", "/create"];
   const isProtected = protectedRoutes.some((route) =>
     request.nextUrl.pathname.startsWith(route)
   );
