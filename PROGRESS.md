@@ -40,6 +40,8 @@
   - [x] useUser hook (Supabase auth state, onAuthStateChange)
   - [x] AppShell: user card + sign out button using useUser
   - [x] PostCard: interactive like/save with optimistic update
+  - [x] CommentSection: expandable comments with like/reply/optimistic submit
+  - [x] useLocalStorage: SSR-safe hook for persisting state
   - [x] Prisma schema: full Phase 1-2 models (Place, Post, Like, Comment, Save, Trip, TripDay, TripItem, Follow, Notification, BuddyRequest, Review)
   - [x] server/actions/profile.ts stubs
   - [ ] Connect auth to real Supabase OAuth
@@ -115,3 +117,4 @@
 | 2026-05-09 | UI Sprint: AppShell + Feed + Place Detail + Explore + Trips + Profile (all pages with mock data) | ~70% | Supabase project setup + wire real auth |
 | 2026-05-09 | Foundation code: types/index.ts, validations (Zod v4), loading skeletons x5, error.tsx, create post page, server action stubs | ~95% | Setup .env.local → prisma migrate dev → wire auth |
 | 2026-05-11 | Day 3: notifications, settings, buddy, trips/[id], trips/new, profile/edit, forgot-password, auth callback, useUser hook, AppShell user card, PostCard interactive, Prisma schema expanded, profile server actions | ~60% | Setup Supabase .env.local → migrate → test OAuth |
+| 2026-05-11 | Day 3 cont.: CommentSection component (expandable, like/reply/optimistic), PostCard integrated, useLocalStorage hook, TypeScript clean, pushed to dev | ~80% | Setup Supabase .env.local → migrate → test OAuth |
