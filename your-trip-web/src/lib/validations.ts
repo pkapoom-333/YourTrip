@@ -87,10 +87,18 @@ export type CreateBuddyRequestInput = z.infer<typeof createBuddyRequestSchema>;
 
 /* ── Profile ──────────────────────────────────────────── */
 export const updateProfileSchema = z.object({
-  name: z.string().min(2).max(50).optional(),
-  bio: z.string().max(150).optional(),
+  name: z.string().min(2, "ชื่อต้องมีอย่างน้อย 2 ตัวอักษร").max(50).optional(),
+  username: z
+    .string()
+    .min(3, "Username ต้องมีอย่างน้อย 3 ตัวอักษร")
+    .max(20)
+    .regex(/^[a-z0-9_]+$/, "ใช้ได้เฉพาะตัวเล็ก, ตัวเลข และ _")
+    .optional(),
+  bio: z.string().max(200, "Bio ต้องไม่เกิน 200 ตัวอักษร").optional(),
   location: z.string().max(100).optional(),
   website: z.string().url("URL ไม่ถูกต้อง").optional().or(z.literal("")),
+  gender: z.enum(["Male", "Female", "Other"]).optional(),
+  dateOfBirth: z.string().optional(),
 });
 
 export type UpdateProfileInput = z.infer<typeof updateProfileSchema>;
