@@ -4,6 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { Heart, MessageCircle, Send, Bookmark, MapPin, MoreHorizontal } from "lucide-react";
 import { toggleLike, toggleSave } from "@/server/actions/posts";
+import { CommentSection } from "./CommentSection";
 
 export interface PostCardData {
   id: number;
@@ -130,17 +131,15 @@ export function PostCard({ post }: { post: PostCardData }) {
       </div>
 
       {/* Caption */}
-      <div className="px-4 pb-4">
+      <div className="px-4 pb-2">
         <p className="text-sm text-gray-800 leading-relaxed">
           <span className="font-semibold mr-1">{post.user.name}</span>
           {post.caption}
         </p>
-        {post.comments > 0 && (
-          <button className="text-xs text-gray-400 mt-1.5 hover:text-gray-600">
-            ดูความคิดเห็นทั้ง {fmt(post.comments)} รายการ
-          </button>
-        )}
       </div>
+
+      {/* Comments */}
+      <CommentSection postId={post.id} initialCount={post.comments} />
     </article>
   );
 }
