@@ -3,7 +3,7 @@
 import { useState } from "react";
 import AppShell from "@/components/AppShell";
 import Link from "next/link";
-import { Search, Star, MapPin, SlidersHorizontal, X } from "lucide-react";
+import { Search, Star, MapPin, SlidersHorizontal, X, LayoutGrid, List, ArrowUpDown } from "lucide-react";
 
 /* ── data ──────────────────────────────────────────────── */
 const categories = [
@@ -102,7 +102,44 @@ const places = [
     tags: ["ดำน้ำ", "PADI"],
     img: "https://images.unsplash.com/photo-1544551763-46a013bb70d5?auto=format&fit=crop&w=600&q=80",
   },
+  {
+    slug: "phu-kradueng", name: "ภูกระดึง", category: "nature",
+    location: "เลย", region: "ภาคอีสาน",
+    rating: 4.7, reviews: 2900, price: "฿฿", isOpen: true,
+    tags: ["Hiking", "ป่า"],
+    img: "https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?auto=format&fit=crop&w=600&q=80",
+  },
+  {
+    slug: "mekong-sunset", name: "ชมพระอาทิตย์ตกแม่น้ำโขง", category: "nature",
+    location: "หนองคาย", region: "ภาคอีสาน",
+    rating: 4.6, reviews: 1200, price: "฿", isOpen: true,
+    tags: ["พระอาทิตย์ตก", "แม่น้ำโขง"],
+    img: "https://images.unsplash.com/photo-1501854140801-50d01698950b?auto=format&fit=crop&w=600&q=80",
+  },
+  {
+    slug: "sam-phan-bok", name: "สามพันโบก", category: "nature",
+    location: "อุบลราชธานี", region: "ภาคอีสาน",
+    rating: 4.5, reviews: 890, price: "฿", isOpen: true,
+    tags: ["แกรนด์แคนยอน", "แม่น้ำโขง"],
+    img: "https://images.unsplash.com/photo-1500534314209-a25ddb2bd429?auto=format&fit=crop&w=600&q=80",
+  },
+  {
+    slug: "ayutthaya", name: "อยุธยา", category: "nature",
+    location: "พระนครศรีอยุธยา", region: "ภาคกลาง",
+    rating: 4.7, reviews: 8200, price: "฿฿", isOpen: true,
+    tags: ["ประวัติศาสตร์", "วัด"],
+    img: "https://images.unsplash.com/photo-1555400038-63f5ba517a47?auto=format&fit=crop&w=600&q=80",
+  },
+  {
+    slug: "isaan-food-korat", name: "ร้านส้มตำตำมั่ว", category: "food",
+    location: "นครราชสีมา", region: "ภาคอีสาน",
+    rating: 4.6, reviews: 2100, price: "฿", isOpen: true,
+    tags: ["ส้มตำ", "อาหารอีสาน"],
+    img: "https://images.unsplash.com/photo-1567982047351-76b6f93e38ee?auto=format&fit=crop&w=600&q=80",
+  },
 ];
+
+type SortKey = "rating" | "reviews" | "price_asc" | "price_desc";
 
 function fmt(n: number) {
   return n >= 1000 ? (n / 1000).toFixed(1).replace(".0", "") + "K" : String(n);
@@ -161,16 +198,27 @@ export default function ExplorePage() {
   const [activeCategory, setActiveCategory] = useState("all");
   const [activeRegion, setActiveRegion] = useState("ทั้งหมด");
   const [showFilter, setShowFilter] = useState(false);
+  const [sortKey, setSortKey] = useState<SortKey>("rating");
+  const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
 
-  const filtered = places.filter((p) => {
-    const matchCat = activeCategory === "all" || p.category === activeCategory;
-    const matchReg = activeRegion === "ทั้งหมด" || p.region === activeRegion;
-    const matchQ = !query ||
-      p.name.toLowerCase().includes(query.toLowerCase()) ||
-      p.location.toLowerCase().includes(query.toLowerCase()) ||
-      p.tags.some((t) => t.toLowerCase().includes(query.toLowerCase()));
-    return matchCat && matchReg && matchQ;
-  });
+  const filtered = places
+    .filter((p) => {
+      const matchCat = activeCategory === "all" || p.category === activeCategory;
+      const matchReg = activeRegion === "ทั้งหมด" || p.region === activeRegion;
+      const matchQ = !query ||
+        p.name.toLowerCase().includes(query.toLowerCase()) ||
+        p.location.toLowerCase().includes(query.toLowerCase()) ||
+        p.tags.some((t) => t.toLowerCase().includes(query.toLowerCase()));
+      return matchCat && matchReg && matchQ;
+    })
+    .sort((a, b) => {
+      if (sortKey === "rating") return b.rating - a.rating;
+      if (sortKey === "reviews") return b.reviews - a.reviews;
+      const priceLen = (s: string) => s.length;
+      if (sortKey === "price_asc") return priceLen(a.price) - priceLen(b.price);
+      if (sortKey === "price_desc") return priceLen(b.price) - priceLen(a.price);
+      return 0;
+    });
 
   return (
     <AppShell>
@@ -247,27 +295,98 @@ export default function ExplorePage() {
           ))}
         </div>
 
-        {/* ── Results count ── */}
-        <div className="flex items-center justify-between mb-4">
+        {/* ── Results + controls ── */}
+        <div className="flex items-center justify-between mb-4 gap-2 flex-wrap">
           <p className="text-sm text-gray-500">
             พบ <span className="font-semibold text-gray-900">{filtered.length}</span> สถานที่
             {activeRegion !== "ทั้งหมด" && <span className="text-[#398AB9]"> ใน{activeRegion}</span>}
           </p>
-          {(query || activeCategory !== "all" || activeRegion !== "ทั้งหมด") && (
-            <button onClick={() => { setQuery(""); setActiveCategory("all"); setActiveRegion("ทั้งหมด"); }}
-              className="text-xs text-[#398AB9] hover:underline flex items-center gap-1">
-              <X className="w-3 h-3" /> ล้างตัวกรอง
-            </button>
-          )}
+          <div className="flex items-center gap-2">
+            {/* Sort */}
+            <div className="flex items-center gap-1 bg-white border border-gray-200 rounded-xl px-2 py-1.5">
+              <ArrowUpDown className="w-3 h-3 text-gray-400" />
+              <select
+                value={sortKey}
+                onChange={(e) => setSortKey(e.target.value as SortKey)}
+                className="text-xs text-gray-600 bg-transparent outline-none cursor-pointer"
+              >
+                <option value="rating">คะแนนสูงสุด</option>
+                <option value="reviews">รีวิวมากสุด</option>
+                <option value="price_asc">ราคา ต่ำ→สูง</option>
+                <option value="price_desc">ราคา สูง→ต่ำ</option>
+              </select>
+            </div>
+            {/* View toggle */}
+            <div className="flex bg-white border border-gray-200 rounded-xl overflow-hidden">
+              <button
+                onClick={() => setViewMode("grid")}
+                className={`p-1.5 ${viewMode === "grid" ? "bg-[#398AB9] text-white" : "text-gray-400 hover:bg-gray-50"}`}
+              >
+                <LayoutGrid className="w-3.5 h-3.5" />
+              </button>
+              <button
+                onClick={() => setViewMode("list")}
+                className={`p-1.5 ${viewMode === "list" ? "bg-[#398AB9] text-white" : "text-gray-400 hover:bg-gray-50"}`}
+              >
+                <List className="w-3.5 h-3.5" />
+              </button>
+            </div>
+            {(query || activeCategory !== "all" || activeRegion !== "ทั้งหมด") && (
+              <button onClick={() => { setQuery(""); setActiveCategory("all"); setActiveRegion("ทั้งหมด"); }}
+                className="text-xs text-[#398AB9] hover:underline flex items-center gap-1">
+                <X className="w-3 h-3" /> ล้าง
+              </button>
+            )}
+          </div>
         </div>
 
-        {/* ── Grid ── */}
+        {/* ── Grid / List view ── */}
         {filtered.length > 0 ? (
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 md:gap-4">
-            {filtered.map((p) => (
-              <PlaceCard key={p.slug} place={p} />
-            ))}
-          </div>
+          viewMode === "grid" ? (
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 md:gap-4">
+              {filtered.map((p) => (
+                <PlaceCard key={p.slug} place={p} />
+              ))}
+            </div>
+          ) : (
+            <div className="space-y-3">
+              {filtered.map((p) => (
+                <Link key={p.slug} href={`/place/${p.slug}`}
+                  className="flex gap-3 bg-white rounded-2xl border border-gray-100 p-3 hover:shadow-md transition-shadow group">
+                  <div className="w-20 h-20 md:w-24 md:h-24 flex-shrink-0 rounded-xl overflow-hidden">
+                    <img src={p.img} alt={p.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-start justify-between gap-2">
+                      <p className="font-semibold text-gray-900 text-sm">{p.name}</p>
+                      <span className={`flex-shrink-0 text-[10px] font-semibold px-2 py-0.5 rounded-full ${p.isOpen ? "bg-emerald-50 text-emerald-600" : "bg-gray-100 text-gray-400"}`}>
+                        {p.isOpen ? "เปิด" : "ปิด"}
+                      </span>
+                    </div>
+                    <div className="flex items-center gap-1 mt-0.5">
+                      <MapPin className="w-3 h-3 text-[#398AB9]" />
+                      <span className="text-xs text-gray-400">{p.location}</span>
+                    </div>
+                    <div className="flex items-center gap-2 mt-1.5">
+                      <div className="flex items-center gap-1">
+                        <Star className="w-3 h-3 fill-amber-400 text-amber-400" />
+                        <span className="text-xs font-bold text-gray-700">{p.rating}</span>
+                        <span className="text-[10px] text-gray-400">({fmt(p.reviews)})</span>
+                      </div>
+                      <span className="text-xs text-gray-400">{p.price}</span>
+                    </div>
+                    <div className="flex flex-wrap gap-1 mt-1.5">
+                      {p.tags.slice(0, 2).map((t) => (
+                        <span key={t} className="text-[10px] bg-[#398AB9]/8 text-[#398AB9] px-2 py-0.5 rounded-full">
+                          #{t}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                </Link>
+              ))}
+            </div>
+          )
         ) : (
           <div className="flex flex-col items-center justify-center py-20 text-center">
             <div className="text-5xl mb-4">🔍</div>
