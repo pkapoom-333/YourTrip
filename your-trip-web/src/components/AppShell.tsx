@@ -1,11 +1,13 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import {
-  Home, Search, PlusSquare, MapPin, User,
-  Compass, Bell, Settings, Users,
+  Home, PlusSquare, MapPin, User,
+  Compass, Bell, Settings, Users, LogOut,
 } from "lucide-react";
+import { useUser } from "@/hooks/useUser";
+import { createClient } from "@/lib/supabase/client";
 
 // Desktop sidebar nav (all items)
 const sidebarItems = [
@@ -24,9 +26,32 @@ const mobileNavItems = [
   { href: "/profile", icon: User,       label: "โปรไฟล์" },
 ];
 
+function getInitials(name?: string | null, email?: string | null): string {
+  if (name) {
+    const parts = name.trim().split(" ");
+    return parts.length >= 2
+      ? (parts[0][0] + parts[parts.length - 1][0]).toUpperCase()
+      : name.slice(0, 2).toUpperCase();
+  }
+  if (email) return email.slice(0, 2).toUpperCase();
+  return "YT";
+}
+
 /** Desktop sidebar — hidden on mobile */
 function Sidebar() {
   const path = usePathname();
+  const router = useRouter();
+  const { user } = useUser();
+
+  async function handleSignOut() {
+    const supabase = createClient();
+    await supabase.auth.signOut();
+    router.push("/login");
+  }
+
+  const displayName = user?.user_metadata?.full_name ?? user?.email?.split("@")[0] ?? "Your Trip User";
+  const initials = getInitials(user?.user_metadata?.full_name as string | undefined, user?.email);
+
   return (
     <aside className="hidden md:flex flex-col fixed left-0 top-0 h-full w-64 bg-white border-r border-gray-100 z-40 px-4 py-6">
       {/* Logo */}
@@ -59,18 +84,46 @@ function Sidebar() {
         </Link>
       </nav>
 
-      {/* Bottom */}
+      {/* Bottom utilities */}
       <div className="space-y-1 pt-4 border-t border-gray-100">
         <Link href="/notifications"
-          className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm text-gray-500 hover:bg-gray-50 transition">
+          className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm transition ${
+            path === "/notifications" ? "bg-[#398AB9]/10 text-[#398AB9]" : "text-gray-500 hover:bg-gray-50"
+          }`}>
           <Bell className="w-5 h-5" strokeWidth={1.8} />
           การแจ้งเตือน
         </Link>
         <Link href="/settings"
-          className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm text-gray-500 hover:bg-gray-50 transition">
+          className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm transition ${
+            path === "/settings" ? "bg-[#398AB9]/10 text-[#398AB9]" : "text-gray-500 hover:bg-gray-50"
+          }`}>
           <Settings className="w-5 h-5" strokeWidth={1.8} />
           ตั้งค่า
         </Link>
+      </div>
+
+      {/* User card */}
+      <div className="mt-4 pt-4 border-t border-gray-100">
+        <div className="flex items-center gap-3 px-2">
+          <div className="w-9 h-9 bg-[#398AB9] rounded-full flex items-center justify-center text-white text-xs font-bold flex-shrink-0">
+            {initials}
+          </div>
+          <div className="flex-1 min-w-0">
+            <p className="text-sm font-semibold text-gray-900 truncate">{displayName}</p>
+            {user?.email && (
+              <p className="text-[10px] text-gray-400 truncate">{user.email}</p>
+            )}
+          </div>
+          {user && (
+            <button
+              onClick={handleSignOut}
+              title="ออกจากระบบ"
+              className="text-gray-300 hover:text-red-400 transition p-1"
+            >
+              <LogOut className="w-4 h-4" />
+            </button>
+          )}
+        </div>
       </div>
     </aside>
   );
