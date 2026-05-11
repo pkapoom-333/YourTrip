@@ -1,11 +1,12 @@
 # PROGRESS.md
 # Travel Community App — Dev Log
 
-## Status: Phase 1 | Day 2 | 2026-05-09
+## Status: Phase 1 | Day 3 | 2026-05-11
 
 ## Current sprint task
-→ **NEXT TASK: Setup Supabase project + .env.local → run `npx prisma migrate dev`**
-→ Then: wire real auth to /login /register pages (Supabase Google OAuth)
+→ **NEXT TASK: Setup Supabase project + .env.local → run `npx prisma migrate dev --name init`**
+→ Then: ทดสอบ Google OAuth flow (/login → callback → /feed)
+→ Then: ดึง real user data จาก Supabase ใน Profile + AppShell
 
 ---
 
@@ -28,6 +29,19 @@
   - [x] Trips page (/trips) — trip planning list
   - [ ] Supabase project created + .env.local configured
   - [ ] DB migration run (`prisma migrate dev`)
+  - [x] /notifications page (unread count, mark-all-read, buddy request card)
+  - [x] /settings page (toggles: notification, privacy, dark mode)
+  - [x] /buddy page (Travel Buddy discovery, like/pass/match)
+  - [x] /trips/[id] page (itinerary builder, day tabs, budget bar, add/delete items)
+  - [x] /trips/new page (3-step wizard: destination → dates+budget → privacy)
+  - [x] /profile/edit page (edit form, avatar upload stub)
+  - [x] /forgot-password + /auth/reset-password pages
+  - [x] /api/auth/callback route (Supabase OAuth exchange)
+  - [x] useUser hook (Supabase auth state, onAuthStateChange)
+  - [x] AppShell: user card + sign out button using useUser
+  - [x] PostCard: interactive like/save with optimistic update
+  - [x] Prisma schema: full Phase 1-2 models (Place, Post, Like, Comment, Save, Trip, TripDay, TripItem, Follow, Notification, BuddyRequest, Review)
+  - [x] server/actions/profile.ts stubs
   - [ ] Connect auth to real Supabase OAuth
 - [ ] Phase 2: Core Features (target: 13 Jun 2026)
   - [ ] Posts & Feed (create, list, like)
@@ -100,3 +114,4 @@
 | 2026-05-09 | Foundation: Supabase migration + bug fixes + Shadcn/ui | ~40% | Create Supabase project + auth pages |
 | 2026-05-09 | UI Sprint: AppShell + Feed + Place Detail + Explore + Trips + Profile (all pages with mock data) | ~70% | Supabase project setup + wire real auth |
 | 2026-05-09 | Foundation code: types/index.ts, validations (Zod v4), loading skeletons x5, error.tsx, create post page, server action stubs | ~95% | Setup .env.local → prisma migrate dev → wire auth |
+| 2026-05-11 | Day 3: notifications, settings, buddy, trips/[id], trips/new, profile/edit, forgot-password, auth callback, useUser hook, AppShell user card, PostCard interactive, Prisma schema expanded, profile server actions | ~60% | Setup Supabase .env.local → migrate → test OAuth |
