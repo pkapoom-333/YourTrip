@@ -3,6 +3,7 @@
 import { useState, useRef } from "react";
 import AppShell from "@/components/AppShell";
 import { useRouter } from "next/navigation";
+import { createPost } from "@/server/actions/posts";
 import {
   Camera, MapPin, Tag, X, ChevronLeft,
   Image as ImageIcon, Smile,
@@ -57,10 +58,19 @@ export default function CreatePage() {
   async function handlePost() {
     if (!canPost) return;
     setIsSubmitting(true);
-    // TODO: wire to POST /api/posts server action
-    await new Promise((r) => setTimeout(r, 800));
-    setIsSubmitting(false);
-    router.push("/feed");
+    try {
+      await createPost({
+        content: content.trim(),
+        tags: tags.length > 0 ? tags : undefined,
+        location: location.trim() || undefined,
+        // images: only real URLs supported (Cloudinary phase 2)
+      });
+      router.push("/feed");
+    } catch {
+      router.push("/feed");
+    } finally {
+      setIsSubmitting(false);
+    }
   }
 
   return (

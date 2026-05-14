@@ -3,6 +3,7 @@
 import { useState } from "react";
 import AppShell from "@/components/AppShell";
 import { useRouter } from "next/navigation";
+import { createTrip } from "@/server/actions/trips";
 import {
   ChevronLeft, MapPin, Calendar, Image as ImageIcon,
   Wallet, Globe, Lock, Sparkles, Check,
@@ -58,10 +59,32 @@ export default function NewTripPage() {
 
   async function handleSubmit() {
     setIsSubmitting(true);
-    // TODO: wire to createTrip server action
-    await new Promise((r) => setTimeout(r, 800));
-    setIsSubmitting(false);
-    router.push("/trips/mock-new-trip-id");
+    try {
+      // Calculate startDate / endDate from form.startDate + form.days
+      const start = form.startDate || new Date().toISOString().split("T")[0];
+      const startMs = new Date(start).getTime();
+      const end = new Date(startMs + (form.days - 1) * 86_400_000).toISOString().split("T")[0];
+
+      const result = await createTrip({
+        title: form.title || `ทริป${form.destination}`,
+        destination: form.destination,
+        startDate: start,
+        endDate: form.endDate || end,
+        budget: form.budget,
+        description: form.description || undefined,
+        visibility: form.isPublic ? "PUBLIC" : "PRIVATE",
+      });
+
+      if (result.data) {
+        router.push(`/trips/${result.data.id}`);
+      } else {
+        router.push("/trips");
+      }
+    } catch {
+      router.push("/trips");
+    } finally {
+      setIsSubmitting(false);
+    }
   }
 
   const canNext = step === 1
