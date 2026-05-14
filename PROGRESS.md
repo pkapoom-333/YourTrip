@@ -4,9 +4,10 @@
 ## Status: Phase 1 | Day 4 | 2026-05-15
 
 ## Current sprint task
-→ **NEXT TASK: สร้าง Supabase project → ใส่ `.env.local` → รัน `npx prisma migrate dev --name init` → `npx prisma db seed`**
+→ **BLOCKED (needs user)**: สร้าง Supabase project → ใส่ `.env.local` → รัน `npx prisma migrate dev --name init` → `npx prisma db seed`
 → Then: ทดสอบ Google OAuth flow (/login → callback → /feed)
 → Then: ดึง real user data จาก Supabase ใน Profile + AppShell
+→ **CODE READY**: /place/[slug] — refactor large "use client" page → server wrapper + PlaceDetailClient
 
 ---
 
@@ -43,7 +44,8 @@
   - [x] CommentSection: expandable comments with like/reply/optimistic submit
   - [x] useLocalStorage: SSR-safe hook for persisting state
   - [x] Prisma schema: full Phase 1-2 models (Place, Post, Like, Comment, Save, Trip, TripDay, TripItem, Follow, Notification, BuddyRequest, Review)
-  - [x] server/actions/profile.ts stubs
+  - [x] server/actions/profile.ts — real Prisma (posts, profile, places, trips all wired)
+  - [x] server/actions/trips.ts — createTrip (auto TripDays), getUserTrips, getTripById, addItineraryItem, deleteTripItem, reorderItinerary, deleteTrip
   - [ ] Connect auth to real Supabase OAuth
 - [ ] Phase 2: Core Features (target: 13 Jun 2026)
   - [ ] Posts & Feed (create, list, like)
@@ -119,3 +121,4 @@
 | 2026-05-11 | Day 3: notifications, settings, buddy, trips/[id], trips/new, profile/edit, forgot-password, auth callback, useUser hook, AppShell user card, PostCard interactive, Prisma schema expanded, profile server actions | ~60% | Setup Supabase .env.local → migrate → test OAuth |
 | 2026-05-11 | Day 3 cont.: CommentSection component (expandable, like/reply/optimistic), PostCard integrated, useLocalStorage hook, TypeScript clean, pushed to dev | ~80% | Setup Supabase .env.local → migrate → test OAuth |
 | 2026-05-15 | Day 4: Wire server actions (posts/profile/places) w/ Prisma + mock fallback, seed script (11 places), refactor /explore → server page + ExploreClient, fix proxy.ts, fix preview config | ~40% | ใส่ .env.local → migrate → seed → test auth |
+| 2026-05-15 | Day 4 cont.: Wire trips.ts (createTrip+auto TripDays, getUserTrips, getTripById, addItineraryItem, deleteTripItem, reorderItinerary, deleteTrip), confirm auth/callback route exists, add .claude/settings.json permission allowlist | ~55% | สร้าง Supabase project → .env.local → migrate → seed |
