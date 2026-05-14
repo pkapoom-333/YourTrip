@@ -1,7 +1,8 @@
 import AppShell from "@/components/AppShell";
 import Link from "next/link";
 import { Search, Bell, TrendingUp } from "lucide-react";
-import { PostCard } from "@/components/features/PostCard";
+import { PostCard, type PostCardData } from "@/components/features/PostCard";
+import { getFeed } from "@/server/actions/posts";
 
 const stories = [
   { id: 0, name: "เพิ่มสตอรี่", bg: "bg-gray-100", initials: "+", isAdd: true },
@@ -13,11 +14,11 @@ const stories = [
   { id: 6, name: "nomad",        bg: "bg-sky-400",     initials: "N"  },
 ];
 
-const posts = [
+// ─── Mock posts (shown when DB not configured) ────────────────────────────────
+const MOCK_POSTS: PostCardData[] = [
   {
     id: 1, slug: "doi-ang-khang",
     user: { name: "free people", bg: "bg-orange-400", initials: "FP", location: "ดอยอ่างขาง, เชียงใหม่" },
-    title: "Mountain, sea and sun",
     caption: "ช่วงเช้าที่สวยงามบนยอดดอย อากาศเย็นสบาย ทิวทัศน์สุดสวย ❄️ ใครอยากสัมผัสธรรมชาติต้องมาที่นี่",
     img: "https://images.unsplash.com/photo-1476514525405-8d4b4c284c1e?auto=format&fit=crop&w=800&q=80",
     likes: 10200, comments: 534, shares: 128, saved: false, time: "2 ชั่วโมงที่แล้ว",
@@ -26,7 +27,6 @@ const posts = [
   {
     id: 2, slug: "bali-terraces",
     user: { name: "shy girl", bg: "bg-pink-400", initials: "SG", location: "บาหลี, อินโดนีเซีย" },
-    title: "ดินแดนแห่งความฝัน 🌿",
     caption: "นาขั้นบันไดที่งดงามที่สุดในโลก สีเขียวสดชื่น น้ำใจของชาวบาหลีงดงามไม่แพ้กัน 🙏",
     img: "https://images.unsplash.com/photo-1537996194471-e657df975ab4?auto=format&fit=crop&w=800&q=80",
     likes: 8760, comments: 412, shares: 98, saved: true, time: "5 ชั่วโมงที่แล้ว",
@@ -35,7 +35,6 @@ const posts = [
   {
     id: 3, slug: "swiss-alps",
     user: { name: "wanderer", bg: "bg-emerald-400", initials: "W", location: "Swiss Alps, Switzerland" },
-    title: "หิมะขาวโพลน 🏔️",
     caption: "Hiking ที่ยากแต่คุ้มค่า ยอดเขา 4,000 เมตร อากาศบริสุทธิ์ ทุกก้าวคือความทรงจำที่ดีที่สุด",
     img: "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?auto=format&fit=crop&w=800&q=80",
     likes: 15400, comments: 867, shares: 234, saved: false, time: "8 ชั่วโมงที่แล้ว",
@@ -44,7 +43,6 @@ const posts = [
   {
     id: 4, slug: "santorini",
     user: { name: "travelmate", bg: "bg-violet-400", initials: "TM", location: "ซานโตรีนี, กรีซ" },
-    title: "เมืองสีขาว ทะเลสีฟ้า ☀️",
     caption: "Santorini ในแสงยามเย็น สวยเกินจินตนาการ ขอบคุณโลกใบนี้ที่มีสถานที่แบบนี้ 🌅",
     img: "https://images.unsplash.com/photo-1570077188670-e3a8d69ac5ff?auto=format&fit=crop&w=800&q=80",
     likes: 22100, comments: 1240, shares: 567, saved: false, time: "1 วันที่แล้ว",
@@ -59,7 +57,36 @@ const trending = [
   { label: "ภูเก็ต", count: "1.5K โพสต์" },
 ];
 
-export default function FeedPage() {
+const fmtTime = (d: Date) => {
+  const diff = Date.now() - new Date(d).getTime();
+  const mins = Math.floor(diff / 60_000);
+  if (mins < 60) return `${mins} นาทีที่แล้ว`;
+  const hours = Math.floor(mins / 60);
+  if (hours < 24) return `${hours} ชั่วโมงที่แล้ว`;
+  return `${Math.floor(hours / 24)} วันที่แล้ว`;
+};
+
+export default async function FeedPage() {
+  const { data: dbPosts } = await getFeed();
+
+  const feedPosts: PostCardData[] = dbPosts.length > 0
+    ? dbPosts.map((p) => ({
+        id: p.id,
+        caption: p.content,
+        img: p.images?.[0] ?? undefined,
+        user: {
+          name: p.user?.name ?? "YourTrip User",
+          avatarUrl: p.user?.avatarUrl ?? undefined,
+          location: p.location ?? undefined,
+        },
+        likes: p.likesCount,
+        comments: p.commentsCount,
+        saved: false,
+        time: fmtTime(p.createdAt),
+        tags: p.tags ?? [],
+      }))
+    : MOCK_POSTS;
+
   return (
     <AppShell>
       {/* ─── TOP BAR (mobile only) ─── */}
@@ -114,7 +141,7 @@ export default function FeedPage() {
 
             {/* Posts — interactive like/save via PostCard client component */}
             <div className="space-y-3">
-              {posts.map((post) => (
+              {feedPosts.map((post) => (
                 <PostCard key={post.id} post={post} />
               ))}
             </div>

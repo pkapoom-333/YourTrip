@@ -7,15 +7,21 @@ import { toggleLike, toggleSave } from "@/server/actions/posts";
 import { CommentSection } from "./CommentSection";
 
 export interface PostCardData {
-  id: number;
-  slug: string;
-  user: { name: string; bg: string; initials: string; location: string };
-  title: string;
+  id: number | string;
+  slug?: string;
+  user: {
+    name: string;
+    bg?: string;
+    initials?: string;
+    avatarUrl?: string | null;
+    location?: string;
+  };
+  title?: string;
   caption: string;
-  img: string;
+  img?: string;
   likes: number;
   comments: number;
-  shares: number;
+  shares?: number;
   saved: boolean;
   time: string;
   tags: string[];
@@ -61,17 +67,28 @@ export function PostCard({ post }: { post: PostCardData }) {
     <article className="bg-white border border-gray-100 rounded-2xl overflow-hidden">
       {/* Post header */}
       <div className="flex items-center gap-3 p-3.5">
-        <div className={`w-10 h-10 ${post.user.bg} rounded-full flex items-center justify-center font-bold text-white text-sm flex-shrink-0`}>
-          {post.user.initials}
-        </div>
+        {post.user.avatarUrl ? (
+          <img src={post.user.avatarUrl} alt={post.user.name}
+            className="w-10 h-10 rounded-full object-cover flex-shrink-0" />
+        ) : (
+          <div className={`w-10 h-10 ${post.user.bg ?? "bg-[#398AB9]"} rounded-full flex items-center justify-center font-bold text-white text-sm flex-shrink-0`}>
+            {post.user.initials ?? post.user.name.charAt(0).toUpperCase()}
+          </div>
+        )}
         <div className="flex-1 min-w-0">
           <p className="text-sm font-semibold text-gray-900">{post.user.name}</p>
-          <div className="flex items-center gap-1 text-[11px] text-gray-400">
-            <MapPin className="w-2.5 h-2.5" />
-            <Link href={`/place/${post.slug}`} className="hover:text-[#398AB9] transition truncate">
-              {post.user.location}
-            </Link>
-          </div>
+          {post.user.location && (
+            <div className="flex items-center gap-1 text-[11px] text-gray-400">
+              <MapPin className="w-2.5 h-2.5" />
+              {post.slug ? (
+                <Link href={`/place/${post.slug}`} className="hover:text-[#398AB9] transition truncate">
+                  {post.user.location}
+                </Link>
+              ) : (
+                <span className="truncate">{post.user.location}</span>
+              )}
+            </div>
+          )}
         </div>
         <div className="flex items-center gap-2">
           <span className="text-[10px] text-gray-400">{post.time}</span>
@@ -82,10 +99,11 @@ export function PostCard({ post }: { post: PostCardData }) {
       </div>
 
       {/* Post image */}
+      {post.img && (
       <div className="relative aspect-[4/3] overflow-hidden bg-gray-100">
         <img
           src={post.img}
-          alt={post.title}
+          alt={post.title ?? ""}
           className="w-full h-full object-cover transition-transform duration-300 hover:scale-105"
         />
         {/* Tags */}
@@ -99,6 +117,7 @@ export function PostCard({ post }: { post: PostCardData }) {
           </div>
         )}
       </div>
+      )}
 
       {/* Action bar */}
       <div className="flex items-center gap-0.5 px-3 pt-3 pb-1">
@@ -115,10 +134,12 @@ export function PostCard({ post }: { post: PostCardData }) {
           <MessageCircle className="w-5 h-5" />
           <span className="text-xs font-medium">{fmt(post.comments)}</span>
         </button>
+        {post.shares !== undefined && (
         <button className="flex items-center gap-1.5 px-2 py-1.5 rounded-xl text-gray-400 hover:text-[#398AB9] hover:bg-[#398AB9]/5 transition">
           <Send className="w-5 h-5" />
           <span className="text-xs font-medium">{fmt(post.shares)}</span>
         </button>
+        )}
         <div className="flex-1" />
         <button
           onClick={handleSave}
