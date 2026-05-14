@@ -1,10 +1,10 @@
 # PROGRESS.md
 # Travel Community App — Dev Log
 
-## Status: Phase 1 | Day 3 | 2026-05-11
+## Status: Phase 1 | Day 4 | 2026-05-15
 
 ## Current sprint task
-→ **NEXT TASK: Setup Supabase project + .env.local → run `npx prisma migrate dev --name init`**
+→ **NEXT TASK: สร้าง Supabase project → ใส่ `.env.local` → รัน `npx prisma migrate dev --name init` → `npx prisma db seed`**
 → Then: ทดสอบ Google OAuth flow (/login → callback → /feed)
 → Then: ดึง real user data จาก Supabase ใน Profile + AppShell
 
@@ -118,3 +118,4 @@
 | 2026-05-09 | Foundation code: types/index.ts, validations (Zod v4), loading skeletons x5, error.tsx, create post page, server action stubs | ~95% | Setup .env.local → prisma migrate dev → wire auth |
 | 2026-05-11 | Day 3: notifications, settings, buddy, trips/[id], trips/new, profile/edit, forgot-password, auth callback, useUser hook, AppShell user card, PostCard interactive, Prisma schema expanded, profile server actions | ~60% | Setup Supabase .env.local → migrate → test OAuth |
 | 2026-05-11 | Day 3 cont.: CommentSection component (expandable, like/reply/optimistic), PostCard integrated, useLocalStorage hook, TypeScript clean, pushed to dev | ~80% | Setup Supabase .env.local → migrate → test OAuth |
+| 2026-05-15 | Day 4: Wire server actions (posts/profile/places) w/ Prisma + mock fallback, seed script (11 places), refactor /explore → server page + ExploreClient, fix proxy.ts, fix preview config | ~40% | ใส่ .env.local → migrate → seed → test auth |
