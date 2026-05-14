@@ -1,7 +1,7 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 
-export async function middleware(request: NextRequest) {
+export async function proxy(request: NextRequest) {
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 
@@ -37,7 +37,15 @@ export async function middleware(request: NextRequest) {
     // Supabase unreachable — allow through in dev
   }
 
-  const protectedRoutes = ["/feed", "/profile", "/trips", "/buddy", "/notifications", "/settings", "/create"];
+  const protectedRoutes = [
+    "/feed",
+    "/profile",
+    "/trips",
+    "/buddy",
+    "/notifications",
+    "/settings",
+    "/create",
+  ];
   const isProtected = protectedRoutes.some((route) =>
     request.nextUrl.pathname.startsWith(route)
   );
