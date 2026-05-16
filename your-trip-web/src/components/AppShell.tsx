@@ -10,6 +10,7 @@ import {
 import { useUser } from "@/hooks/useUser";
 import { createClient } from "@/lib/supabase/client";
 import { getUnreadCount } from "@/server/actions/notifications";
+import { PWAInstallPrompt } from "@/components/PWAInstallPrompt";
 
 // Desktop sidebar nav (all items)
 const sidebarItems = [
@@ -199,6 +200,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
         {children}
       </main>
       <BottomNav />
+      <PWAInstallPrompt />
     </div>
   );
 }
