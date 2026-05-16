@@ -1,7 +1,8 @@
 "use client";
 
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { Heart, Send, MoreHorizontal } from "lucide-react";
+import { getComments, createComment } from "@/server/actions/posts";
 
 interface Comment {
   id: string;
@@ -88,14 +89,43 @@ interface CommentSectionProps {
   initialCount?: number;
 }
 
+function fmtComment(d: Date): string {
+  const diff = Date.now() - new Date(d).getTime();
+  const mins = Math.floor(diff / 60_000);
+  if (mins < 1) return "เมื่อกี้";
+  if (mins < 60) return `${mins} นาที`;
+  const hrs = Math.floor(mins / 60);
+  if (hrs < 24) return `${hrs} ชม.`;
+  return `${Math.floor(hrs / 24)} วัน`;
+}
+
 export function CommentSection({ postId, initialCount = 0 }: CommentSectionProps) {
   const [comments, setComments] = useState<Comment[]>(MOCK_COMMENTS);
   const [input, setInput] = useState("");
   const [isExpanded, setIsExpanded] = useState(false);
+  const [loaded, setLoaded] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
 
-  // Use postId for future API calls
-  void postId;
+  // Load real comments when expanded
+  useEffect(() => {
+    if (!isExpanded || loaded) return;
+    const id = typeof postId === "number" ? String(postId) : postId;
+    if (id.startsWith("mock")) return;
+    setLoaded(true);
+    getComments(id).then(({ data }) => {
+      if (data.length === 0) return;
+      setComments(data.map((c) => ({
+        id: c.id,
+        author: c.user.username ?? c.user.name ?? "ผู้ใช้",
+        avatar: (c.user.name ?? c.user.username ?? "ผ").charAt(0).toUpperCase(),
+        avatarBg: "bg-[#398AB9]",
+        text: c.content,
+        time: fmtComment(c.createdAt),
+        likes: 0,
+        isLiked: false,
+      })));
+    }).catch(() => {});
+  }, [isExpanded, loaded, postId]);
 
   function handleLike(id: string) {
     setComments((prev) =>
@@ -116,19 +146,31 @@ export function CommentSection({ postId, initialCount = 0 }: CommentSectionProps
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     if (!input.trim()) return;
-    const newComment: Comment = {
-      id: `c${Date.now()}`,
+    const text = input.trim();
+    // Optimistic update
+    const optimistic: Comment = {
+      id: `opt-${Date.now()}`,
       author: "คุณ",
       avatar: "YT",
       avatarBg: "bg-[#398AB9]",
-      text: input.trim(),
+      text,
       time: "เมื่อกี้",
       likes: 0,
       isLiked: false,
     };
-    setComments((prev) => [...prev, newComment]);
+    setComments((prev) => [...prev, optimistic]);
     setInput("");
-    // TODO: wire to createComment server action
+
+    // Wire to server action (fire-and-forget, replace optimistic ID if success)
+    const id = typeof postId === "number" ? String(postId) : postId;
+    if (!id.startsWith("mock")) {
+      createComment(id, text).then(({ data }) => {
+        if (!data) return;
+        setComments((prev) =>
+          prev.map((c) => c.id === optimistic.id ? { ...c, id: data.id } : c)
+        );
+      }).catch(() => {});
+    }
   }
 
   const totalCount = initialCount + comments.length;
