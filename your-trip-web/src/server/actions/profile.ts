@@ -150,3 +150,87 @@ export async function unfollowUser(targetId: string) {
     return { data: { following: false } };
   }
 }
+
+export interface PostGridItem {
+  id: string;
+  images: string[];
+  likesCount: number;
+  commentsCount: number;
+}
+
+/** Get posts for the profile grid (own or another user's) */
+export async function getUserPosts(userId?: string): Promise<{ data: PostGridItem[] }> {
+  try {
+    const supabase = await createServerClient();
+    const { data: { user: authUser } } = await supabase.auth.getUser();
+    const targetId = userId ?? authUser?.id;
+    if (!targetId) return { data: [] };
+
+    const posts = await prisma.post.findMany({
+      where: { userId: targetId, ...(userId ? { isPublic: true } : {}) },
+      orderBy: { createdAt: "desc" },
+      take: 30,
+      include: {
+        _count: { select: { likes: true, comments: true } },
+      },
+    });
+
+    return {
+      data: posts.map((p) => ({
+        id: p.id,
+        images: p.images,
+        likesCount: p._count.likes,
+        commentsCount: p._count.comments,
+      })),
+    };
+  } catch {
+    return { data: [] };
+  }
+}
+
+/** Get saved posts for the profile */
+export async function getUserSavedPosts(): Promise<{ data: PostGridItem[] }> {
+  try {
+    const supabase = await createServerClient();
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return { data: [] };
+
+    const saves = await prisma.save.findMany({
+      where: { userId: user.id },
+      orderBy: { createdAt: "desc" },
+      take: 30,
+      include: {
+        post: {
+          include: { _count: { select: { likes: true, comments: true } } },
+        },
+      },
+    });
+
+    return {
+      data: saves.map((s) => ({
+        id: s.post.id,
+        images: s.post.images,
+        likesCount: s.post._count.likes,
+        commentsCount: s.post._count.comments,
+      })),
+    };
+  } catch {
+    return { data: [] };
+  }
+}
+
+/** Check if current user follows another user */
+export async function checkIsFollowing(targetId: string): Promise<{ following: boolean }> {
+  try {
+    const supabase = await createServerClient();
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return { following: false };
+
+    const follow = await prisma.follow.findUnique({
+      where: { followerId_followingId: { followerId: user.id, followingId: targetId } },
+    });
+    return { following: !!follow };
+  } catch {
+    return { following: false };
+  }
+}

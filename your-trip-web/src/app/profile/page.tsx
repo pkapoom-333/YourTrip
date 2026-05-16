@@ -3,19 +3,22 @@
 import { useState, useEffect } from "react";
 import AppShell from "@/components/AppShell";
 import Link from "next/link";
-import { Settings, MapPin, Calendar, Grid3X3, Bookmark, Heart, Star } from "lucide-react";
-import { getProfile } from "@/server/actions/profile";
+import { Settings, MapPin, Grid3X3, Bookmark, Heart, Star } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { getProfile, getUserPosts, getUserSavedPosts, type PostGridItem } from "@/server/actions/profile";
 
-const posts = [
-  { id: 1, img: "https://images.unsplash.com/photo-1476514525405-8d4b4c284c1e?auto=format&fit=crop&w=400&q=80", likes: 284 },
-  { id: 2, img: "https://images.unsplash.com/photo-1537996194471-e657df975ab4?auto=format&fit=crop&w=400&q=80", likes: 512 },
-  { id: 3, img: "https://images.unsplash.com/photo-1570077188670-e3a8d69ac5ff?auto=format&fit=crop&w=400&q=80", likes: 1024 },
-  { id: 4, img: "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?auto=format&fit=crop&w=400&q=80", likes: 763 },
-  { id: 5, img: "https://images.unsplash.com/photo-1552465011-b4e21bf6e79a?auto=format&fit=crop&w=400&q=80", likes: 445 },
-  { id: 6, img: "https://images.unsplash.com/photo-1528360983277-13d401cdc186?auto=format&fit=crop&w=400&q=80", likes: 329 },
+// Mock fallback posts (shown when DB not configured)
+const MOCK_POSTS: PostGridItem[] = [
+  { id: "m1", images: ["https://images.unsplash.com/photo-1476514525405-8d4b4c284c1e?auto=format&fit=crop&w=400&q=80"], likesCount: 284, commentsCount: 12 },
+  { id: "m2", images: ["https://images.unsplash.com/photo-1537996194471-e657df975ab4?auto=format&fit=crop&w=400&q=80"], likesCount: 512, commentsCount: 24 },
+  { id: "m3", images: ["https://images.unsplash.com/photo-1570077188670-e3a8d69ac5ff?auto=format&fit=crop&w=400&q=80"], likesCount: 1024, commentsCount: 48 },
+  { id: "m4", images: ["https://images.unsplash.com/photo-1506905925346-21bda4d32df4?auto=format&fit=crop&w=400&q=80"], likesCount: 763, commentsCount: 31 },
+  { id: "m5", images: ["https://images.unsplash.com/photo-1552465011-b4e21bf6e79a?auto=format&fit=crop&w=400&q=80"], likesCount: 445, commentsCount: 18 },
+  { id: "m6", images: ["https://images.unsplash.com/photo-1528360983277-13d401cdc186?auto=format&fit=crop&w=400&q=80"], likesCount: 329, commentsCount: 9 },
 ];
 
 export default function ProfilePage() {
+  const router = useRouter();
   const [tab, setTab] = useState<"posts" | "saved" | "reviews">("posts");
   const [profile, setProfile] = useState({
     name: "Your Trip User",
@@ -27,6 +30,8 @@ export default function ProfilePage() {
     followersCount: 1200,
     followingCount: 234,
   });
+  const [myPosts, setMyPosts] = useState<PostGridItem[]>(MOCK_POSTS);
+  const [savedPosts, setSavedPosts] = useState<PostGridItem[]>([]);
 
   useEffect(() => {
     getProfile().then(({ data }) => {
@@ -42,6 +47,10 @@ export default function ProfilePage() {
         followingCount: data.followingCount,
       });
     });
+    getUserPosts().then(({ data }) => {
+      if (data.length > 0) setMyPosts(data);
+    });
+    getUserSavedPosts().then(({ data }) => setSavedPosts(data));
   }, []);
 
   return (
@@ -119,10 +128,14 @@ export default function ProfilePage() {
           </div>
 
           <div className="flex gap-2 mt-4">
-            <button className="flex-1 py-2 bg-[#398AB9] text-white text-sm font-semibold rounded-xl hover:bg-[#1C658C] transition">
+            <button
+              onClick={() => router.push("/profile/edit")}
+              className="flex-1 py-2 bg-[#398AB9] text-white text-sm font-semibold rounded-xl hover:bg-[#1C658C] transition">
               แก้ไขโปรไฟล์
             </button>
-            <button className="flex-1 py-2 border border-gray-200 text-gray-600 text-sm font-semibold rounded-xl hover:bg-gray-50 transition">
+            <button
+              onClick={() => navigator.share?.({ title: profile.name, url: window.location.href }).catch(() => {})}
+              className="flex-1 py-2 border border-gray-200 text-gray-600 text-sm font-semibold rounded-xl hover:bg-gray-50 transition">
               แชร์โปรไฟล์
             </button>
           </div>
@@ -148,29 +161,67 @@ export default function ProfilePage() {
         {/* ── Posts grid ── */}
         {tab === "posts" && (
           <div className="grid grid-cols-3 gap-px bg-gray-100">
-            {posts.map((p) => (
-              <div key={p.id} className="relative aspect-square bg-gray-200 overflow-hidden group cursor-pointer">
-                <img src={p.img} alt="" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
-                <div className="absolute inset-0 bg-black/0 group-hover:bg-black/30 transition flex items-center justify-center opacity-0 group-hover:opacity-100">
-                  <div className="flex items-center gap-1.5 text-white font-semibold text-sm">
-                    <Heart className="w-4 h-4 fill-white" />
-                    {p.likes}
+            {myPosts.length === 0 ? (
+              <div className="col-span-3 flex flex-col items-center justify-center py-16 text-center px-8">
+                <Grid3X3 className="w-12 h-12 text-gray-200 mb-4" />
+                <p className="text-gray-500 font-medium">ยังไม่มีโพสต์</p>
+                <Link href="/create" className="mt-4 text-sm text-[#398AB9] font-medium hover:underline">
+                  สร้างโพสต์แรก
+                </Link>
+              </div>
+            ) : (
+              myPosts.map((p) => (
+                <div key={p.id} className="relative aspect-square bg-gray-200 overflow-hidden group cursor-pointer">
+                  {p.images[0] ? (
+                    <img src={p.images[0]} alt="" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
+                  ) : (
+                    <div className="w-full h-full bg-gray-200 flex items-center justify-center">
+                      <Grid3X3 className="w-6 h-6 text-gray-400" />
+                    </div>
+                  )}
+                  <div className="absolute inset-0 bg-black/0 group-hover:bg-black/30 transition flex items-center justify-center opacity-0 group-hover:opacity-100">
+                    <div className="flex items-center gap-1.5 text-white font-semibold text-sm">
+                      <Heart className="w-4 h-4 fill-white" />
+                      {p.likesCount}
+                    </div>
                   </div>
                 </div>
-              </div>
-            ))}
+              ))
+            )}
           </div>
         )}
 
         {tab === "saved" && (
-          <div className="flex flex-col items-center justify-center py-16 text-center px-8">
-            <Bookmark className="w-12 h-12 text-gray-200 mb-4" />
-            <p className="text-gray-500 font-medium">ยังไม่มีที่บันทึก</p>
-            <p className="text-sm text-gray-400 mt-1">กด บันทึก บนโพสต์หรือสถานที่ที่ชอบ</p>
-            <Link href="/explore" className="mt-4 text-sm text-[#398AB9] font-medium hover:underline">
-              สำรวจสถานที่
-            </Link>
-          </div>
+          savedPosts.length === 0 ? (
+            <div className="flex flex-col items-center justify-center py-16 text-center px-8">
+              <Bookmark className="w-12 h-12 text-gray-200 mb-4" />
+              <p className="text-gray-500 font-medium">ยังไม่มีที่บันทึก</p>
+              <p className="text-sm text-gray-400 mt-1">กด บันทึก บนโพสต์หรือสถานที่ที่ชอบ</p>
+              <Link href="/explore" className="mt-4 text-sm text-[#398AB9] font-medium hover:underline">
+                สำรวจสถานที่
+              </Link>
+            </div>
+          ) : (
+            <div className="grid grid-cols-3 gap-px bg-gray-100">
+              {savedPosts.map((p) => (
+                <div key={p.id} className="relative aspect-square bg-gray-200 overflow-hidden group cursor-pointer">
+                  {p.images[0] ? (
+                    <img src={p.images[0]} alt="" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
+                  ) : (
+                    <div className="w-full h-full bg-gray-100 flex items-center justify-center">
+                      <Bookmark className="w-5 h-5 text-gray-400" />
+                    </div>
+                  )}
+                  <div className="absolute inset-0 bg-black/0 group-hover:bg-black/30 transition flex items-center justify-center opacity-0 group-hover:opacity-100">
+                    <div className="flex items-center gap-1.5 text-white font-semibold text-sm">
+                      <Heart className="w-4 h-4 fill-white" />
+                      {p.likesCount}
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )
         )}
 
         {tab === "reviews" && (
