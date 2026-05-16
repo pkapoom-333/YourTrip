@@ -2,12 +2,14 @@
 
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
+import { useState, useEffect } from "react";
 import {
   Home, PlusSquare, MapPin, User,
   Compass, Bell, Settings, Users, LogOut,
 } from "lucide-react";
 import { useUser } from "@/hooks/useUser";
 import { createClient } from "@/lib/supabase/client";
+import { getUnreadCount } from "@/server/actions/notifications";
 
 // Desktop sidebar nav (all items)
 const sidebarItems = [
@@ -42,6 +44,22 @@ function Sidebar() {
   const path = usePathname();
   const router = useRouter();
   const { user } = useUser();
+  const [unread, setUnread] = useState(0);
+
+  // Poll unread count every 60s
+  useEffect(() => {
+    function fetchCount() {
+      getUnreadCount().then(({ count }) => setUnread(count)).catch(() => {});
+    }
+    fetchCount();
+    const t = setInterval(fetchCount, 60_000);
+    return () => clearInterval(t);
+  }, []);
+
+  // Reset badge when visiting notifications
+  useEffect(() => {
+    if (path === "/notifications") setUnread(0);
+  }, [path]);
 
   async function handleSignOut() {
     const supabase = createClient();
@@ -90,8 +108,20 @@ function Sidebar() {
           className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm transition ${
             path === "/notifications" ? "bg-[#398AB9]/10 text-[#398AB9]" : "text-gray-500 hover:bg-gray-50"
           }`}>
-          <Bell className="w-5 h-5" strokeWidth={1.8} />
+          <div className="relative">
+            <Bell className="w-5 h-5" strokeWidth={1.8} />
+            {unread > 0 && (
+              <span className="absolute -top-1.5 -right-1.5 min-w-[16px] h-4 bg-red-500 text-white text-[10px] font-bold rounded-full flex items-center justify-center px-0.5">
+                {unread > 99 ? "99+" : unread}
+              </span>
+            )}
+          </div>
           การแจ้งเตือน
+          {unread > 0 && (
+            <span className="ml-auto text-[11px] font-bold bg-red-500 text-white px-1.5 py-0.5 rounded-full">
+              {unread}
+            </span>
+          )}
         </Link>
         <Link href="/settings"
           className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm transition ${
