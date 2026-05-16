@@ -194,3 +194,45 @@ export async function getFeed(cursor?: string) {
     return { data: [], nextCursor: undefined, hasMore: false };
   }
 }
+
+export interface PostDetail {
+  id: string;
+  content: string;
+  images: string[];
+  location: string | null;
+  tags: string[];
+  createdAt: Date;
+  isPublic: boolean;
+  user: { id: string; name: string | null; username: string | null; avatarUrl: string | null };
+  likesCount: number;
+  commentsCount: number;
+}
+
+export async function getPostById(postId: string): Promise<{ data: PostDetail | null }> {
+  try {
+    const post = await prisma.post.findUnique({
+      where: { id: postId },
+      include: {
+        user: { select: { id: true, name: true, username: true, avatarUrl: true } },
+        _count: { select: { likes: true, comments: true } },
+      },
+    });
+    if (!post) return { data: null };
+    return {
+      data: {
+        id: post.id,
+        content: post.content,
+        images: post.images,
+        location: post.location,
+        tags: post.tags,
+        createdAt: post.createdAt,
+        isPublic: post.isPublic,
+        user: post.user,
+        likesCount: post._count.likes,
+        commentsCount: post._count.comments,
+      },
+    };
+  } catch {
+    return { data: null };
+  }
+}

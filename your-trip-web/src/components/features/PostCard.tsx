@@ -118,6 +118,7 @@ export function PostCard({ post }: { post: PostCardData }) {
 
       {/* Post image */}
       {post.img && (
+      <Link href={`/post/${post.id}`} className="block">
       <div className="relative aspect-[4/3] overflow-hidden bg-gray-100">
         <img
           src={post.img}
@@ -135,6 +136,7 @@ export function PostCard({ post }: { post: PostCardData }) {
           </div>
         )}
       </div>
+      </Link>
       )}
 
       {/* Action bar */}
