@@ -1,8 +1,13 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import AppShell from "@/components/AppShell";
 import { Bell, Heart, MessageCircle, UserPlus, Users, MapPin, CheckCheck } from "lucide-react";
+import {
+  getNotifications,
+  markAllNotificationsRead,
+  markNotificationRead,
+} from "@/server/actions/notifications";
 
 type NotifType = "like" | "comment" | "follow" | "buddy" | "system";
 
@@ -119,19 +124,59 @@ const colorMap: Record<NotifType, string> = {
   system: "bg-amber-500",
 };
 
+// Map DB notification type → local NotifType
+function mapType(t: string): NotifType {
+  const m: Record<string, NotifType> = {
+    LIKE: "like", COMMENT: "comment", FOLLOW: "follow",
+    BUDDY_REQUEST: "buddy", BUDDY_ACCEPTED: "buddy", SYSTEM: "system",
+  };
+  return m[t] ?? "system";
+}
+
+function fmtTime(d: Date): string {
+  const diff = Date.now() - new Date(d).getTime();
+  const mins = Math.floor(diff / 60_000);
+  if (mins < 60) return `${mins} นาทีที่แล้ว`;
+  const hrs = Math.floor(mins / 60);
+  if (hrs < 24) return `${hrs} ชั่วโมงที่แล้ว`;
+  if (hrs < 48) return "เมื่อวาน";
+  return `${Math.floor(hrs / 24)} วันที่แล้ว`;
+}
+
 export default function NotificationsPage() {
   const [notifs, setNotifs] = useState<Notif[]>(MOCK);
   const [filter, setFilter] = useState<"all" | "unread">("all");
+
+  // Load real notifications from DB
+  useEffect(() => {
+    getNotifications(50).then(({ data }) => {
+      if (data.length === 0) return; // keep mock if empty
+      setNotifs(data.map((n) => ({
+        id: n.id,
+        type: mapType(n.type),
+        actor: n.title,
+        actorAvatar: n.title.charAt(0),
+        text: n.body ?? n.title,
+        subtext: undefined,
+        time: fmtTime(n.createdAt),
+        isRead: n.isRead,
+        actionUrl: n.actionUrl ?? undefined,
+        image: n.imageUrl ?? undefined,
+      })));
+    });
+  }, []);
 
   const unreadCount = notifs.filter((n) => !n.isRead).length;
   const displayed = filter === "unread" ? notifs.filter((n) => !n.isRead) : notifs;
 
   function markAllRead() {
     setNotifs((prev) => prev.map((n) => ({ ...n, isRead: true })));
+    markAllNotificationsRead().catch(() => {});
   }
 
   function markRead(id: string) {
     setNotifs((prev) => prev.map((n) => n.id === id ? { ...n, isRead: true } : n));
+    markNotificationRead(id).catch(() => {});
   }
 
   // Group by today / yesterday / earlier
