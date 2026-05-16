@@ -1,17 +1,28 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import AppShell from "@/components/AppShell";
 import {
   Users, MapPin, Calendar, Search, Filter,
   Heart, X, Star, MessageCircle, ChevronRight,
   Globe, Camera, Compass,
 } from "lucide-react";
+import {
+  getDiscoverBuddies,
+  getIncomingRequests,
+  getMatchedBuddies,
+  sendBuddyRequest,
+  acceptBuddyRequest,
+  declineBuddyRequest,
+  type BuddyProfileItem,
+  type BuddyRequestItem,
+} from "@/server/actions/buddy";
 
 interface BuddyProfile {
   id: string;
   name: string;
   avatar: string;
+  avatarUrl?: string | null;
   age: number;
   location: string;
   bio: string;
@@ -108,6 +119,32 @@ const MOCK_BUDDIES: BuddyProfile[] = [
 const destinations = ["ทั้งหมด", "เชียงใหม่", "ภูเก็ต", "บาหลี", "ญี่ปุ่น", "กรุงเทพฯ"];
 const styles = ["ธรรมชาติ", "ชายหาด", "วัฒนธรรม", "Backpacker", "Luxury", "ถ่ายรูป"];
 
+// Map DB BuddyProfileItem → local BuddyProfile
+function mapDbToBuddy(u: BuddyProfileItem): BuddyProfile {
+  const initials = (u.name ?? "ผ")
+    .split(" ")
+    .map((w) => w.charAt(0))
+    .join("")
+    .slice(0, 2);
+  return {
+    id: u.id,
+    name: u.name ?? "ผู้ใช้",
+    avatar: initials,
+    avatarUrl: u.avatarUrl ?? null,
+    age: 0,
+    location: u.location ?? "ไม่ระบุ",
+    bio: u.bio ?? "",
+    destination: u.destination ?? "ไม่ระบุ",
+    travelDate: "",
+    travelStyle: [],
+    interests: [],
+    tripCount: u.tripCount,
+    rating: 0,
+    isVerified: u.isVerified,
+    photos: [],
+  };
+}
+
 export default function BuddyPage() {
   const [search, setSearch] = useState("");
   const [destFilter, setDestFilter] = useState("ทั้งหมด");
@@ -115,21 +152,46 @@ export default function BuddyPage() {
   const [passed, setPassed] = useState<Set<string>>(new Set());
   const [activeTab, setActiveTab] = useState<"discover" | "requests" | "matched">("discover");
   const [showFilter, setShowFilter] = useState(false);
+  const [discoverList, setDiscoverList] = useState<BuddyProfile[]>(MOCK_BUDDIES);
+  const [requests, setRequests] = useState<BuddyRequestItem[]>([]);
+  const [matched, setMatched] = useState<BuddyRequestItem[]>([]);
 
-  const visible = MOCK_BUDDIES.filter((b) => {
+  // Load real data from DB
+  useEffect(() => {
+    getDiscoverBuddies(30).then(({ data }) => {
+      if (data.length > 0) setDiscoverList(data.map(mapDbToBuddy));
+    });
+    getIncomingRequests().then(({ data }) => setRequests(data));
+    getMatchedBuddies().then(({ data }) => setMatched(data));
+  }, []);
+
+  const visible = discoverList.filter((b) => {
     if (passed.has(b.id)) return false;
     if (destFilter !== "ทั้งหมด" && !b.destination.includes(destFilter)) return false;
     if (search && !b.name.includes(search) && !b.destination.includes(search)) return false;
     return true;
   });
 
-  const matchedBuddies = MOCK_BUDDIES.filter((b) => liked.has(b.id));
+  const matchedBuddies = discoverList.filter((b) => liked.has(b.id));
 
   function like(id: string) {
     setLiked((prev) => new Set([...prev, id]));
+    sendBuddyRequest(id).catch(() => {});
   }
   function pass(id: string) {
     setPassed((prev) => new Set([...prev, id]));
+  }
+
+  function handleAccept(requestId: string) {
+    setRequests((prev) => prev.filter((r) => r.id !== requestId));
+    acceptBuddyRequest(requestId).then(() => {
+      getMatchedBuddies().then(({ data }) => setMatched(data));
+    }).catch(() => {});
+  }
+
+  function handleDecline(requestId: string) {
+    setRequests((prev) => prev.filter((r) => r.id !== requestId));
+    declineBuddyRequest(requestId).catch(() => {});
   }
 
   return (
@@ -155,8 +217,8 @@ export default function BuddyPage() {
           <div className="flex gap-1">
             {([
               { key: "discover", label: "ค้นหา", icon: Compass },
-              { key: "requests", label: "คำขอ", icon: Users },
-              { key: "matched", label: `จับคู่ (${matchedBuddies.length})`, icon: Heart },
+              { key: "requests", label: requests.length > 0 ? `คำขอ (${requests.length})` : "คำขอ", icon: Users },
+              { key: "matched", label: `จับคู่ (${matched.length + matchedBuddies.length})`, icon: Heart },
             ] as const).map(({ key, label, icon: Icon }) => (
               <button
                 key={key}
@@ -231,46 +293,124 @@ export default function BuddyPage() {
 
         {/* REQUESTS tab */}
         {activeTab === "requests" && (
-          <div className="px-4 py-4">
-            <div className="text-center py-16">
-              <Users className="w-12 h-12 mx-auto text-gray-300 mb-3" />
-              <p className="text-gray-500 text-sm font-medium">ไม่มีคำขอใหม่</p>
-              <p className="text-gray-400 text-xs mt-1">เมื่อมีคนส่งคำขอจะแสดงที่นี่</p>
-            </div>
+          <div className="px-4 py-4 space-y-3">
+            {requests.length === 0 ? (
+              <div className="text-center py-16">
+                <Users className="w-12 h-12 mx-auto text-gray-300 mb-3" />
+                <p className="text-gray-500 text-sm font-medium">ไม่มีคำขอใหม่</p>
+                <p className="text-gray-400 text-xs mt-1">เมื่อมีคนส่งคำขอจะแสดงที่นี่</p>
+              </div>
+            ) : (
+              requests.map((req) => {
+                const initials = (req.from.name ?? "ผ").split(" ").map((w) => w.charAt(0)).join("").slice(0, 2);
+                return (
+                  <div key={req.id} className="bg-white rounded-2xl border border-gray-100 p-4">
+                    <div className="flex items-center gap-3 mb-3">
+                      {req.from.avatarUrl ? (
+                        <img src={req.from.avatarUrl} alt="" className="w-12 h-12 rounded-full object-cover" />
+                      ) : (
+                        <div className="w-12 h-12 rounded-full bg-violet-400 flex items-center justify-center text-white font-bold text-sm">
+                          {initials}
+                        </div>
+                      )}
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-1.5">
+                          <p className="font-semibold text-gray-900 text-sm">{req.from.name ?? "ผู้ใช้"}</p>
+                          {req.from.isVerified && (
+                            <span className="text-[10px] bg-[#398AB9]/10 text-[#398AB9] px-1.5 py-0.5 rounded-full">✓</span>
+                          )}
+                        </div>
+                        {req.destination && (
+                          <div className="flex items-center gap-1 text-xs text-gray-400 mt-0.5">
+                            <MapPin className="w-3 h-3" />
+                            {req.destination}
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                    {req.message && (
+                      <p className="text-xs text-gray-500 mb-3 bg-gray-50 rounded-xl px-3 py-2 italic">
+                        &ldquo;{req.message}&rdquo;
+                      </p>
+                    )}
+                    <div className="flex gap-2">
+                      <button
+                        onClick={() => handleAccept(req.id)}
+                        className="flex-1 py-2 rounded-xl bg-[#398AB9] text-white text-sm font-bold hover:bg-[#1C658C] transition"
+                      >
+                        รับคำขอ
+                      </button>
+                      <button
+                        onClick={() => handleDecline(req.id)}
+                        className="flex-1 py-2 rounded-xl border border-gray-200 text-gray-600 text-sm font-medium hover:bg-gray-50 transition"
+                      >
+                        ปฏิเสธ
+                      </button>
+                    </div>
+                  </div>
+                );
+              })
+            )}
           </div>
         )}
 
         {/* MATCHED tab */}
         {activeTab === "matched" && (
           <div className="px-4 py-4 space-y-3">
-            {matchedBuddies.length === 0 ? (
+            {/* Optimistic liked (local) + real DB matched */}
+            {matchedBuddies.length === 0 && matched.length === 0 ? (
               <div className="text-center py-16">
                 <Heart className="w-12 h-12 mx-auto text-gray-300 mb-3" />
                 <p className="text-gray-500 text-sm font-medium">ยังไม่มี Buddy</p>
                 <p className="text-gray-400 text-xs mt-1">กด ❤️ หรือส่งคำขอใน Discover</p>
               </div>
             ) : (
-              matchedBuddies.map((buddy) => (
-                <div key={buddy.id} className="bg-white rounded-2xl border border-gray-100 p-4 flex items-center gap-3">
-                  <div className="w-12 h-12 rounded-full bg-[#398AB9] flex items-center justify-center text-white font-bold">
-                    {buddy.avatar}
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <p className="font-semibold text-gray-900 text-sm">{buddy.name}</p>
-                    <div className="flex items-center gap-1 text-xs text-gray-400 mt-0.5">
-                      <MapPin className="w-3 h-3" />
-                      {buddy.destination}
-                      <span className="mx-1">·</span>
-                      <Calendar className="w-3 h-3" />
-                      {buddy.travelDate}
+              <>
+                {/* DB accepted matches */}
+                {matched.map((m) => {
+                  const initials = (m.from.name ?? "ผ").split(" ").map((w) => w.charAt(0)).join("").slice(0, 2);
+                  return (
+                    <div key={m.id} className="bg-white rounded-2xl border border-gray-100 p-4 flex items-center gap-3">
+                      {m.from.avatarUrl ? (
+                        <img src={m.from.avatarUrl} alt="" className="w-12 h-12 rounded-full object-cover" />
+                      ) : (
+                        <div className="w-12 h-12 rounded-full bg-[#398AB9] flex items-center justify-center text-white font-bold">
+                          {initials}
+                        </div>
+                      )}
+                      <div className="flex-1 min-w-0">
+                        <p className="font-semibold text-gray-900 text-sm">{m.from.name ?? "ผู้ใช้"}</p>
+                        {m.destination && (
+                          <div className="flex items-center gap-1 text-xs text-gray-400 mt-0.5">
+                            <MapPin className="w-3 h-3" />
+                            {m.destination}
+                          </div>
+                        )}
+                      </div>
+                      <button className="flex items-center gap-1 text-xs text-[#398AB9] font-medium hover:text-[#1C658C] transition">
+                        <MessageCircle className="w-4 h-4" />
+                        แชท
+                      </button>
+                    </div>
+                  );
+                })}
+                {/* Optimistic local likes (pending send) */}
+                {matchedBuddies.map((buddy) => (
+                  <div key={buddy.id} className="bg-white rounded-2xl border border-gray-100 p-4 flex items-center gap-3 opacity-70">
+                    {buddy.avatarUrl ? (
+                      <img src={buddy.avatarUrl} alt="" className="w-12 h-12 rounded-full object-cover" />
+                    ) : (
+                      <div className="w-12 h-12 rounded-full bg-[#398AB9] flex items-center justify-center text-white font-bold">
+                        {buddy.avatar}
+                      </div>
+                    )}
+                    <div className="flex-1 min-w-0">
+                      <p className="font-semibold text-gray-900 text-sm">{buddy.name}</p>
+                      <p className="text-xs text-gray-400 mt-0.5">รอการตอบรับ...</p>
                     </div>
                   </div>
-                  <button className="flex items-center gap-1 text-xs text-[#398AB9] font-medium hover:text-[#1C658C] transition">
-                    <MessageCircle className="w-4 h-4" />
-                    แชท
-                  </button>
-                </div>
-              ))
+                ))}
+              </>
             )}
           </div>
         )}
@@ -308,8 +448,14 @@ function BuddyCard({
       <div className="p-4">
         {/* Name row */}
         <div className="flex items-start gap-3 mb-3">
-          <div className="w-12 h-12 rounded-full bg-[#398AB9] flex items-center justify-center text-white font-bold text-sm flex-shrink-0">
-            {buddy.avatar}
+          <div className="w-12 h-12 rounded-full overflow-hidden flex-shrink-0">
+            {buddy.avatarUrl ? (
+              <img src={buddy.avatarUrl} alt="" className="w-full h-full object-cover" />
+            ) : (
+              <div className="w-full h-full bg-[#398AB9] flex items-center justify-center text-white font-bold text-sm">
+                {buddy.avatar}
+              </div>
+            )}
           </div>
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-1.5">
