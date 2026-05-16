@@ -1,12 +1,15 @@
 "use client";
 
-import { useState } from "react";
+import { useRouter } from "next/navigation";
 import AppShell from "@/components/AppShell";
 import {
   User, Bell, Lock, Globe, Smartphone,
   Moon, ChevronRight, LogOut, Trash2,
   Shield, Eye, HelpCircle, Info, Camera,
 } from "lucide-react";
+import { useLocalStorage } from "@/hooks/useLocalStorage";
+import { useUser } from "@/hooks/useUser";
+import { createClient } from "@/lib/supabase/client";
 
 interface ToggleProps {
   enabled: boolean;
@@ -51,6 +54,7 @@ function RowLink({
   description,
   href,
   danger,
+  onClick,
 }: {
   icon: React.ElementType;
   iconBg: string;
@@ -58,12 +62,11 @@ function RowLink({
   description?: string;
   href?: string;
   danger?: boolean;
+  onClick?: () => void;
 }) {
-  return (
-    <a
-      href={href ?? "#"}
-      className="flex items-center gap-3 px-4 py-3.5 hover:bg-gray-50 transition border-b border-gray-50 last:border-0"
-    >
+  const cls = "flex items-center gap-3 px-4 py-3.5 hover:bg-gray-50 transition border-b border-gray-50 last:border-0 w-full text-left";
+  const inner = (
+    <>
       <div className={`w-8 h-8 rounded-xl flex items-center justify-center ${iconBg}`}>
         <Icon className="w-4 h-4 text-white" />
       </div>
@@ -72,8 +75,12 @@ function RowLink({
         {description && <p className="text-xs text-gray-400 mt-0.5">{description}</p>}
       </div>
       <ChevronRight className="w-4 h-4 text-gray-300" />
-    </a>
+    </>
   );
+  if (onClick) {
+    return <button onClick={onClick} className={cls}>{inner}</button>;
+  }
+  return <a href={href ?? "#"} className={cls}>{inner}</a>;
 }
 
 function RowToggle({
@@ -106,13 +113,24 @@ function RowToggle({
 }
 
 export default function SettingsPage() {
-  const [notifLike, setNotifLike] = useState(true);
-  const [notifComment, setNotifComment] = useState(true);
-  const [notifFollow, setNotifFollow] = useState(true);
-  const [notifBuddy, setNotifBuddy] = useState(true);
-  const [notifPush, setNotifPush] = useState(true);
-  const [privateAccount, setPrivateAccount] = useState(false);
-  const [darkMode, setDarkMode] = useState(false);
+  const router = useRouter();
+  const { user } = useUser();
+  const [notifLike, setNotifLike] = useLocalStorage("settings_notif_like", true);
+  const [notifComment, setNotifComment] = useLocalStorage("settings_notif_comment", true);
+  const [notifFollow, setNotifFollow] = useLocalStorage("settings_notif_follow", true);
+  const [notifBuddy, setNotifBuddy] = useLocalStorage("settings_notif_buddy", true);
+  const [notifPush, setNotifPush] = useLocalStorage("settings_notif_push", true);
+  const [privateAccount, setPrivateAccount] = useLocalStorage("settings_private", false);
+  const [darkMode, setDarkMode] = useLocalStorage("settings_dark_mode", false);
+
+  async function handleSignOut() {
+    const supabase = createClient();
+    await supabase.auth.signOut();
+    router.push("/login");
+  }
+
+  const displayName = user?.user_metadata?.full_name ?? user?.email?.split("@")[0] ?? "Your Trip User";
+  const username = user?.email?.split("@")[0] ?? "yourtrip_user";
 
   return (
     <AppShell>
@@ -131,8 +149,8 @@ export default function SettingsPage() {
             </button>
           </div>
           <div className="flex-1">
-            <p className="font-semibold text-gray-900">Your Trip User</p>
-            <p className="text-sm text-gray-400">@yourtrip_user</p>
+            <p className="font-semibold text-gray-900">{displayName}</p>
+            <p className="text-sm text-gray-400">@{username}</p>
           </div>
           <a
             href="/profile/edit"
@@ -229,6 +247,7 @@ export default function SettingsPage() {
             iconBg="bg-orange-500"
             label="ออกจากระบบ"
             danger
+            onClick={handleSignOut}
           />
           <RowLink
             icon={Trash2}
