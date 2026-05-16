@@ -47,6 +47,10 @@
   - [x] Prisma schema: full Phase 1-2 models (Place, Post, Like, Comment, Save, Trip, TripDay, TripItem, Follow, Notification, BuddyRequest, Review)
   - [x] server/actions/profile.ts — real Prisma (posts, profile, places, trips all wired)
   - [x] server/actions/trips.ts — createTrip (auto TripDays), getUserTrips, getTripById, addItineraryItem, deleteTripItem, reorderItinerary, deleteTrip
+  - [x] /profile/[userId] — public user profile (follow/unfollow optimistic, posts grid)
+  - [x] /post/[id] — post detail page (image carousel, like/save/share, full comments)
+  - [x] PostCard: user avatar/name links to /profile/[userId], image links to /post/[id]
+  - [x] Avatar upload wired in /profile/edit (Cloudinary + instant preview + uploading state)
   - [ ] Connect auth to real Supabase OAuth
 - [ ] Phase 2: Core Features (target: 13 Jun 2026)
   - [x] Posts & Feed (create, list, like) — wired to Prisma (needs DB)
@@ -128,3 +132,4 @@
 | 2026-05-16 | Day 4 cont.4: notifications.ts server actions (get/mark-read/delete); /notifications wired (useEffect+mock fallback); buddy.ts (discover/requests/matched/send/accept/decline); /buddy wired (real data + optimistic UI) | ~75% | สร้าง Supabase project → .env.local → migrate → seed → test OAuth |
 | 2026-05-16 | Day 4 cont.5: AppShell unread badge (live poll 60s); settings → useLocalStorage + real user + sign-out; CommentSection → getComments+createComment; createReview action + star picker form on /place/[slug] | ~85% | สร้าง Supabase project → .env.local → migrate → seed → test OAuth |
 | 2026-05-16 | Day 4 cont.6 (/loop): Cloudinary upload (/api/upload + ImageUpload component + /create page); vercel.json + .env.example; profile real posts grid + saved tab; PWAInstallPrompt; feed infinite scroll (IntersectionObserver + cursor) | ~70% | สร้าง Supabase + .env.local → migrate → seed → add Cloudinary keys |
+| 2026-05-17 | Day 5 (/loop): /profile/[userId] public profile (follow/unfollow optimistic + posts grid); avatar upload wired in /profile/edit (Cloudinary + preview + loading state); avatarUrl added to updateProfileSchema; PostCard user name/avatar → /profile/[userId]; /post/[id] detail page (image carousel, like/save/share, CommentSection, getPostById action) | ~40% | สร้าง Supabase project → .env.local → migrate → seed → test OAuth |
