@@ -23,10 +23,10 @@ const sidebarItems = [
 
 // Mobile bottom nav (4 items only — create button is separate)
 const mobileNavItems = [
-  { href: "/feed",    icon: Home,       label: "หน้าหลัก" },
-  { href: "/explore", icon: Compass,    label: "สำรวจ" },
-  { href: "/trips",   icon: MapPin,     label: "ทริป" },
-  { href: "/profile", icon: User,       label: "โปรไฟล์" },
+  { href: "/feed",          icon: Home,    label: "หน้าหลัก" },
+  { href: "/explore",       icon: Compass, label: "สำรวจ" },
+  { href: "/notifications", icon: Bell,    label: "แจ้งเตือน" },
+  { href: "/profile",       icon: User,    label: "โปรไฟล์" },
 ];
 
 function getInitials(name?: string | null, email?: string | null): string {
@@ -163,16 +163,39 @@ function Sidebar() {
 /** Mobile bottom nav — hidden on desktop */
 function BottomNav() {
   const path = usePathname();
+  const [unread, setUnread] = useState(0);
+
+  useEffect(() => {
+    function fetchCount() {
+      getUnreadCount().then(({ count }) => setUnread(count)).catch(() => {});
+    }
+    fetchCount();
+    const t = setInterval(fetchCount, 60_000);
+    return () => clearInterval(t);
+  }, []);
+
+  useEffect(() => {
+    if (path === "/notifications") setUnread(0);
+  }, [path]);
+
   return (
     <nav className="md:hidden fixed bottom-0 left-0 right-0 z-50 bg-white border-t border-gray-100">
       <div className="flex items-center justify-around px-2 py-2">
         {mobileNavItems.map(({ href, icon: Icon, label }) => {
-          const active = path === href;
+          const active = path === href || path.startsWith(href + "/");
+          const isNotif = href === "/notifications";
           return (
             <Link key={href} href={href}
-              className="flex flex-col items-center gap-0.5 px-4 py-1 min-w-0">
-              <Icon className={`w-5 h-5 ${active ? "text-[#398AB9]" : "text-gray-400"}`}
-                strokeWidth={active ? 2.5 : 1.8} />
+              className="flex flex-col items-center gap-0.5 px-3 py-1 min-w-0">
+              <div className="relative">
+                <Icon className={`w-5 h-5 ${active ? "text-[#398AB9]" : "text-gray-400"}`}
+                  strokeWidth={active ? 2.5 : 1.8} />
+                {isNotif && unread > 0 && (
+                  <span className="absolute -top-1.5 -right-1.5 min-w-[14px] h-3.5 bg-red-500 text-white text-[9px] font-bold rounded-full flex items-center justify-center px-0.5">
+                    {unread > 9 ? "9+" : unread}
+                  </span>
+                )}
+              </div>
               <span className={`text-[10px] ${active ? "text-[#398AB9] font-semibold" : "text-gray-400"}`}>
                 {label}
               </span>
