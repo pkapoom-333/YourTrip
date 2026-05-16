@@ -74,6 +74,7 @@ function mapToPlaceData(p: PlaceDetail): PlaceData {
   }));
 
   return {
+    id: p.id,
     name: p.name,
     category: CAT_TH[p.category] ?? p.category,
     categoryEn: CAT_EN[p.category] ?? p.category,
@@ -115,6 +116,7 @@ function mapToPlaceData(p: PlaceDetail): PlaceData {
 // ─── Mock fallback (shown when DB not configured) ─────────────────────────────
 const MOCK_PLACES: Record<string, PlaceData> = {
   "doi-ang-khang": {
+    id: "mock-doi-ang-khang",
     name: "ดอยอ่างขาง", category: "สถานที่เที่ยว", categoryEn: "Nature & Scenic",
     location: "อำเภออางขาง, เชียงใหม่", rating: 4.8, reviewCount: 2840,
     priceRange: "฿฿", priceNote: "ค่าเข้าชม 50฿ / คัน", isOpen: true, openUntil: "18:00",
@@ -152,6 +154,7 @@ const MOCK_PLACES: Record<string, PlaceData> = {
     ],
   },
   "bali-ubud-terraces": {
+    id: "mock-bali-ubud-terraces",
     name: "นาขั้นบันไดบาหลี", category: "สถานที่เที่ยว", categoryEn: "Cultural & Heritage",
     location: "อูบุด, บาหลี, อินโดนีเซีย", rating: 4.9, reviewCount: 5120,
     priceRange: "฿฿", priceNote: "เข้าชมฟรี / ค่าไกด์ประมาณ 200,000 IDR", isOpen: true, openUntil: "17:00",

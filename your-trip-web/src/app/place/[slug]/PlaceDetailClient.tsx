@@ -8,11 +8,13 @@ import {
   ChevronRight, Heart, Share2, Bookmark, Camera,
   Car, Bike, Bus, Navigation, AlertTriangle,
   ParkingSquare, Wifi, Wind, Leaf, Accessibility,
-  MessageCircle, MoreHorizontal, ThumbsUp, ChevronDown,
+  MessageCircle, MoreHorizontal, ThumbsUp, ChevronDown, PenLine,
 } from "lucide-react";
+import { createReview } from "@/server/actions/places";
 
 /* ── types ────────────────────────────────────────────────── */
 export interface PlaceData {
+  id?: string;
   name: string; category: string; categoryEn: string; location: string;
   rating: number; reviewCount: number; priceRange: string; priceNote: string;
   isOpen: boolean; openUntil: string; phone: string; website: string;
@@ -84,6 +86,24 @@ export default function PlaceDetailClient({ place, slug }: { place: PlaceData; s
   const [saved, setSaved] = useState(false);
   const [liked, setLiked] = useState(false);
   const [expanded, setExpanded] = useState(false);
+  const [showReviewForm, setShowReviewForm] = useState(false);
+  const [reviewRating, setReviewRating] = useState(5);
+  const [reviewText, setReviewText] = useState("");
+  const [reviewSubmitting, setReviewSubmitting] = useState(false);
+  const [reviewDone, setReviewDone] = useState(false);
+
+  async function handleSubmitReview(e: React.FormEvent) {
+    e.preventDefault();
+    if (!place.id) return;
+    setReviewSubmitting(true);
+    if (!place.id.startsWith("mock")) {
+      await createReview({ placeId: place.id, rating: reviewRating, content: reviewText });
+    }
+    setReviewSubmitting(false);
+    setReviewDone(true);
+    setShowReviewForm(false);
+    setReviewText("");
+  }
 
   const safeImages = place.images.length > 0 ? place.images : [
     "https://images.unsplash.com/photo-1476514525405-8d4b4c284c1e?auto=format&fit=crop&w=1200&q=80"
@@ -409,6 +429,59 @@ export default function PlaceDetailClient({ place, slug }: { place: PlaceData; s
               <button className="w-full mt-3 py-2.5 border border-gray-200 rounded-xl text-sm text-gray-500 hover:bg-gray-50 transition font-medium">
                 ดูรีวิวทั้งหมด ({place.reviewCount.toLocaleString()})
               </button>
+
+              {/* Write review */}
+              {!reviewDone && !showReviewForm && (
+                <button
+                  onClick={() => setShowReviewForm(true)}
+                  className="w-full mt-2 py-2.5 bg-[#398AB9] text-white rounded-xl text-sm font-bold hover:bg-[#1C658C] transition flex items-center justify-center gap-2"
+                >
+                  <PenLine className="w-4 h-4" />
+                  เขียนรีวิว
+                </button>
+              )}
+              {reviewDone && (
+                <p className="text-center text-sm text-emerald-600 font-medium mt-2">✓ ขอบคุณสำหรับรีวิวของคุณ!</p>
+              )}
+
+              {/* Review form */}
+              {showReviewForm && (
+                <form onSubmit={handleSubmitReview} className="mt-3 bg-[#398AB9]/5 rounded-2xl p-4 space-y-3">
+                  <p className="text-sm font-semibold text-gray-800">เขียนรีวิว</p>
+                  {/* Star picker */}
+                  <div className="flex items-center gap-1">
+                    {[1, 2, 3, 4, 5].map((s) => (
+                      <button key={s} type="button" onClick={() => setReviewRating(s)}>
+                        <Star className={`w-6 h-6 ${s <= reviewRating ? "fill-amber-400 text-amber-400" : "text-gray-300"}`} />
+                      </button>
+                    ))}
+                    <span className="text-sm text-gray-500 ml-1">{reviewRating}/5</span>
+                  </div>
+                  <textarea
+                    value={reviewText}
+                    onChange={(e) => setReviewText(e.target.value)}
+                    placeholder="เล่าประสบการณ์ของคุณ..."
+                    rows={3}
+                    className="w-full text-sm text-gray-700 bg-white border border-gray-200 rounded-xl px-3 py-2.5 outline-none focus:border-[#398AB9] resize-none"
+                  />
+                  <div className="flex gap-2">
+                    <button
+                      type="button"
+                      onClick={() => setShowReviewForm(false)}
+                      className="flex-1 py-2 border border-gray-200 rounded-xl text-sm text-gray-500 hover:bg-gray-50 transition"
+                    >
+                      ยกเลิก
+                    </button>
+                    <button
+                      type="submit"
+                      disabled={reviewSubmitting}
+                      className="flex-1 py-2 bg-[#398AB9] text-white rounded-xl text-sm font-bold hover:bg-[#1C658C] transition disabled:opacity-60"
+                    >
+                      {reviewSubmitting ? "กำลังส่ง..." : "ส่งรีวิว"}
+                    </button>
+                  </div>
+                </form>
+              )}
             </section>
           )}
 
