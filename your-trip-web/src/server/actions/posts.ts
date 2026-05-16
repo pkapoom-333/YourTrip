@@ -95,7 +95,6 @@ export async function getComments(postId: string): Promise<{ data: CommentItem[]
           orderBy: { createdAt: "asc" },
           include: {
             user: { select: { id: true, name: true, username: true, avatarUrl: true } },
-            replies: false,
           },
         },
       },
