@@ -38,6 +38,7 @@ export function FeedPostsClient({ initialPosts, initialCursor, initialHasMore = 
         caption: p.content,
         img: p.images?.[0] ?? undefined,
         user: {
+          id: p.user?.id ?? undefined,
           name: p.user?.name ?? "YourTrip User",
           avatarUrl: p.user?.avatarUrl ?? undefined,
           location: p.location ?? undefined,

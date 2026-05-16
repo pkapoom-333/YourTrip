@@ -76,6 +76,7 @@ export default async function FeedPage() {
         caption: p.content,
         img: p.images?.[0] ?? undefined,
         user: {
+          id: p.user?.id ?? undefined,
           name: p.user?.name ?? "YourTrip User",
           avatarUrl: p.user?.avatarUrl ?? undefined,
           location: p.location ?? undefined,

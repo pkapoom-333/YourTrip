@@ -10,6 +10,7 @@ export interface PostCardData {
   id: number | string;
   slug?: string;
   user: {
+    id?: string;
     name: string;
     bg?: string;
     initials?: string;
@@ -67,7 +68,18 @@ export function PostCard({ post }: { post: PostCardData }) {
     <article className="bg-white border border-gray-100 rounded-2xl overflow-hidden">
       {/* Post header */}
       <div className="flex items-center gap-3 p-3.5">
-        {post.user.avatarUrl ? (
+        {post.user.id ? (
+          <Link href={`/profile/${post.user.id}`} className="flex-shrink-0">
+            {post.user.avatarUrl ? (
+              <img src={post.user.avatarUrl} alt={post.user.name}
+                className="w-10 h-10 rounded-full object-cover" />
+            ) : (
+              <div className={`w-10 h-10 ${post.user.bg ?? "bg-[#398AB9]"} rounded-full flex items-center justify-center font-bold text-white text-sm`}>
+                {post.user.initials ?? post.user.name.charAt(0).toUpperCase()}
+              </div>
+            )}
+          </Link>
+        ) : post.user.avatarUrl ? (
           <img src={post.user.avatarUrl} alt={post.user.name}
             className="w-10 h-10 rounded-full object-cover flex-shrink-0" />
         ) : (
@@ -76,7 +88,13 @@ export function PostCard({ post }: { post: PostCardData }) {
           </div>
         )}
         <div className="flex-1 min-w-0">
-          <p className="text-sm font-semibold text-gray-900">{post.user.name}</p>
+          {post.user.id ? (
+            <Link href={`/profile/${post.user.id}`} className="text-sm font-semibold text-gray-900 hover:text-[#398AB9] transition">
+              {post.user.name}
+            </Link>
+          ) : (
+            <p className="text-sm font-semibold text-gray-900">{post.user.name}</p>
+          )}
           {post.user.location && (
             <div className="flex items-center gap-1 text-[11px] text-gray-400">
               <MapPin className="w-2.5 h-2.5" />
