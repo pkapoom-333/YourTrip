@@ -49,9 +49,9 @@
   - [x] server/actions/trips.ts — createTrip (auto TripDays), getUserTrips, getTripById, addItineraryItem, deleteTripItem, reorderItinerary, deleteTrip
   - [ ] Connect auth to real Supabase OAuth
 - [ ] Phase 2: Core Features (target: 13 Jun 2026)
-  - [ ] Posts & Feed (create, list, like)
-  - [ ] My Trip (CRUD + itinerary)
-  - [ ] Image upload (Cloudinary)
+  - [x] Posts & Feed (create, list, like) — wired to Prisma (needs DB)
+  - [x] My Trip (CRUD + itinerary) — fully wired
+  - [x] Image upload (Cloudinary) — /api/upload + ImageUpload component (needs CLOUDINARY_* env vars)
 - [ ] Phase 3: Social Layer (target: 30 Jun 2026)
   - [ ] Follow/unfollow
   - [ ] Travel Buddy matching
@@ -127,3 +127,4 @@
 | 2026-05-16 | Day 4 cont.3: /place/[slug] server refactor + PlaceDetailClient; /trips/[id] wired (loadTrip+addItem+deleteItem); /profile wired (avatar+real stats); /profile/edit wired; permissions expanded | ~60% | สร้าง Supabase project → .env.local → migrate → seed → test OAuth |
 | 2026-05-16 | Day 4 cont.4: notifications.ts server actions (get/mark-read/delete); /notifications wired (useEffect+mock fallback); buddy.ts (discover/requests/matched/send/accept/decline); /buddy wired (real data + optimistic UI) | ~75% | สร้าง Supabase project → .env.local → migrate → seed → test OAuth |
 | 2026-05-16 | Day 4 cont.5: AppShell unread badge (live poll 60s); settings → useLocalStorage + real user + sign-out; CommentSection → getComments+createComment; createReview action + star picker form on /place/[slug] | ~85% | สร้าง Supabase project → .env.local → migrate → seed → test OAuth |
+| 2026-05-16 | Day 4 cont.6 (/loop): Cloudinary upload (/api/upload + ImageUpload component + /create page); vercel.json + .env.example; profile real posts grid + saved tab; PWAInstallPrompt; feed infinite scroll (IntersectionObserver + cursor) | ~70% | สร้าง Supabase + .env.local → migrate → seed → add Cloudinary keys |
