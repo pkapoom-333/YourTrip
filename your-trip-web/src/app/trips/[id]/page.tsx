@@ -1,7 +1,8 @@
 "use client";
 
-import { use, useState } from "react";
+import { use, useState, useEffect } from "react";
 import AppShell from "@/components/AppShell";
+import { getTripById, addItineraryItem, deleteTripItem } from "@/server/actions/trips";
 import {
   ChevronLeft, Plus, MapPin, Clock, Wallet,
   Trash2, GripVertical, Calendar, Share2,
@@ -154,32 +155,71 @@ export default function TripDetailPage({ params }: { params: Promise<{ id: strin
   const [showAddModal, setShowAddModal] = useState(false);
   const [newItem, setNewItem] = useState({ name: "", time: "", cost: "", note: "", type: "place" as TripItem["type"] });
 
-  // Use id to look up trip (mock — always returns same trip)
-  void id;
+  // Load real trip from DB on mount
+  useEffect(() => {
+    if (id && !id.startsWith("mock")) {
+      getTripById(id).then(({ data }) => {
+        if (!data) return;
+        const fmt = new Intl.DateTimeFormat("th-TH", { day: "numeric", month: "short", year: "numeric" });
+        setTrip({
+          id: data.id,
+          title: data.title,
+          destination: data.destination,
+          coverImage: data.coverImage ?? MOCK_TRIP.coverImage,
+          startDate: data.startDate ? fmt.format(data.startDate) : "—",
+          endDate: data.endDate ? fmt.format(data.endDate) : "—",
+          status: data.status as typeof MOCK_TRIP.status,
+          totalDays: data.days.length || 1,
+          budget: data.budget ?? 0,
+          days: data.days.map((d) => ({
+            day: d.day,
+            date: d.date ? fmt.format(d.date) : `วันที่ ${d.day}`,
+            items: d.items.map((item) => ({
+              id: item.id,
+              name: item.name,
+              time: item.time ?? undefined,
+              duration: item.duration ?? undefined,
+              cost: item.cost ?? undefined,
+              note: item.note ?? undefined,
+              type: "place" as TripItem["type"],
+            })),
+          })),
+        });
+      });
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [id]);
 
   const currentDay = trip.days.find((d) => d.day === activeDay);
   const totalCost = trip.days.flatMap((d) => d.items).reduce((s, i) => s + (i.cost ?? 0), 0);
   const budgetPercent = Math.min((totalCost / (trip.budget ?? 1)) * 100, 100);
 
   function deleteItem(dayNum: number, itemId: string) {
+    // Optimistic update
     setTrip((prev) => ({
       ...prev,
       days: prev.days.map((d) =>
         d.day === dayNum ? { ...d, items: d.items.filter((i) => i.id !== itemId) } : d
       ),
     }));
+    // Persist to DB (fire-and-forget — mock fallback handles errors)
+    if (!itemId.startsWith("new-") && !itemId.startsWith("i")) {
+      deleteTripItem(itemId).catch(() => {});
+    }
   }
 
-  function addItem() {
+  async function addItem() {
     if (!newItem.name.trim()) return;
+    const optimisticId = `new-${Date.now()}`;
     const item: TripItem = {
-      id: `new-${Date.now()}`,
+      id: optimisticId,
       name: newItem.name,
       time: newItem.time || undefined,
       cost: newItem.cost ? parseInt(newItem.cost) : undefined,
       note: newItem.note || undefined,
       type: newItem.type,
     };
+    // Optimistic update
     setTrip((prev) => ({
       ...prev,
       days: prev.days.map((d) =>
@@ -188,6 +228,26 @@ export default function TripDetailPage({ params }: { params: Promise<{ id: strin
     }));
     setNewItem({ name: "", time: "", cost: "", note: "", type: "place" });
     setShowAddModal(false);
+    // Persist to DB
+    try {
+      const result = await addItineraryItem(trip.id, {
+        day: activeDay,
+        title: newItem.name,
+        time: newItem.time || undefined,
+        notes: newItem.note || undefined,
+      });
+      // Replace optimistic id with real id
+      if (result.data) {
+        setTrip((prev) => ({
+          ...prev,
+          days: prev.days.map((d) =>
+            d.day === activeDay
+              ? { ...d, items: d.items.map((i) => i.id === optimisticId ? { ...i, id: result.data!.id } : i) }
+              : d
+          ),
+        }));
+      }
+    } catch { /* mock fallback handles */ }
   }
 
   return (
