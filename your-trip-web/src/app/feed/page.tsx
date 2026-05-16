@@ -1,8 +1,9 @@
 import AppShell from "@/components/AppShell";
 import Link from "next/link";
 import { Search, Bell, TrendingUp } from "lucide-react";
-import { PostCard, type PostCardData } from "@/components/features/PostCard";
+import { type PostCardData } from "@/components/features/PostCard";
 import { getFeed } from "@/server/actions/posts";
+import { FeedPostsClient } from "./FeedPostsClient";
 
 const stories = [
   { id: 0, name: "เพิ่มสตอรี่", bg: "bg-gray-100", initials: "+", isAdd: true },
@@ -67,7 +68,7 @@ const fmtTime = (d: Date) => {
 };
 
 export default async function FeedPage() {
-  const { data: dbPosts } = await getFeed();
+  const { data: dbPosts, nextCursor, hasMore } = await getFeed();
 
   const feedPosts: PostCardData[] = dbPosts.length > 0
     ? dbPosts.map((p) => ({
@@ -139,12 +140,12 @@ export default async function FeedPage() {
               </div>
             </div>
 
-            {/* Posts — interactive like/save via PostCard client component */}
-            <div className="space-y-3">
-              {feedPosts.map((post) => (
-                <PostCard key={post.id} post={post} />
-              ))}
-            </div>
+            {/* Posts — client component with infinite scroll */}
+            <FeedPostsClient
+              initialPosts={feedPosts}
+              initialCursor={nextCursor}
+              initialHasMore={dbPosts.length > 0 ? (hasMore ?? false) : false}
+            />
           </div>
 
           {/* ─── RIGHT PANEL (desktop only) ─── */}
