@@ -33,7 +33,7 @@
   - [ ] DB migration run (`prisma migrate dev`)
   - [x] /notifications page (unread count, mark-all-read, buddy request card)
   - [x] /settings page (toggles: notification, privacy, dark mode)
-  - [x] /buddy page (Travel Buddy discovery, like/pass/match)
+  - [x] /buddy page (Travel Buddy discovery, like/pass/match — wired to server actions)
   - [x] /trips/[id] page (itinerary builder, day tabs, budget bar, add/delete items — wired to server actions)
   - [x] /trips/new page (3-step wizard: destination → dates+budget → privacy)
   - [x] /profile/edit page (edit form, avatar upload stub)
@@ -125,3 +125,4 @@
 | 2026-05-15 | Day 4 cont.: Wire trips.ts (createTrip+auto TripDays, getUserTrips, getTripById, addItineraryItem, deleteTripItem, reorderItinerary, deleteTrip), confirm auth/callback route exists, add .claude/settings.json permission allowlist | ~55% | สร้าง Supabase project → .env.local → migrate → seed |
 | 2026-05-15 | Day 4 cont.2: Wire /create post, /trips/new, /feed, /trips to server actions; refactor PostCard (avatarUrl+optional fields); TripsClient server+client split; MOCK fallback on all pages | ~75% | สร้าง Supabase project → .env.local → migrate → seed → test OAuth |
 | 2026-05-16 | Day 4 cont.3: /place/[slug] server refactor + PlaceDetailClient; /trips/[id] wired (loadTrip+addItem+deleteItem); /profile wired (avatar+real stats); /profile/edit wired; permissions expanded | ~60% | สร้าง Supabase project → .env.local → migrate → seed → test OAuth |
+| 2026-05-16 | Day 4 cont.4: notifications.ts server actions (get/mark-read/delete); /notifications wired (useEffect+mock fallback); buddy.ts (discover/requests/matched/send/accept/decline); /buddy wired (real data + optimistic UI) | ~75% | สร้าง Supabase project → .env.local → migrate → seed → test OAuth |
