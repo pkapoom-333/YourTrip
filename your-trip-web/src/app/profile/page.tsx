@@ -1,9 +1,10 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import AppShell from "@/components/AppShell";
 import Link from "next/link";
 import { Settings, MapPin, Calendar, Grid3X3, Bookmark, Heart, Star } from "lucide-react";
+import { getProfile } from "@/server/actions/profile";
 
 const posts = [
   { id: 1, img: "https://images.unsplash.com/photo-1476514525405-8d4b4c284c1e?auto=format&fit=crop&w=400&q=80", likes: 284 },
@@ -16,6 +17,32 @@ const posts = [
 
 export default function ProfilePage() {
   const [tab, setTab] = useState<"posts" | "saved" | "reviews">("posts");
+  const [profile, setProfile] = useState({
+    name: "Your Trip User",
+    username: "yourtrip_user",
+    bio: "นักเดินทางสายธรรมชาติ ✈️ | ไปแล้ว 23 ประเทศ | กำลังวางแผนทริปต่อไป 🌍",
+    location: "เชียงใหม่, ไทย",
+    avatarUrl: null as string | null,
+    postsCount: 48,
+    followersCount: 1200,
+    followingCount: 234,
+  });
+
+  useEffect(() => {
+    getProfile().then(({ data }) => {
+      if (!data) return;
+      setProfile({
+        name: data.name ?? "Your Trip User",
+        username: data.username ?? "",
+        bio: data.bio ?? "",
+        location: data.location ?? "",
+        avatarUrl: data.avatarUrl ?? null,
+        postsCount: data.postsCount,
+        followersCount: data.followersCount,
+        followingCount: data.followingCount,
+      });
+    });
+  }, []);
 
   return (
     <AppShell>
@@ -30,25 +57,48 @@ export default function ProfilePage() {
         {/* ── Profile header ── */}
         <div className="bg-white border-b border-gray-100 px-4 md:px-6 pt-4 pb-5 md:rounded-t-2xl">
           <div className="flex items-center justify-between mb-4">
-            <div className="w-20 h-20 bg-[#398AB9] rounded-full flex items-center justify-center text-white text-2xl font-bold">
-              YT
-            </div>
+            {profile.avatarUrl ? (
+              <img src={profile.avatarUrl} alt={profile.name}
+                className="w-20 h-20 rounded-full object-cover" />
+            ) : (
+              <div className="w-20 h-20 bg-[#398AB9] rounded-full flex items-center justify-center text-white text-2xl font-bold">
+                {profile.name.charAt(0).toUpperCase()}
+              </div>
+            )}
             <div className="flex gap-3 text-center">
-              <div><p className="text-xl font-bold text-gray-900">48</p><p className="text-xs text-gray-400">โพสต์</p></div>
-              <div><p className="text-xl font-bold text-gray-900">1.2K</p><p className="text-xs text-gray-400">ผู้ติดตาม</p></div>
-              <div><p className="text-xl font-bold text-gray-900">234</p><p className="text-xs text-gray-400">กำลังติดตาม</p></div>
+              <div>
+                <p className="text-xl font-bold text-gray-900">{profile.postsCount}</p>
+                <p className="text-xs text-gray-400">โพสต์</p>
+              </div>
+              <div>
+                <p className="text-xl font-bold text-gray-900">
+                  {profile.followersCount >= 1000
+                    ? (profile.followersCount / 1000).toFixed(1).replace(".0","") + "K"
+                    : profile.followersCount}
+                </p>
+                <p className="text-xs text-gray-400">ผู้ติดตาม</p>
+              </div>
+              <div>
+                <p className="text-xl font-bold text-gray-900">{profile.followingCount}</p>
+                <p className="text-xs text-gray-400">กำลังติดตาม</p>
+              </div>
             </div>
           </div>
 
           <div>
-            <p className="font-bold text-gray-900">Your Trip User</p>
-            <div className="flex items-center gap-1.5 mt-0.5">
-              <MapPin className="w-3 h-3 text-[#398AB9]" />
-              <span className="text-xs text-gray-400">เชียงใหม่, ไทย</span>
-            </div>
-            <p className="text-sm text-gray-500 mt-2 leading-relaxed">
-              นักเดินทางสายธรรมชาติ ✈️ | ไปแล้ว 23 ประเทศ | กำลังวางแผนทริปต่อไป 🌍
-            </p>
+            <p className="font-bold text-gray-900">{profile.name}</p>
+            {profile.username && (
+              <p className="text-xs text-gray-400">@{profile.username}</p>
+            )}
+            {profile.location && (
+              <div className="flex items-center gap-1.5 mt-0.5">
+                <MapPin className="w-3 h-3 text-[#398AB9]" />
+                <span className="text-xs text-gray-400">{profile.location}</span>
+              </div>
+            )}
+            {profile.bio && (
+              <p className="text-sm text-gray-500 mt-2 leading-relaxed">{profile.bio}</p>
+            )}
           </div>
 
           {/* achievements */}
