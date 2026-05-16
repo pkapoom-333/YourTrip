@@ -1,8 +1,9 @@
 "use client";
 
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import AppShell from "@/components/AppShell";
 import { useRouter } from "next/navigation";
+import { updateProfile, getProfile } from "@/server/actions/profile";
 import {
   ChevronLeft, Camera, User, Mail, Globe,
   MapPin, FileText, Save, Link as LinkIcon,
@@ -25,17 +26,40 @@ export default function EditProfilePage() {
     dateOfBirth: "",
   });
 
+  // Load real profile on mount
+  useEffect(() => {
+    getProfile().then(({ data }) => {
+      if (!data) return;
+      setForm((f) => ({
+        ...f,
+        name: data.name ?? f.name,
+        username: data.username ?? f.username,
+        bio: data.bio ?? f.bio,
+        location: data.location ?? f.location,
+        website: data.website ?? f.website,
+      }));
+    });
+  }, []);
+
   const set = (key: string) => (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
   ) => setForm((f) => ({ ...f, [key]: e.target.value }));
 
   async function handleSave() {
     setSaving(true);
-    // TODO: wire to updateProfile server action
-    await new Promise((r) => setTimeout(r, 800));
-    setSaving(false);
-    setSaved(true);
-    setTimeout(() => setSaved(false), 2000);
+    try {
+      await updateProfile({
+        name: form.name,
+        username: form.username || undefined,
+        bio: form.bio || undefined,
+        location: form.location || undefined,
+        website: form.website || undefined,
+      });
+      setSaved(true);
+      setTimeout(() => setSaved(false), 2000);
+    } finally {
+      setSaving(false);
+    }
   }
 
   return (

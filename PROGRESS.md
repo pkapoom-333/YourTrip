@@ -7,7 +7,8 @@
 → **BLOCKED (needs user)**: สร้าง Supabase project → ใส่ `.env.local` → รัน `npx prisma migrate dev --name init` → `npx prisma db seed`
 → Then: ทดสอบ Google OAuth flow (/login → callback → /feed)
 → Then: ดึง real user data จาก Supabase ใน Profile + AppShell
-→ **CODE READY**: /place/[slug] — refactor large "use client" page → server wrapper + PlaceDetailClient
+→ **CODE READY**: /profile/edit → wire updateProfile action
+→ **BLOCKED (needs user)**: สร้าง Supabase project → ใส่ `.env.local` → migrate → seed → test OAuth
 
 ---
 
@@ -25,7 +26,7 @@
   - [x] PWA manifest + mobile meta tags
   - [x] Responsive AppShell (sidebar desktop + bottom nav mobile)
   - [x] Feed page redesign (stories + posts + right panel)
-  - [x] Place Detail page (/place/[slug]) — full info: carousel, hours, map, transport, caution, parking, reviews, nearby
+  - [x] Place Detail page (/place/[slug]) — server page + PlaceDetailClient, wired to getPlaceBySlug
   - [x] Explore/Search page (/explore) — filter by category + region + keyword
   - [x] Trips page (/trips) — trip planning list
   - [ ] Supabase project created + .env.local configured
@@ -33,7 +34,7 @@
   - [x] /notifications page (unread count, mark-all-read, buddy request card)
   - [x] /settings page (toggles: notification, privacy, dark mode)
   - [x] /buddy page (Travel Buddy discovery, like/pass/match)
-  - [x] /trips/[id] page (itinerary builder, day tabs, budget bar, add/delete items)
+  - [x] /trips/[id] page (itinerary builder, day tabs, budget bar, add/delete items — wired to server actions)
   - [x] /trips/new page (3-step wizard: destination → dates+budget → privacy)
   - [x] /profile/edit page (edit form, avatar upload stub)
   - [x] /forgot-password + /auth/reset-password pages
