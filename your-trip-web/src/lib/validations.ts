@@ -99,6 +99,7 @@ export const updateProfileSchema = z.object({
   website: z.string().url("URL ไม่ถูกต้อง").optional().or(z.literal("")),
   gender: z.enum(["Male", "Female", "Other"]).optional(),
   dateOfBirth: z.string().optional(),
+  avatarUrl: z.string().url().optional().or(z.literal("")),
 });
 
 export type UpdateProfileInput = z.infer<typeof updateProfileSchema>;

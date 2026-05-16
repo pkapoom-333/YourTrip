@@ -23,12 +23,14 @@ export async function updateProfile(input: UpdateProfileInput) {
         bio: parsed.data.bio ?? undefined,
         location: parsed.data.location ?? undefined,
         website: parsed.data.website ?? undefined,
+        ...(parsed.data.avatarUrl ? { avatarUrl: parsed.data.avatarUrl } : {}),
       },
       create: {
         id: user.id,
         email: user.email!,
         name: parsed.data.name,
         username: parsed.data.username,
+        ...(parsed.data.avatarUrl ? { avatarUrl: parsed.data.avatarUrl } : {}),
       },
     });
 

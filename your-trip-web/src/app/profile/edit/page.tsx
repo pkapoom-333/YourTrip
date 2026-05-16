@@ -5,22 +5,30 @@ import AppShell from "@/components/AppShell";
 import { useRouter } from "next/navigation";
 import { updateProfile, getProfile } from "@/server/actions/profile";
 import {
-  ChevronLeft, Camera, User, Mail, Globe,
-  MapPin, FileText, Save, Link as LinkIcon,
+  ChevronLeft, Camera, User, Globe,
+  MapPin, FileText, Save, Link as LinkIcon, Loader2,
 } from "lucide-react";
+
+const AVATAR_COLORS = [
+  "bg-[#398AB9]", "bg-emerald-500", "bg-violet-500",
+  "bg-orange-400", "bg-pink-400", "bg-amber-500",
+];
 
 export default function EditProfilePage() {
   const router = useRouter();
   const fileRef = useRef<HTMLInputElement>(null);
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
+  const [uploading, setUploading] = useState(false);
+  const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
+  const [avatarPreview, setAvatarPreview] = useState<string | null>(null);
+  const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
   const [form, setForm] = useState({
     name: "Your Trip User",
-    username: "yourtrip_user",
-    email: "user@example.com",
-    bio: "นักเดินทางสายธรรมชาติ ☀️ ชอบตื่นเช้าไปดูวิวและลองอาหารท้องถิ่น",
-    location: "กรุงเทพฯ",
+    username: "",
+    bio: "",
+    location: "",
     website: "",
     gender: "Other" as "Male" | "Female" | "Other",
     dateOfBirth: "",
@@ -38,6 +46,10 @@ export default function EditProfilePage() {
         location: data.location ?? f.location,
         website: data.website ?? f.website,
       }));
+      if (data.avatarUrl) {
+        setAvatarUrl(data.avatarUrl);
+        setAvatarPreview(data.avatarUrl);
+      }
     });
   }, []);
 
@@ -45,22 +57,60 @@ export default function EditProfilePage() {
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
   ) => setForm((f) => ({ ...f, [key]: e.target.value }));
 
+  async function handleAvatarChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    // Local preview
+    const objectUrl = URL.createObjectURL(file);
+    setAvatarPreview(objectUrl);
+
+    // Upload
+    setUploading(true);
+    setErrorMsg(null);
+    try {
+      const fd = new FormData();
+      fd.append("file", file);
+      fd.append("folder", "avatars");
+      const res = await fetch("/api/upload", { method: "POST", body: fd });
+      const json = await res.json() as { url?: string; error?: string };
+      if (!res.ok || !json.url) throw new Error(json.error ?? "อัพโหลดล้มเหลว");
+      setAvatarUrl(json.url);
+    } catch (err) {
+      setErrorMsg(err instanceof Error ? err.message : "อัพโหลดล้มเหลว");
+      setAvatarPreview(avatarUrl); // revert preview
+    } finally {
+      setUploading(false);
+    }
+  }
+
   async function handleSave() {
     setSaving(true);
+    setErrorMsg(null);
     try {
-      await updateProfile({
+      const result = await updateProfile({
         name: form.name,
         username: form.username || undefined,
         bio: form.bio || undefined,
         location: form.location || undefined,
         website: form.website || undefined,
+        gender: form.gender,
+        dateOfBirth: form.dateOfBirth || undefined,
+        avatarUrl: avatarUrl || undefined,
       });
-      setSaved(true);
-      setTimeout(() => setSaved(false), 2000);
+      if ("error" in result && result.error) {
+        setErrorMsg(result.error.message);
+      } else {
+        setSaved(true);
+        setTimeout(() => setSaved(false), 2000);
+      }
     } finally {
       setSaving(false);
     }
   }
+
+  const avatarColor = AVATAR_COLORS[(form.name?.charCodeAt(0) ?? 0) % AVATAR_COLORS.length];
+  const initials = (form.name ?? "U").charAt(0).toUpperCase();
 
   return (
     <AppShell>
@@ -77,43 +127,70 @@ export default function EditProfilePage() {
           <h1 className="text-sm font-semibold text-gray-900">แก้ไขโปรไฟล์</h1>
           <button
             onClick={handleSave}
-            disabled={saving}
+            disabled={saving || uploading}
             className="flex items-center gap-1.5 text-sm font-bold text-white bg-[#398AB9] px-4 py-1.5 rounded-full disabled:opacity-50 hover:bg-[#1C658C] transition"
           >
             {saved ? (
               "✓ บันทึกแล้ว"
             ) : saving ? (
-              "กำลังบันทึก..."
+              <><Loader2 className="w-3.5 h-3.5 animate-spin" /> กำลังบันทึก...</>
             ) : (
-              <>
-                <Save className="w-3.5 h-3.5" />
-                บันทึก
-              </>
+              <><Save className="w-3.5 h-3.5" /> บันทึก</>
             )}
           </button>
         </div>
 
         <div className="px-4 py-6 space-y-6">
+          {/* Error message */}
+          {errorMsg && (
+            <div className="bg-red-50 border border-red-200 text-red-600 text-sm rounded-xl px-4 py-3">
+              {errorMsg}
+            </div>
+          )}
+
           {/* Avatar */}
           <div className="flex flex-col items-center">
             <div className="relative">
-              <div className="w-24 h-24 bg-[#398AB9] rounded-full flex items-center justify-center text-white text-3xl font-bold">
-                YT
-              </div>
+              {avatarPreview ? (
+                <img
+                  src={avatarPreview}
+                  alt="avatar"
+                  className="w-24 h-24 rounded-full object-cover"
+                />
+              ) : (
+                <div className={`w-24 h-24 ${avatarColor} rounded-full flex items-center justify-center text-white text-3xl font-bold`}>
+                  {initials}
+                </div>
+              )}
+              {/* Uploading overlay */}
+              {uploading && (
+                <div className="absolute inset-0 bg-black/40 rounded-full flex items-center justify-center">
+                  <Loader2 className="w-6 h-6 text-white animate-spin" />
+                </div>
+              )}
               <button
                 onClick={() => fileRef.current?.click()}
-                className="absolute -bottom-1 -right-1 w-8 h-8 bg-white border-2 border-gray-200 rounded-full flex items-center justify-center shadow-sm hover:bg-gray-50 transition"
+                disabled={uploading}
+                className="absolute -bottom-1 -right-1 w-8 h-8 bg-white border-2 border-gray-200 rounded-full flex items-center justify-center shadow-sm hover:bg-gray-50 transition disabled:opacity-50"
               >
                 <Camera className="w-4 h-4 text-gray-500" />
               </button>
-              <input ref={fileRef} type="file" accept="image/*" className="hidden" />
+              <input
+                ref={fileRef}
+                type="file"
+                accept="image/jpeg,image/png,image/webp,image/gif"
+                className="hidden"
+                onChange={handleAvatarChange}
+              />
             </div>
             <button
               onClick={() => fileRef.current?.click()}
-              className="mt-3 text-sm text-[#398AB9] font-medium hover:text-[#1C658C]"
+              disabled={uploading}
+              className="mt-3 text-sm text-[#398AB9] font-medium hover:text-[#1C658C] disabled:opacity-50"
             >
-              เปลี่ยนรูปโปรไฟล์
+              {uploading ? "กำลังอัพโหลด..." : "เปลี่ยนรูปโปรไฟล์"}
             </button>
+            <p className="text-[11px] text-gray-400 mt-1">JPEG, PNG, WebP · สูงสุด 10 MB</p>
           </div>
 
           {/* Form fields */}
@@ -190,18 +267,18 @@ export default function EditProfilePage() {
               />
             </div>
 
-            {/* Email (read-only) */}
-            <div>
-              <label className="flex items-center gap-1.5 text-xs font-semibold text-gray-500 mb-1.5 uppercase tracking-wide">
-                <Mail className="w-3.5 h-3.5" /> อีเมล
-              </label>
-              <input
-                value={form.email}
-                readOnly
-                className="w-full px-4 py-3 border border-gray-100 rounded-xl text-sm bg-gray-50 text-gray-400 cursor-not-allowed"
-              />
-              <p className="text-xs text-gray-400 mt-1 pl-1">เปลี่ยนอีเมลใน Supabase Auth</p>
-            </div>
+            {/* Website icon */}
+            {form.website && (
+              <a
+                href={form.website}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center gap-1.5 text-xs text-[#398AB9] -mt-2 pl-1 hover:underline"
+              >
+                <Globe className="w-3 h-3" />
+                {form.website.replace(/^https?:\/\//, "")}
+              </a>
+            )}
 
             {/* Gender */}
             <div>
@@ -243,7 +320,7 @@ export default function EditProfilePage() {
           {/* Save button (bottom) */}
           <button
             onClick={handleSave}
-            disabled={saving}
+            disabled={saving || uploading}
             className="w-full py-4 rounded-2xl bg-[#398AB9] text-white font-bold hover:bg-[#1C658C] transition disabled:opacity-50 shadow-md shadow-[#398AB9]/30"
           >
             {saving ? "กำลังบันทึก..." : saved ? "✓ บันทึกแล้ว" : "บันทึกการเปลี่ยนแปลง"}
