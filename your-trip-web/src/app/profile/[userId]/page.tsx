@@ -167,18 +167,18 @@ export default function UserProfilePage() {
                 <p className="text-xl font-bold text-gray-900">{profile.postsCount}</p>
                 <p className="text-xs text-gray-400">โพสต์</p>
               </div>
-              <div>
+              <Link href={`/profile/${profile.id}/followers`} className="hover:opacity-80 transition">
                 <p className="text-xl font-bold text-gray-900">
                   {followerCount >= 1000
                     ? (followerCount / 1000).toFixed(1).replace(".0", "") + "K"
                     : followerCount}
                 </p>
                 <p className="text-xs text-gray-400">ผู้ติดตาม</p>
-              </div>
-              <div>
+              </Link>
+              <Link href={`/profile/${profile.id}/following`} className="hover:opacity-80 transition">
                 <p className="text-xl font-bold text-gray-900">{profile.followingCount}</p>
                 <p className="text-xs text-gray-400">กำลังติดตาม</p>
-              </div>
+              </Link>
             </div>
           </div>
 

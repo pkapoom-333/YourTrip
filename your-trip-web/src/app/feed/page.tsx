@@ -4,6 +4,7 @@ import { Search, Bell, TrendingUp } from "lucide-react";
 import { type PostCardData } from "@/components/features/PostCard";
 import { getFeed } from "@/server/actions/posts";
 import { FeedPostsClient } from "./FeedPostsClient";
+import SuggestedUsers from "@/components/features/SuggestedUsers";
 
 const stories = [
   { id: 0, name: "เพิ่มสตอรี่", bg: "bg-gray-100", initials: "+", isAdd: true },
@@ -168,6 +169,11 @@ export default async function FeedPage() {
                   </div>
                 ))}
               </div>
+            </div>
+
+            {/* Suggested users to follow */}
+            <div className="mb-4">
+              <SuggestedUsers />
             </div>
 
             {/* Suggested places */}

@@ -6,6 +6,7 @@ import Link from "next/link";
 import { Settings, MapPin, Grid3X3, Bookmark, Heart, Star } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { getProfile, getUserPosts, getUserSavedPosts, type PostGridItem } from "@/server/actions/profile";
+import { useUser } from "@/hooks/useUser";
 
 // Mock fallback posts (shown when DB not configured)
 const MOCK_POSTS: PostGridItem[] = [
@@ -19,8 +20,10 @@ const MOCK_POSTS: PostGridItem[] = [
 
 export default function ProfilePage() {
   const router = useRouter();
+  const { user } = useUser();
   const [tab, setTab] = useState<"posts" | "saved" | "reviews">("posts");
   const [profile, setProfile] = useState({
+    id: "" as string,
     name: "Your Trip User",
     username: "yourtrip_user",
     bio: "นักเดินทางสายธรรมชาติ ✈️ | ไปแล้ว 23 ประเทศ | กำลังวางแผนทริปต่อไป 🌍",
@@ -37,6 +40,7 @@ export default function ProfilePage() {
     getProfile().then(({ data }) => {
       if (!data) return;
       setProfile({
+        id: data.id ?? "",
         name: data.name ?? "Your Trip User",
         username: data.username ?? "",
         bio: data.bio ?? "",
@@ -79,18 +83,36 @@ export default function ProfilePage() {
                 <p className="text-xl font-bold text-gray-900">{profile.postsCount}</p>
                 <p className="text-xs text-gray-400">โพสต์</p>
               </div>
-              <div>
-                <p className="text-xl font-bold text-gray-900">
-                  {profile.followersCount >= 1000
-                    ? (profile.followersCount / 1000).toFixed(1).replace(".0","") + "K"
-                    : profile.followersCount}
-                </p>
-                <p className="text-xs text-gray-400">ผู้ติดตาม</p>
-              </div>
-              <div>
-                <p className="text-xl font-bold text-gray-900">{profile.followingCount}</p>
-                <p className="text-xs text-gray-400">กำลังติดตาม</p>
-              </div>
+              {user?.id ? (
+                <Link href={`/profile/${user.id}/followers`} className="hover:opacity-80 transition">
+                  <p className="text-xl font-bold text-gray-900">
+                    {profile.followersCount >= 1000
+                      ? (profile.followersCount / 1000).toFixed(1).replace(".0","") + "K"
+                      : profile.followersCount}
+                  </p>
+                  <p className="text-xs text-gray-400">ผู้ติดตาม</p>
+                </Link>
+              ) : (
+                <div>
+                  <p className="text-xl font-bold text-gray-900">
+                    {profile.followersCount >= 1000
+                      ? (profile.followersCount / 1000).toFixed(1).replace(".0","") + "K"
+                      : profile.followersCount}
+                  </p>
+                  <p className="text-xs text-gray-400">ผู้ติดตาม</p>
+                </div>
+              )}
+              {user?.id ? (
+                <Link href={`/profile/${user.id}/following`} className="hover:opacity-80 transition">
+                  <p className="text-xl font-bold text-gray-900">{profile.followingCount}</p>
+                  <p className="text-xs text-gray-400">กำลังติดตาม</p>
+                </Link>
+              ) : (
+                <div>
+                  <p className="text-xl font-bold text-gray-900">{profile.followingCount}</p>
+                  <p className="text-xs text-gray-400">กำลังติดตาม</p>
+                </div>
+              )}
             </div>
           </div>
 

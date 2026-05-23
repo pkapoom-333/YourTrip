@@ -236,3 +236,204 @@ export async function checkIsFollowing(targetId: string): Promise<{ following: b
     return { following: false };
   }
 }
+
+// ─── Follower/Following lists & suggestions ────────────────────────────────
+
+export interface UserCard {
+  id: string;
+  name: string | null;
+  username: string | null;
+  avatarUrl: string | null;
+  bio: string | null;
+  isFollowing: boolean;
+}
+
+/** Get list of users following `userId` (i.e. userId's followers) */
+export async function getFollowers(
+  userId: string,
+  take = 50
+): Promise<{ data: UserCard[] }> {
+  try {
+    const supabase = await createServerClient();
+    const { data: { user: me } } = await supabase.auth.getUser();
+
+    const rows = await prisma.follow.findMany({
+      where: { followingId: userId },
+      take,
+      orderBy: { createdAt: "desc" },
+      include: {
+        follower: {
+          select: { id: true, name: true, username: true, avatarUrl: true, bio: true },
+        },
+      },
+    });
+
+    // For each follower, check if `me` follows them
+    const ids = rows.map((r) => r.follower.id);
+    const myFollows = me
+      ? new Set(
+          (
+            await prisma.follow.findMany({
+              where: { followerId: me.id, followingId: { in: ids } },
+              select: { followingId: true },
+            })
+          ).map((f) => f.followingId)
+        )
+      : new Set<string>();
+
+    return {
+      data: rows.map((r) => ({
+        id: r.follower.id,
+        name: r.follower.name,
+        username: r.follower.username,
+        avatarUrl: r.follower.avatarUrl,
+        bio: r.follower.bio,
+        isFollowing: myFollows.has(r.follower.id),
+      })),
+    };
+  } catch {
+    return { data: [] };
+  }
+}
+
+/** Get list of users that `userId` is following */
+export async function getFollowing(
+  userId: string,
+  take = 50
+): Promise<{ data: UserCard[] }> {
+  try {
+    const supabase = await createServerClient();
+    const { data: { user: me } } = await supabase.auth.getUser();
+
+    const rows = await prisma.follow.findMany({
+      where: { followerId: userId },
+      take,
+      orderBy: { createdAt: "desc" },
+      include: {
+        following: {
+          select: { id: true, name: true, username: true, avatarUrl: true, bio: true },
+        },
+      },
+    });
+
+    const ids = rows.map((r) => r.following.id);
+    const myFollows = me
+      ? new Set(
+          (
+            await prisma.follow.findMany({
+              where: { followerId: me.id, followingId: { in: ids } },
+              select: { followingId: true },
+            })
+          ).map((f) => f.followingId)
+        )
+      : new Set<string>();
+
+    return {
+      data: rows.map((r) => ({
+        id: r.following.id,
+        name: r.following.name,
+        username: r.following.username,
+        avatarUrl: r.following.avatarUrl,
+        bio: r.following.bio,
+        isFollowing: myFollows.has(r.following.id),
+      })),
+    };
+  } catch {
+    return { data: [] };
+  }
+}
+
+/** Search users by name / username */
+export async function searchUsers(q: string, take = 20): Promise<{ data: UserCard[] }> {
+  if (!q.trim()) return { data: [] };
+  try {
+    const supabase = await createServerClient();
+    const { data: { user: me } } = await supabase.auth.getUser();
+
+    const myFollows = me
+      ? new Set(
+          (await prisma.follow.findMany({
+            where: { followerId: me.id },
+            select: { followingId: true },
+          })).map((f) => f.followingId)
+        )
+      : new Set<string>();
+
+    const users = await prisma.user.findMany({
+      where: {
+        OR: [
+          { name: { contains: q, mode: "insensitive" } },
+          { username: { contains: q, mode: "insensitive" } },
+        ],
+        ...(me ? { id: { not: me.id } } : {}),
+      },
+      take,
+      orderBy: { followers: { _count: "desc" } },
+      select: { id: true, name: true, username: true, avatarUrl: true, bio: true },
+    });
+
+    return {
+      data: users.map((u) => ({
+        id: u.id,
+        name: u.name,
+        username: u.username,
+        avatarUrl: u.avatarUrl,
+        bio: u.bio,
+        isFollowing: myFollows.has(u.id),
+      })),
+    };
+  } catch {
+    return { data: [] };
+  }
+}
+
+/** Suggest users to follow:
+ *  - exclude self & users I already follow
+ *  - rank by follower count desc, then post count desc
+ */
+export async function getSuggestedUsers(take = 5): Promise<{ data: UserCard[] }> {
+  try {
+    const supabase = await createServerClient();
+    const { data: { user: me } } = await supabase.auth.getUser();
+
+    const alreadyFollowingIds = me
+      ? (
+          await prisma.follow.findMany({
+            where: { followerId: me.id },
+            select: { followingId: true },
+          })
+        ).map((f) => f.followingId)
+      : [];
+
+    const excludeIds = me ? [me.id, ...alreadyFollowingIds] : [];
+
+    const users = await prisma.user.findMany({
+      where: excludeIds.length > 0 ? { id: { notIn: excludeIds } } : undefined,
+      take,
+      orderBy: [
+        { followers: { _count: "desc" } },
+        { posts: { _count: "desc" } },
+      ],
+      select: {
+        id: true,
+        name: true,
+        username: true,
+        avatarUrl: true,
+        bio: true,
+      },
+    });
+
+    return {
+      data: users.map((u) => ({
+        id: u.id,
+        name: u.name,
+        username: u.username,
+        avatarUrl: u.avatarUrl,
+        bio: u.bio,
+        isFollowing: false,
+      })),
+    };
+  } catch {
+    return { data: [] };
+  }
+}

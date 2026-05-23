@@ -150,10 +150,11 @@ export function PostCard({ post }: { post: PostCardData }) {
           <Heart className={`w-5 h-5 transition-transform ${liked ? "scale-110 fill-current" : ""}`} />
           <span className="text-xs font-medium">{fmt(likeCount)}</span>
         </button>
-        <button className="flex items-center gap-1.5 px-2 py-1.5 rounded-xl text-gray-400 hover:text-[#398AB9] hover:bg-[#398AB9]/5 transition">
+        <Link href={`/post/${post.id}`}
+          className="flex items-center gap-1.5 px-2 py-1.5 rounded-xl text-gray-400 hover:text-[#398AB9] hover:bg-[#398AB9]/5 transition">
           <MessageCircle className="w-5 h-5" />
           <span className="text-xs font-medium">{fmt(post.comments)}</span>
-        </button>
+        </Link>
         {post.shares !== undefined && (
         <button className="flex items-center gap-1.5 px-2 py-1.5 rounded-xl text-gray-400 hover:text-[#398AB9] hover:bg-[#398AB9]/5 transition">
           <Send className="w-5 h-5" />

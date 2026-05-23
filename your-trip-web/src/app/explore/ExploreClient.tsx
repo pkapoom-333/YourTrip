@@ -1,9 +1,10 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, useCallback } from "react";
 import Link from "next/link";
-import { Search, Star, MapPin, SlidersHorizontal, X, LayoutGrid, List, ArrowUpDown } from "lucide-react";
+import { Search, Star, MapPin, SlidersHorizontal, X, LayoutGrid, List, ArrowUpDown, Users, UserPlus, UserCheck } from "lucide-react";
 import type { PlaceListItem } from "@/server/actions/places";
+import { searchUsers, followUser, unfollowUser, type UserCard } from "@/server/actions/profile";
 
 /* ── static data ── */
 const categories = [
@@ -84,8 +85,121 @@ function PlaceCard({ place }: { place: PlaceListItem }) {
   );
 }
 
+const AVATAR_COLORS = [
+  "bg-[#398AB9]", "bg-emerald-500", "bg-violet-500",
+  "bg-orange-400", "bg-pink-400", "bg-amber-500",
+];
+
+function PeopleTab({ query }: { query: string }) {
+  const [users, setUsers] = useState<UserCard[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [following, setFollowing] = useState<Record<string, boolean>>({});
+
+  useEffect(() => {
+    if (!query.trim()) { setUsers([]); return; }
+    setLoading(true);
+    searchUsers(query, 20).then(({ data }) => {
+      setUsers(data);
+      const map: Record<string, boolean> = {};
+      data.forEach((u) => { map[u.id] = u.isFollowing; });
+      setFollowing(map);
+      setLoading(false);
+    }).catch(() => setLoading(false));
+  }, [query]);
+
+  async function toggleFollow(userId: string) {
+    const was = following[userId];
+    setFollowing((f) => ({ ...f, [userId]: !was }));
+    if (was) {
+      unfollowUser(userId).catch(() => setFollowing((f) => ({ ...f, [userId]: was })));
+    } else {
+      followUser(userId).catch(() => setFollowing((f) => ({ ...f, [userId]: was })));
+    }
+  }
+
+  if (!query.trim()) {
+    return (
+      <div className="flex flex-col items-center justify-center py-16 text-center px-8">
+        <Users className="w-12 h-12 text-gray-200 mb-4" />
+        <p className="text-gray-500 font-medium">ค้นหาชื่อหรือ username</p>
+        <p className="text-sm text-gray-400 mt-1">พิมพ์ชื่อเพื่อหาเพื่อนนักท่องเที่ยว</p>
+      </div>
+    );
+  }
+
+  if (loading) {
+    return (
+      <div className="space-y-3">
+        {[1, 2, 3].map((i) => (
+          <div key={i} className="flex items-center gap-3 bg-white rounded-2xl border border-gray-100 p-4 animate-pulse">
+            <div className="w-12 h-12 bg-gray-200 rounded-full flex-shrink-0" />
+            <div className="flex-1 space-y-2">
+              <div className="h-4 bg-gray-200 rounded w-32" />
+              <div className="h-3 bg-gray-100 rounded w-48" />
+            </div>
+          </div>
+        ))}
+      </div>
+    );
+  }
+
+  if (users.length === 0) {
+    return (
+      <div className="flex flex-col items-center justify-center py-16 text-center">
+        <div className="text-5xl mb-4">👤</div>
+        <p className="text-gray-500 font-medium">ไม่พบผู้ใช้ที่ตรงกับ &ldquo;{query}&rdquo;</p>
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-3">
+      {users.map((u) => {
+        const color = AVATAR_COLORS[(u.name?.charCodeAt(0) ?? 0) % AVATAR_COLORS.length];
+        const initials = (u.name ?? "U").charAt(0).toUpperCase();
+        const isFollowing = following[u.id] ?? u.isFollowing;
+        return (
+          <div key={u.id} className="flex items-center gap-3 bg-white rounded-2xl border border-gray-100 p-4">
+            <Link href={`/profile/${u.id}`} className="flex-shrink-0">
+              {u.avatarUrl ? (
+                <img src={u.avatarUrl} alt={u.name ?? ""} className="w-12 h-12 rounded-full object-cover" />
+              ) : (
+                <div className={`w-12 h-12 ${color} rounded-full flex items-center justify-center text-white font-bold`}>
+                  {initials}
+                </div>
+              )}
+            </Link>
+            <div className="flex-1 min-w-0">
+              <Link href={`/profile/${u.id}`}
+                className="text-sm font-semibold text-gray-900 hover:text-[#398AB9] transition">
+                {u.name}
+              </Link>
+              {u.username && <p className="text-xs text-gray-400">@{u.username}</p>}
+              {u.bio && <p className="text-xs text-gray-500 mt-0.5 truncate">{u.bio}</p>}
+            </div>
+            <button
+              onClick={() => toggleFollow(u.id)}
+              className={`flex-shrink-0 flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold transition ${
+                isFollowing
+                  ? "border border-gray-200 text-gray-600 hover:bg-gray-50"
+                  : "bg-[#398AB9] text-white hover:bg-[#1C658C]"
+              }`}>
+              {isFollowing
+                ? <><UserCheck className="w-3.5 h-3.5" /> ติดตามอยู่</>
+                : <><UserPlus className="w-3.5 h-3.5" /> ติดตาม</>}
+            </button>
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
+type SearchMode = "places" | "people";
+
 export default function ExploreClient({ initialPlaces }: { initialPlaces: PlaceListItem[] }) {
   const [query, setQuery] = useState("");
+  const [searchMode, setSearchMode] = useState<SearchMode>("places");
   const [activeCategory, setActiveCategory] = useState("all");
   const [activeRegion, setActiveRegion] = useState("all");
   const [showFilter, setShowFilter] = useState(false);
@@ -116,7 +230,7 @@ export default function ExploreClient({ initialPlaces }: { initialPlaces: PlaceL
     <div className="max-w-6xl mx-auto px-4 md:px-6 py-4 md:py-6">
       {/* desktop title */}
       <div className="hidden md:flex items-center justify-between mb-6">
-        <h1 className="text-xl font-bold text-gray-900">สำรวจสถานที่</h1>
+        <h1 className="text-xl font-bold text-gray-900">สำรวจ</h1>
       </div>
 
       {/* Search bar */}
@@ -126,7 +240,7 @@ export default function ExploreClient({ initialPlaces }: { initialPlaces: PlaceL
           <input
             value={query}
             onChange={(e) => setQuery(e.target.value)}
-            placeholder="ค้นหาสถานที่, ร้านอาหาร, คาเฟ่..."
+            placeholder={searchMode === "places" ? "ค้นหาสถานที่, ร้านอาหาร, คาเฟ่..." : "ค้นหาชื่อ หรือ @username..."}
             className="w-full pl-9 pr-10 py-2.5 bg-white border border-gray-200 rounded-xl text-sm text-gray-700 placeholder:text-gray-400 focus:outline-none focus:border-[#398AB9] focus:ring-2 focus:ring-[#398AB9]/10 transition"
           />
           {query && (
@@ -136,19 +250,44 @@ export default function ExploreClient({ initialPlaces }: { initialPlaces: PlaceL
             </button>
           )}
         </div>
-        <button
-          onClick={() => setShowFilter(!showFilter)}
-          className={`w-10 h-10 flex items-center justify-center rounded-xl border transition ${
-            showFilter || activeRegion !== "all"
-              ? "bg-[#398AB9] border-[#398AB9] text-white"
-              : "bg-white border-gray-200 text-gray-500 hover:border-[#398AB9]"
-          }`}>
-          <SlidersHorizontal className="w-4 h-4" />
-        </button>
+        {searchMode === "places" && (
+          <button
+            onClick={() => setShowFilter(!showFilter)}
+            className={`w-10 h-10 flex items-center justify-center rounded-xl border transition ${
+              showFilter || activeRegion !== "all"
+                ? "bg-[#398AB9] border-[#398AB9] text-white"
+                : "bg-white border-gray-200 text-gray-500 hover:border-[#398AB9]"
+            }`}>
+            <SlidersHorizontal className="w-4 h-4" />
+          </button>
+        )}
       </div>
 
-      {/* Region filter */}
-      {showFilter && (
+      {/* Search mode toggle */}
+      <div className="flex bg-gray-100 rounded-xl p-1 mb-4">
+        {([
+          { key: "places", label: "สถานที่", emoji: "🗺️" },
+          { key: "people", label: "ผู้ใช้",  emoji: "👥" },
+        ] as const).map(({ key, label, emoji }) => (
+          <button
+            key={key}
+            onClick={() => setSearchMode(key)}
+            className={`flex-1 flex items-center justify-center gap-1.5 py-2 rounded-lg text-sm font-medium transition-all ${
+              searchMode === key
+                ? "bg-white text-[#398AB9] shadow-sm"
+                : "text-gray-500 hover:text-gray-700"
+            }`}>
+            <span>{emoji}</span>
+            {label}
+          </button>
+        ))}
+      </div>
+
+      {/* People tab content */}
+      {searchMode === "people" && <PeopleTab query={query} />}
+
+      {/* Region filter — places only */}
+      {showFilter && searchMode === "places" && (
         <div className="mb-4 bg-white border border-gray-100 rounded-xl p-3">
           <p className="text-xs font-semibold text-gray-500 mb-2 uppercase tracking-wide">ภูมิภาค</p>
           <div className="flex flex-wrap gap-2">
@@ -165,6 +304,9 @@ export default function ExploreClient({ initialPlaces }: { initialPlaces: PlaceL
           </div>
         </div>
       )}
+
+      {/* Places section */}
+      {searchMode === "places" && <>
 
       {/* Category tabs */}
       <div className="flex gap-2 overflow-x-auto scrollbar-none mb-5 pb-1">
@@ -217,7 +359,7 @@ export default function ExploreClient({ initialPlaces }: { initialPlaces: PlaceL
         </div>
       </div>
 
-      {/* Results */}
+      {/* Places Results */}
       {filtered.length > 0 ? (
         viewMode === "grid" ? (
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 md:gap-4">
@@ -278,6 +420,8 @@ export default function ExploreClient({ initialPlaces }: { initialPlaces: PlaceL
           <p className="text-sm text-gray-400 mt-1">ลองเปลี่ยนคำค้นหาหรือตัวกรอง</p>
         </div>
       )}
+
+      </> /* end places section */}
     </div>
   );
 }
