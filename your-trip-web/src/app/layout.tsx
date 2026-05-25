@@ -2,6 +2,9 @@ import type { Metadata, Viewport } from "next";
 import { Providers } from "@/components/providers";
 import "./globals.css";
 
+// Force all pages to be dynamically rendered — this app requires auth so no static prerender
+export const dynamic = "force-dynamic";
+
 const BASE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? "https://yourtrip.app";
 
 export const metadata: Metadata = {

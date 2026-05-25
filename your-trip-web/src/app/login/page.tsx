@@ -31,7 +31,7 @@ export default function LoginPage() {
   const handleGoogle = () =>
     supabase.auth.signInWithOAuth({
       provider: "google",
-      options: { redirectTo: `${location.origin}/api/auth/callback?next=/feed` },
+      options: { redirectTo: `${location.origin}/auth/callback?next=/feed` },
     });
 
   return (

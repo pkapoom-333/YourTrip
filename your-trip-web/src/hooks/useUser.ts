@@ -17,15 +17,17 @@ export function useUser(): UseUserResult {
     const supabase = createClient();
 
     // Get initial session
-    supabase.auth.getUser().then(({ data }) => {
-      setUser(data.user);
+    supabase.auth.getUser().then(({ data }: { data: { user: User | null }; error: unknown }) => {
+      setUser(data.user ?? null);
       setLoading(false);
     });
 
     // Subscribe to auth changes
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-      setUser(session?.user ?? null);
-    });
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      (_event: string, session: { user: User } | null) => {
+        setUser(session?.user ?? null);
+      }
+    );
 
     return () => subscription.unsubscribe();
   }, []);

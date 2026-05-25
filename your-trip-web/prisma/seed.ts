@@ -4,8 +4,11 @@
  * (add to package.json: "prisma": { "seed": "npx ts-node prisma/seed.ts" })
  */
 import { PrismaClient } from "@prisma/client";
+import { PrismaPg } from "@prisma/adapter-pg";
 
-const prisma = new PrismaClient();
+// Prisma 7 requires a driver adapter — DATABASE_URL must be set
+const adapter = new PrismaPg({ connectionString: process.env.DATABASE_URL! });
+const prisma = new PrismaClient({ adapter } as any);
 
 async function main() {
   console.log("🌱 Seeding database...");
