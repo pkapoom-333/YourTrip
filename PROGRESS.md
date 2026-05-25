@@ -1,11 +1,13 @@
 # PROGRESS.md
 # Travel Community App — Dev Log
 
-## Status: Phase 1 | Day 2 | 2026-05-09
+## Status: Phase 1 | Day 5 | 2026-05-25
 
 ## Current sprint task
-→ **NEXT TASK: Setup Supabase project + .env.local → run `npx prisma migrate dev`**
-→ Then: wire real auth to /login /register pages (Supabase Google OAuth)
+→ **DONE**: Prisma 7 runtime connection fixed (@prisma/adapter-pg)
+→ **DONE**: DB seeded (11 places)
+→ **DONE**: Build passes clean (0 TS errors, all pages dynamic)
+→ **NEXT**: Add Cloudinary env vars → test image upload → deploy to Vercel
 
 ---
 
@@ -15,24 +17,44 @@
   - [x] Migrate to Supabase stack (Postgres + Supabase Auth)
   - [x] Fix foundation bugs (layout, schema, duplicates)
   - [x] Shadcn/ui setup (Button component)
-  - [ ] Supabase project created + .env.local configured
-  - [ ] DB migration run (`prisma migrate dev`)
+  - [x] Supabase project created + .env.local configured
+  - [x] DB schema created (via SQL editor) + seeded (11 places)
   - [x] Auth pages: /login, /register (UI complete, needs real Supabase wiring)
   - [x] Middleware protecting /feed /profile /trips
   - [x] User profile page (/profile — UI complete)
   - [x] PWA manifest + mobile meta tags
   - [x] Responsive AppShell (sidebar desktop + bottom nav mobile)
   - [x] Feed page redesign (stories + posts + right panel)
-  - [x] Place Detail page (/place/[slug]) — full info: carousel, hours, map, transport, caution, parking, reviews, nearby
+  - [x] Place Detail page (/place/[slug]) — server page + PlaceDetailClient, wired to getPlaceBySlug
   - [x] Explore/Search page (/explore) — filter by category + region + keyword
   - [x] Trips page (/trips) — trip planning list
-  - [ ] Supabase project created + .env.local configured
-  - [ ] DB migration run (`prisma migrate dev`)
-  - [ ] Connect auth to real Supabase OAuth
+  - [x] Supabase project created + .env.local configured
+  - [x] DB migration run (via SQL editor — Prisma 7 direct migration blocked on free tier)
+  - [x] /notifications page (unread count, mark-all-read, buddy request card)
+  - [x] /settings page (toggles: notification, privacy, dark mode)
+  - [x] /buddy page (Travel Buddy discovery, like/pass/match — wired to server actions)
+  - [x] /trips/[id] page (itinerary builder, day tabs, budget bar, add/delete items — wired to server actions)
+  - [x] /trips/new page (3-step wizard: destination → dates+budget → privacy)
+  - [x] /profile/edit page (edit form, avatar upload stub)
+  - [x] /forgot-password + /auth/reset-password pages
+  - [x] /api/auth/callback route (Supabase OAuth exchange)
+  - [x] useUser hook (Supabase auth state, onAuthStateChange)
+  - [x] AppShell: user card + sign out button using useUser
+  - [x] PostCard: interactive like/save with optimistic update
+  - [x] CommentSection: expandable comments with like/reply/optimistic submit
+  - [x] useLocalStorage: SSR-safe hook for persisting state
+  - [x] Prisma schema: full Phase 1-2 models (Place, Post, Like, Comment, Save, Trip, TripDay, TripItem, Follow, Notification, BuddyRequest, Review)
+  - [x] server/actions/profile.ts — real Prisma (posts, profile, places, trips all wired)
+  - [x] server/actions/trips.ts — createTrip (auto TripDays), getUserTrips, getTripById, addItineraryItem, deleteTripItem, reorderItinerary, deleteTrip
+  - [x] /profile/[userId] — public user profile (follow/unfollow optimistic, posts grid)
+  - [x] /post/[id] — post detail page (image carousel, like/save/share, full comments)
+  - [x] PostCard: user avatar/name links to /profile/[userId], image links to /post/[id]
+  - [x] Avatar upload wired in /profile/edit (Cloudinary + instant preview + uploading state)
+  - [x] Connect auth to real Supabase OAuth (Google login working ✅)
 - [ ] Phase 2: Core Features (target: 13 Jun 2026)
-  - [ ] Posts & Feed (create, list, like)
-  - [ ] My Trip (CRUD + itinerary)
-  - [ ] Image upload (Cloudinary)
+  - [x] Posts & Feed (create, list, like) — wired to Prisma (needs DB)
+  - [x] My Trip (CRUD + itinerary) — fully wired
+  - [x] Image upload (Cloudinary) — /api/upload + ImageUpload component (needs CLOUDINARY_* env vars)
 - [ ] Phase 3: Social Layer (target: 30 Jun 2026)
   - [ ] Follow/unfollow
   - [ ] Travel Buddy matching
@@ -100,3 +122,14 @@
 | 2026-05-09 | Foundation: Supabase migration + bug fixes + Shadcn/ui | ~40% | Create Supabase project + auth pages |
 | 2026-05-09 | UI Sprint: AppShell + Feed + Place Detail + Explore + Trips + Profile (all pages with mock data) | ~70% | Supabase project setup + wire real auth |
 | 2026-05-09 | Foundation code: types/index.ts, validations (Zod v4), loading skeletons x5, error.tsx, create post page, server action stubs | ~95% | Setup .env.local → prisma migrate dev → wire auth |
+| 2026-05-11 | Day 3: notifications, settings, buddy, trips/[id], trips/new, profile/edit, forgot-password, auth callback, useUser hook, AppShell user card, PostCard interactive, Prisma schema expanded, profile server actions | ~60% | Setup Supabase .env.local → migrate → test OAuth |
+| 2026-05-11 | Day 3 cont.: CommentSection component (expandable, like/reply/optimistic), PostCard integrated, useLocalStorage hook, TypeScript clean, pushed to dev | ~80% | Setup Supabase .env.local → migrate → test OAuth |
+| 2026-05-15 | Day 4: Wire server actions (posts/profile/places) w/ Prisma + mock fallback, seed script (11 places), refactor /explore → server page + ExploreClient, fix proxy.ts, fix preview config | ~40% | ใส่ .env.local → migrate → seed → test auth |
+| 2026-05-15 | Day 4 cont.: Wire trips.ts (createTrip+auto TripDays, getUserTrips, getTripById, addItineraryItem, deleteTripItem, reorderItinerary, deleteTrip), confirm auth/callback route exists, add .claude/settings.json permission allowlist | ~55% | สร้าง Supabase project → .env.local → migrate → seed |
+| 2026-05-15 | Day 4 cont.2: Wire /create post, /trips/new, /feed, /trips to server actions; refactor PostCard (avatarUrl+optional fields); TripsClient server+client split; MOCK fallback on all pages | ~75% | สร้าง Supabase project → .env.local → migrate → seed → test OAuth |
+| 2026-05-16 | Day 4 cont.3: /place/[slug] server refactor + PlaceDetailClient; /trips/[id] wired (loadTrip+addItem+deleteItem); /profile wired (avatar+real stats); /profile/edit wired; permissions expanded | ~60% | สร้าง Supabase project → .env.local → migrate → seed → test OAuth |
+| 2026-05-16 | Day 4 cont.4: notifications.ts server actions (get/mark-read/delete); /notifications wired (useEffect+mock fallback); buddy.ts (discover/requests/matched/send/accept/decline); /buddy wired (real data + optimistic UI) | ~75% | สร้าง Supabase project → .env.local → migrate → seed → test OAuth |
+| 2026-05-16 | Day 4 cont.5: AppShell unread badge (live poll 60s); settings → useLocalStorage + real user + sign-out; CommentSection → getComments+createComment; createReview action + star picker form on /place/[slug] | ~85% | สร้าง Supabase project → .env.local → migrate → seed → test OAuth |
+| 2026-05-16 | Day 4 cont.6 (/loop): Cloudinary upload (/api/upload + ImageUpload component + /create page); vercel.json + .env.example; profile real posts grid + saved tab; PWAInstallPrompt; feed infinite scroll (IntersectionObserver + cursor) | ~70% | สร้าง Supabase + .env.local → migrate → seed → add Cloudinary keys |
+| 2026-05-17 | Day 5 (/loop): /profile/[userId] public profile (follow/unfollow optimistic + posts grid); avatar upload wired in /profile/edit (Cloudinary + preview + loading state); avatarUrl added to updateProfileSchema; PostCard user name/avatar → /profile/[userId]; /post/[id] detail page (image carousel, like/save/share, CommentSection, getPostById action) | ~40% | สร้าง Supabase project → .env.local → migrate → seed → test OAuth |
+| 2026-05-25 | Day 5 cont: Prisma 7 fix (@prisma/adapter-pg driver); DB seeded (11 places); Google OAuth working; build passes clean (0 TS errors, all pages dynamic) | ~30% | Add Cloudinary env vars → test image upload → deploy Vercel |

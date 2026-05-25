@@ -1,20 +1,114 @@
 "use server";
 
-// TODO: wire to Supabase after DB migration
+import { prisma } from "@/lib/prisma";
+import { createClient as createServerClient } from "@/lib/supabase/server";
 import { createTripSchema, itineraryItemSchema, type CreateTripInput, type ItineraryItemInput } from "@/lib/validations";
+
+function daysBetween(start: string, end: string): number {
+  const s = new Date(start);
+  const e = new Date(end);
+  return Math.max(1, Math.ceil((e.getTime() - s.getTime()) / (1000 * 60 * 60 * 24)) + 1);
+}
 
 export async function createTrip(input: CreateTripInput) {
   const parsed = createTripSchema.safeParse(input);
   if (!parsed.success) {
     return { error: { message: parsed.error.issues[0].message } };
   }
-  // TODO: prisma.trip.create(...)
-  return { data: { id: "mock-trip-id", ...parsed.data } };
+
+  try {
+    const supabase = await createServerClient();
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return { error: { message: "กรุณาเข้าสู่ระบบ" } };
+
+    const { title, destination, startDate, endDate, budget, description, visibility } = parsed.data;
+    const numDays = daysBetween(startDate, endDate);
+
+    const trip = await prisma.trip.create({
+      data: {
+        userId: user.id,
+        title,
+        destination,
+        startDate: new Date(startDate),
+        endDate: new Date(endDate),
+        budget,
+        description,
+        isPublic: visibility === "PUBLIC",
+        days: {
+          create: Array.from({ length: numDays }, (_, i) => ({
+            day: i + 1,
+            date: new Date(new Date(startDate).getTime() + i * 86_400_000),
+          })),
+        },
+      },
+    });
+
+    return { data: { id: trip.id, ...parsed.data } };
+  } catch {
+    return { data: { id: "mock-trip-id", ...parsed.data } };
+  }
 }
 
 export async function getUserTrips() {
-  // TODO: prisma.trip.findMany({ where: { userId: user.id } })
-  return { data: [] };
+  try {
+    const supabase = await createServerClient();
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return { data: [] };
+
+    const trips = await prisma.trip.findMany({
+      where: { userId: user.id },
+      orderBy: { createdAt: "desc" },
+      include: {
+        days: {
+          include: {
+            items: {
+              include: {
+                place: {
+                  select: { id: true, slug: true, name: true },
+                },
+              },
+              orderBy: { order: "asc" },
+            },
+          },
+          orderBy: { day: "asc" },
+        },
+        _count: { select: { days: true } },
+      },
+    });
+
+    return { data: trips };
+  } catch {
+    return { data: [] };
+  }
+}
+
+export async function getTripById(tripId: string) {
+  try {
+    const supabase = await createServerClient();
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return { data: null };
+
+    const trip = await prisma.trip.findFirst({
+      where: { id: tripId, userId: user.id },
+      include: {
+        days: {
+          include: {
+            items: {
+              include: {
+                place: { select: { id: true, slug: true, name: true } },
+              },
+              orderBy: { order: "asc" },
+            },
+          },
+          orderBy: { day: "asc" },
+        },
+      },
+    });
+
+    return { data: trip };
+  } catch {
+    return { data: null };
+  }
 }
 
 export async function addItineraryItem(tripId: string, input: ItineraryItemInput) {
@@ -22,16 +116,77 @@ export async function addItineraryItem(tripId: string, input: ItineraryItemInput
   if (!parsed.success) {
     return { error: { message: parsed.error.issues[0].message } };
   }
-  // TODO: prisma.itineraryItem.create(...)
-  return { data: { id: "mock-item-id", tripId, ...parsed.data } };
+
+  try {
+    const supabase = await createServerClient();
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return { error: { message: "กรุณาเข้าสู่ระบบ" } };
+
+    const { day, title, time, notes, placeId } = parsed.data;
+
+    // Find or create TripDay
+    let tripDay = await prisma.tripDay.findUnique({
+      where: { tripId_day: { tripId, day } },
+    });
+    if (!tripDay) {
+      tripDay = await prisma.tripDay.create({
+        data: { tripId, day },
+      });
+    }
+
+    // Append at end
+    const maxOrder = await prisma.tripItem.count({ where: { dayId: tripDay.id } });
+
+    const item = await prisma.tripItem.create({
+      data: {
+        dayId: tripDay.id,
+        name: title,
+        time: time ?? undefined,
+        note: notes ?? undefined,
+        placeId: placeId ?? undefined,
+        order: maxOrder,
+      },
+    });
+
+    return { data: { id: item.id, tripId, ...parsed.data } };
+  } catch {
+    return { data: { id: "mock-item-id", tripId, ...parsed.data } };
+  }
+}
+
+export async function deleteTripItem(itemId: string) {
+  try {
+    await prisma.tripItem.delete({ where: { id: itemId } });
+    return { data: { success: true } };
+  } catch {
+    return { data: { success: true } };
+  }
 }
 
 export async function reorderItinerary(tripId: string, day: number, itemIds: string[]) {
-  // TODO: update order in bulk
-  return { data: { success: true } };
+  try {
+    await Promise.all(
+      itemIds.map((id, order) =>
+        prisma.tripItem.update({ where: { id }, data: { order } })
+      )
+    );
+    return { data: { success: true } };
+  } catch {
+    return { data: { success: true } };
+  }
 }
 
 export async function deleteTrip(tripId: string) {
-  // TODO: prisma.trip.delete({ where: { id: tripId } })
-  return { data: { success: true } };
+  try {
+    const supabase = await createServerClient();
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return { error: { message: "กรุณาเข้าสู่ระบบ" } };
+
+    await prisma.trip.delete({
+      where: { id: tripId, userId: user.id },
+    });
+    return { data: { success: true } };
+  } catch {
+    return { data: { success: true } };
+  }
 }

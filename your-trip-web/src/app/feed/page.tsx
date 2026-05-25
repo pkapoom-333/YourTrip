@@ -1,9 +1,10 @@
 import AppShell from "@/components/AppShell";
 import Link from "next/link";
-import {
-  Heart, MessageCircle, Send, Bookmark,
-  MapPin, Search, Bell, MoreHorizontal, TrendingUp,
-} from "lucide-react";
+import { Search, Bell, TrendingUp } from "lucide-react";
+import { type PostCardData } from "@/components/features/PostCard";
+import { getFeed } from "@/server/actions/posts";
+import { FeedPostsClient } from "./FeedPostsClient";
+import SuggestedUsers from "@/components/features/SuggestedUsers";
 
 const stories = [
   { id: 0, name: "เพิ่มสตอรี่", bg: "bg-gray-100", initials: "+", isAdd: true },
@@ -15,11 +16,11 @@ const stories = [
   { id: 6, name: "nomad",        bg: "bg-sky-400",     initials: "N"  },
 ];
 
-const posts = [
+// ─── Mock posts (shown when DB not configured) ────────────────────────────────
+const MOCK_POSTS: PostCardData[] = [
   {
     id: 1, slug: "doi-ang-khang",
     user: { name: "free people", bg: "bg-orange-400", initials: "FP", location: "ดอยอ่างขาง, เชียงใหม่" },
-    title: "Mountain, sea and sun",
     caption: "ช่วงเช้าที่สวยงามบนยอดดอย อากาศเย็นสบาย ทิวทัศน์สุดสวย ❄️ ใครอยากสัมผัสธรรมชาติต้องมาที่นี่",
     img: "https://images.unsplash.com/photo-1476514525405-8d4b4c284c1e?auto=format&fit=crop&w=800&q=80",
     likes: 10200, comments: 534, shares: 128, saved: false, time: "2 ชั่วโมงที่แล้ว",
@@ -28,7 +29,6 @@ const posts = [
   {
     id: 2, slug: "bali-terraces",
     user: { name: "shy girl", bg: "bg-pink-400", initials: "SG", location: "บาหลี, อินโดนีเซีย" },
-    title: "ดินแดนแห่งความฝัน 🌿",
     caption: "นาขั้นบันไดที่งดงามที่สุดในโลก สีเขียวสดชื่น น้ำใจของชาวบาหลีงดงามไม่แพ้กัน 🙏",
     img: "https://images.unsplash.com/photo-1537996194471-e657df975ab4?auto=format&fit=crop&w=800&q=80",
     likes: 8760, comments: 412, shares: 98, saved: true, time: "5 ชั่วโมงที่แล้ว",
@@ -37,7 +37,6 @@ const posts = [
   {
     id: 3, slug: "swiss-alps",
     user: { name: "wanderer", bg: "bg-emerald-400", initials: "W", location: "Swiss Alps, Switzerland" },
-    title: "หิมะขาวโพลน 🏔️",
     caption: "Hiking ที่ยากแต่คุ้มค่า ยอดเขา 4,000 เมตร อากาศบริสุทธิ์ ทุกก้าวคือความทรงจำที่ดีที่สุด",
     img: "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?auto=format&fit=crop&w=800&q=80",
     likes: 15400, comments: 867, shares: 234, saved: false, time: "8 ชั่วโมงที่แล้ว",
@@ -46,7 +45,6 @@ const posts = [
   {
     id: 4, slug: "santorini",
     user: { name: "travelmate", bg: "bg-violet-400", initials: "TM", location: "ซานโตรีนี, กรีซ" },
-    title: "เมืองสีขาว ทะเลสีฟ้า ☀️",
     caption: "Santorini ในแสงยามเย็น สวยเกินจินตนาการ ขอบคุณโลกใบนี้ที่มีสถานที่แบบนี้ 🌅",
     img: "https://images.unsplash.com/photo-1570077188670-e3a8d69ac5ff?auto=format&fit=crop&w=800&q=80",
     likes: 22100, comments: 1240, shares: 567, saved: false, time: "1 วันที่แล้ว",
@@ -61,20 +59,37 @@ const trending = [
   { label: "ภูเก็ต", count: "1.5K โพสต์" },
 ];
 
-function Avatar({ bg, initials, size = "md" }: { bg: string; initials: string; size?: "sm" | "md" | "lg" }) {
-  const s = { sm: "w-8 h-8 text-xs", md: "w-10 h-10 text-sm", lg: "w-12 h-12 text-base" }[size];
-  return (
-    <div className={`${s} ${bg} rounded-full flex items-center justify-center font-bold text-white flex-shrink-0`}>
-      {initials}
-    </div>
-  );
-}
+const fmtTime = (d: Date) => {
+  const diff = Date.now() - new Date(d).getTime();
+  const mins = Math.floor(diff / 60_000);
+  if (mins < 60) return `${mins} นาทีที่แล้ว`;
+  const hours = Math.floor(mins / 60);
+  if (hours < 24) return `${hours} ชั่วโมงที่แล้ว`;
+  return `${Math.floor(hours / 24)} วันที่แล้ว`;
+};
 
-function fmt(n: number) {
-  return n >= 1000 ? (n / 1000).toFixed(1).replace(".0", "") + "K" : String(n);
-}
+export default async function FeedPage() {
+  const { data: dbPosts, nextCursor, hasMore } = await getFeed();
 
-export default function FeedPage() {
+  const feedPosts: PostCardData[] = dbPosts.length > 0
+    ? dbPosts.map((p) => ({
+        id: p.id,
+        caption: p.content,
+        img: p.images?.[0] ?? undefined,
+        user: {
+          id: p.user?.id ?? undefined,
+          name: p.user?.name ?? "YourTrip User",
+          avatarUrl: p.user?.avatarUrl ?? undefined,
+          location: p.location ?? undefined,
+        },
+        likes: p.likesCount,
+        comments: p.commentsCount,
+        saved: false,
+        time: fmtTime(p.createdAt),
+        tags: p.tags ?? [],
+      }))
+    : MOCK_POSTS;
+
   return (
     <AppShell>
       {/* ─── TOP BAR (mobile only) ─── */}
@@ -127,91 +142,12 @@ export default function FeedPage() {
               </div>
             </div>
 
-            {/* Posts */}
-            <div className="space-y-3">
-              {posts.map((post) => (
-                <article key={post.id} className="bg-white md:rounded-2xl border border-gray-100 overflow-hidden">
-                  {/* Header */}
-                  <div className="flex items-center justify-between px-4 pt-4 pb-2">
-                    <div className="flex items-center gap-3">
-                      <Avatar bg={post.user.bg} initials={post.user.initials} />
-                      <div>
-                        <p className="text-sm font-semibold text-gray-900">{post.user.name}</p>
-                        <div className="flex items-center gap-1">
-                          <MapPin className="w-3 h-3 text-[#398AB9]" />
-                          <span className="text-[11px] text-[#398AB9]">{post.user.location}</span>
-                        </div>
-                      </div>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <span className="text-[10px] text-gray-400">{post.time}</span>
-                      <button className="p-1 hover:bg-gray-50 rounded-full">
-                        <MoreHorizontal className="w-4 h-4 text-gray-400" />
-                      </button>
-                    </div>
-                  </div>
-
-                  {/* Title + tags */}
-                  <div className="px-4 pb-2">
-                    <p className="font-semibold text-gray-900 text-sm">{post.title}</p>
-                    <div className="flex gap-1.5 mt-1.5">
-                      {post.tags.map((t) => (
-                        <span key={t} className="text-[10px] bg-[#398AB9]/8 text-[#398AB9] px-2 py-0.5 rounded-full font-medium">
-                          #{t}
-                        </span>
-                      ))}
-                    </div>
-                  </div>
-
-                  {/* Image */}
-                  <Link href={`/place/${post.slug}`}>
-                    <div className="aspect-[4/3] overflow-hidden cursor-pointer">
-                      <img src={post.img} alt={post.title}
-                        className="w-full h-full object-cover hover:scale-[1.02] transition-transform duration-500" />
-                    </div>
-                  </Link>
-
-                  {/* Actions */}
-                  <div className="px-4 py-3 flex items-center justify-between">
-                    <div className="flex items-center gap-5">
-                      <button className="flex items-center gap-1.5 text-gray-500 hover:text-[#FF4F4F] transition-colors group">
-                        <Heart className="w-[18px] h-[18px] group-hover:scale-110 transition-transform" />
-                        <span className="text-xs text-gray-600">{fmt(post.likes)}</span>
-                      </button>
-                      <button className="flex items-center gap-1.5 text-gray-500 hover:text-[#398AB9] transition-colors">
-                        <MessageCircle className="w-[18px] h-[18px]" />
-                        <span className="text-xs text-gray-600">{fmt(post.comments)}</span>
-                      </button>
-                      <button className="flex items-center gap-1.5 text-gray-500 hover:text-[#398AB9] transition-colors">
-                        <Send className="w-[18px] h-[18px]" />
-                        <span className="text-xs text-gray-600">{fmt(post.shares)}</span>
-                      </button>
-                    </div>
-                    <button className={post.saved ? "text-[#398AB9]" : "text-gray-400 hover:text-[#398AB9] transition-colors"}>
-                      <Bookmark className={`w-[18px] h-[18px] ${post.saved ? "fill-[#398AB9]" : ""}`} />
-                    </button>
-                  </div>
-
-                  {/* Caption */}
-                  <div className="px-4 pb-3">
-                    <p className="text-xs text-gray-600 leading-relaxed">
-                      <span className="font-semibold text-gray-800 mr-1">{post.user.name}</span>
-                      {post.caption}
-                    </p>
-                  </div>
-
-                  {/* Comment input */}
-                  <div className="border-t border-gray-50 px-4 py-2.5 flex items-center gap-3">
-                    <div className="w-7 h-7 bg-[#398AB9] rounded-full flex items-center justify-center text-white text-[10px] font-bold flex-shrink-0">
-                      YT
-                    </div>
-                    <input type="text" placeholder="แสดงความคิดเห็น..."
-                      className="flex-1 text-xs text-gray-500 bg-transparent outline-none placeholder:text-gray-400" readOnly />
-                    <button className="text-[#398AB9] text-xs font-semibold hover:text-[#1C658C]">ส่ง</button>
-                  </div>
-                </article>
-              ))}
-            </div>
+            {/* Posts — client component with infinite scroll */}
+            <FeedPostsClient
+              initialPosts={feedPosts}
+              initialCursor={nextCursor}
+              initialHasMore={dbPosts.length > 0 ? (hasMore ?? false) : false}
+            />
           </div>
 
           {/* ─── RIGHT PANEL (desktop only) ─── */}
@@ -233,6 +169,11 @@ export default function FeedPage() {
                   </div>
                 ))}
               </div>
+            </div>
+
+            {/* Suggested users to follow */}
+            <div className="mb-4">
+              <SuggestedUsers />
             </div>
 
             {/* Suggested places */}
