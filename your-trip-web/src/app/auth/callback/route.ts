@@ -1,4 +1,5 @@
 import { createClient } from "@/lib/supabase/server";
+import { prisma } from "@/lib/prisma";
 import { NextRequest, NextResponse } from "next/server";
 
 export async function GET(request: NextRequest) {
@@ -10,6 +11,31 @@ export async function GET(request: NextRequest) {
     const supabase = await createClient();
     const { error } = await (supabase.auth as any).exchangeCodeForSession(code);
     if (!error) {
+      // Sync user to DB on first login
+      try {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (user && prisma) {
+          await prisma.user.upsert({
+            where: { id: user.id },
+            update: {
+              email: user.email ?? "",
+              name: user.user_metadata?.full_name ?? null,
+              avatarUrl: user.user_metadata?.avatar_url ?? null,
+            },
+            create: {
+              id: user.id,
+              email: user.email ?? "",
+              name: user.user_metadata?.full_name ?? null,
+              avatarUrl: user.user_metadata?.avatar_url ?? null,
+              username: null,
+            },
+          });
+        }
+      } catch (e) {
+        // Non-fatal — user can still proceed
+        console.error("[auth/callback] user sync failed:", e);
+      }
+
       return NextResponse.redirect(`${origin}${next}`);
     }
   }
