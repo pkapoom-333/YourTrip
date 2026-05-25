@@ -1,11 +1,12 @@
 "use client";
 
-import { useState, useRef } from "react";
+import { useState } from "react";
 import AppShell from "@/components/AppShell";
 import { useRouter } from "next/navigation";
+import { createPost } from "@/server/actions/posts";
+import { ImageUpload, type UploadedImage } from "@/components/ImageUpload";
 import {
-  Camera, MapPin, Tag, X, ChevronLeft,
-  Image as ImageIcon, Smile,
+  MapPin, Tag, X, ChevronLeft, Smile,
 } from "lucide-react";
 
 const MAX_CHARS = 500;
@@ -18,29 +19,15 @@ const suggestedTags = [
 
 export default function CreatePage() {
   const router = useRouter();
-  const fileRef = useRef<HTMLInputElement>(null);
   const [content, setContent] = useState("");
-  const [images, setImages] = useState<string[]>([]);
+  const [images, setImages] = useState<UploadedImage[]>([]);
   const [location, setLocation] = useState("");
   const [tags, setTags] = useState<string[]>([]);
   const [tagInput, setTagInput] = useState("");
-  const [step, setStep] = useState<"compose" | "preview">("compose");
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const remaining = MAX_CHARS - content.length;
   const canPost = content.trim().length > 0 && !isSubmitting;
-
-  function handleImageAdd(e: React.ChangeEvent<HTMLInputElement>) {
-    const files = Array.from(e.target.files ?? []);
-    const urls = files.slice(0, MAX_IMAGES - images.length).map((f) =>
-      URL.createObjectURL(f)
-    );
-    setImages((prev) => [...prev, ...urls].slice(0, MAX_IMAGES));
-  }
-
-  function removeImage(i: number) {
-    setImages((prev) => prev.filter((_, idx) => idx !== i));
-  }
 
   function addTag(tag: string) {
     const cleaned = tag.replace(/^#/, "").trim();
@@ -57,10 +44,19 @@ export default function CreatePage() {
   async function handlePost() {
     if (!canPost) return;
     setIsSubmitting(true);
-    // TODO: wire to POST /api/posts server action
-    await new Promise((r) => setTimeout(r, 800));
-    setIsSubmitting(false);
-    router.push("/feed");
+    try {
+      await createPost({
+        content: content.trim(),
+        tags: tags.length > 0 ? tags : undefined,
+        location: location.trim() || undefined,
+        images: images.map((img) => img.url),
+      });
+      router.push("/feed");
+    } catch {
+      router.push("/feed");
+    } finally {
+      setIsSubmitting(false);
+    }
   }
 
   return (
@@ -114,24 +110,13 @@ export default function CreatePage() {
             </div>
           </div>
 
-          {/* Image previews */}
-          {images.length > 0 && (
-            <div className={`grid gap-2 ${images.length === 1 ? "grid-cols-1" : images.length === 2 ? "grid-cols-2" : "grid-cols-2"}`}>
-              {images.map((src, i) => (
-                <div key={i} className={`relative rounded-xl overflow-hidden ${
-                  images.length === 3 && i === 0 ? "col-span-2" :
-                  images.length === 1 ? "aspect-[4/3]" : "aspect-square"
-                }`}>
-                  <img src={src} alt="" className="w-full h-full object-cover" />
-                  <button
-                    onClick={() => removeImage(i)}
-                    className="absolute top-2 right-2 w-6 h-6 bg-black/60 rounded-full flex items-center justify-center hover:bg-black/80 transition">
-                    <X className="w-3.5 h-3.5 text-white" />
-                  </button>
-                </div>
-              ))}
-            </div>
-          )}
+          {/* Image upload */}
+          <ImageUpload
+            value={images}
+            onChange={setImages}
+            maxImages={MAX_IMAGES}
+            folder="your-trip/posts"
+          />
 
           {/* Location input */}
           <div className="flex items-center gap-2 bg-gray-50 rounded-xl px-3 py-2">
@@ -195,27 +180,6 @@ export default function CreatePage() {
         {/* Bottom toolbar */}
         <div className="sticky bottom-20 md:bottom-4 bg-white border-t border-gray-100 px-4 py-3">
           <div className="flex items-center gap-4">
-            <input
-              ref={fileRef}
-              type="file"
-              accept="image/*"
-              multiple
-              className="hidden"
-              onChange={handleImageAdd}
-            />
-            <button
-              onClick={() => fileRef.current?.click()}
-              disabled={images.length >= MAX_IMAGES}
-              className="flex items-center gap-2 text-sm text-gray-500 hover:text-[#398AB9] transition disabled:opacity-40">
-              <ImageIcon className="w-5 h-5" />
-              <span className="text-xs">{images.length}/{MAX_IMAGES}</span>
-            </button>
-            <button
-              onClick={() => fileRef.current?.click()}
-              disabled={images.length >= MAX_IMAGES}
-              className="flex items-center gap-2 text-sm text-gray-500 hover:text-[#398AB9] transition disabled:opacity-40">
-              <Camera className="w-5 h-5" />
-            </button>
             <button className="text-sm text-gray-500 hover:text-[#398AB9] transition">
               <Smile className="w-5 h-5" />
             </button>

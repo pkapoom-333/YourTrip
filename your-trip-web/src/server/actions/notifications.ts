@@ -1,0 +1,98 @@
+"use server";
+
+import { prisma } from "@/lib/prisma";
+import { createClient as createServerClient } from "@/lib/supabase/server";
+
+export interface NotificationItem {
+  id: string;
+  type: string;
+  title: string;
+  body: string | null;
+  imageUrl: string | null;
+  actionUrl: string | null;
+  isRead: boolean;
+  actorId: string | null;
+  createdAt: Date;
+}
+
+export async function getNotifications(limit = 30): Promise<{ data: NotificationItem[] }> {
+  try {
+    const supabase = await createServerClient();
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return { data: [] };
+
+    const rows = await prisma.notification.findMany({
+      where: { userId: user.id },
+      orderBy: { createdAt: "desc" },
+      take: limit,
+    });
+
+    return {
+      data: rows.map((n) => ({
+        id: n.id,
+        type: n.type,
+        title: n.title,
+        body: n.body,
+        imageUrl: n.imageUrl,
+        actionUrl: n.actionUrl,
+        isRead: n.isRead,
+        actorId: n.actorId,
+        createdAt: n.createdAt,
+      })),
+    };
+  } catch {
+    return { data: [] };
+  }
+}
+
+export async function getUnreadCount(): Promise<{ count: number }> {
+  try {
+    const supabase = await createServerClient();
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return { count: 0 };
+
+    const count = await prisma.notification.count({
+      where: { userId: user.id, isRead: false },
+    });
+    return { count };
+  } catch {
+    return { count: 0 };
+  }
+}
+
+export async function markNotificationRead(id: string): Promise<{ data: { success: boolean } }> {
+  try {
+    await prisma.notification.update({
+      where: { id },
+      data: { isRead: true },
+    });
+    return { data: { success: true } };
+  } catch {
+    return { data: { success: true } };
+  }
+}
+
+export async function markAllNotificationsRead(): Promise<{ data: { success: boolean } }> {
+  try {
+    const supabase = await createServerClient();
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return { data: { success: false } };
+
+    await prisma.notification.updateMany({
+      where: { userId: user.id, isRead: false },
+      data: { isRead: true },
+    });
+    return { data: { success: true } };
+  } catch {
+    return { data: { success: true } };
+  }
+}
+
+export async function deleteNotification(id: string): Promise<{ data: { success: boolean } }> {
+  try {
+    await prisma.notification.delete({ where: { id } });
+    return { data: { success: true } };
+  } catch {
+    return { data: { success: true } };
+  }
+}

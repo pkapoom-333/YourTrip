@@ -1,5 +1,7 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
+// Prisma Schema — YourTrip
+// Database: Supabase Postgres
+// Auth: Supabase Auth (User.id = auth.users.id UUID)
+// Note: DATABASE_URL lives in prisma.config.ts, not here
 
 generator client {
   provider = "prisma-client-js"
@@ -9,54 +11,338 @@ datasource db {
   provider = "postgresql"
 }
 
-model User {
-  id            String    @id @default(cuid())
-  email         String    @unique
-  emailVerified DateTime?
-  name          String?
-  image         String?
-  avatarUrl     String?
-  bio           String?
+// ─────────────────────────────────────────
+// USER
+// ─────────────────────────────────────────
 
-  accounts  Account[]
-  sessions  Session[]
+model User {
+  id          String   @id // Supabase auth.users UUID
+  email       String   @unique
+  username    String?  @unique
+  name        String?
+  avatarUrl   String?
+  bio         String?
+  website     String?
+  location    String?
+  gender      String?
+  dateOfBirth DateTime?
+  isVerified  Boolean  @default(false)
+
+  // Relations
+  posts         Post[]
+  likes         Like[]
+  comments      Comment[]
+  saves         Save[]
+  trips         Trip[]
+  reviews       Review[]
+  notifications Notification[]
+  buddyRequests BuddyRequest[]   @relation("BuddyRequestFrom")
+  buddyReceived BuddyRequest[]   @relation("BuddyRequestTo")
+  following     Follow[]         @relation("Follower")
+  followers     Follow[]         @relation("Following")
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+
+  @@map("users")
 }
 
-model Account {
-  id                String  @id @default(cuid())
-  userId            String
-  type              String
-  provider          String
-  providerAccountId String
-  refresh_token     String?
-  access_token      String?
-  expires_at        Int?
-  token_type        String?
-  scope             String?
-  id_token          String?
-  session_state     String?
+// ─────────────────────────────────────────
+// SOCIAL — Follow
+// ─────────────────────────────────────────
+
+model Follow {
+  id          String @id @default(uuid())
+  followerId  String
+  followingId String
+  follower    User   @relation("Follower", fields: [followerId], references: [id], onDelete: Cascade)
+  following   User   @relation("Following", fields: [followingId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+
+  @@unique([followerId, followingId])
+  @@map("follows")
+}
+
+// ─────────────────────────────────────────
+// PLACES
+// ─────────────────────────────────────────
+
+model Place {
+  id          String   @id @default(uuid())
+  slug        String   @unique
+  name        String
+  nameEn      String?
+  description String?
+  descriptionEn String?
+  category    String   // attraction | restaurant | cafe | hotel | activity
+  region      String   // north | south | east | west | central | international
+  province    String?
+  country     String   @default("TH")
+  address     String?
+  lat         Float?
+  lng         Float?
+  phone       String?
+  website     String?
+  googleMapsUrl String?
+
+  // Pricing
+  priceRange  Int      @default(1) // 1-4 (฿ to ฿฿฿฿)
+  entryFee    Int?     // THB, null = free
+
+  // Hours
+  openDays    String[] // ["Mon","Tue",...] or ["Daily"]
+  openTime    String?  // "08:00"
+  closeTime   String?  // "17:00"
+
+  // Facilities
+  hasWifi         Boolean @default(false)
+  hasAC           Boolean @default(false)
+  hasParking      Boolean @default(false)
+  parkingSpots    Int?
+  parkingFee      Int?    // THB per hour, null = free
+  isVegetarian    Boolean @default(false)
+  isAccessible    Boolean @default(false) // wheelchair accessible
+
+  // Meta
+  isPublished  Boolean  @default(true)
+  isFeatured   Boolean  @default(false)
+
+  // Relations
+  images     PlaceImage[]
+  reviews    Review[]
+  tripItems  TripItem[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("places")
+}
+
+model PlaceImage {
+  id      String @id @default(uuid())
+  placeId String
+  url     String
+  caption String?
+  order   Int    @default(0)
+  place   Place  @relation(fields: [placeId], references: [id], onDelete: Cascade)
+
+  @@map("place_images")
+}
+
+model Review {
+  id      String @id @default(uuid())
+  placeId String
+  userId  String
+  rating  Int    // 1-5
+  content String?
+  images  String[] // Cloudinary URLs
+  likes   Int    @default(0)
+
+  place Place @relation(fields: [placeId], references: [id], onDelete: Cascade)
+  user  User  @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([placeId, userId])
+  @@map("reviews")
+}
+
+// ─────────────────────────────────────────
+// POSTS (Social Feed)
+// ─────────────────────────────────────────
+
+model Post {
+  id       String   @id @default(uuid())
+  userId   String
+  content  String
+  images   String[] // Cloudinary URLs
+  location String?
+  tags     String[]
+  isPublic Boolean  @default(true)
+  placeId  String?  // optional linked place
+
+  // Relations
+  user     User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  likes    Like[]
+  comments Comment[]
+  saves    Save[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("posts")
+}
+
+model Like {
+  id     String @id @default(uuid())
+  userId String
+  postId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  post   Post   @relation(fields: [postId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+
+  @@unique([userId, postId])
+  @@map("likes")
+}
+
+model Comment {
+  id       String  @id @default(uuid())
+  userId   String
+  postId   String
+  content  String
+  parentId String? // for replies
+
+  user   User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  post   Post    @relation(fields: [postId], references: [id], onDelete: Cascade)
+  parent Comment? @relation("CommentReplies", fields: [parentId], references: [id])
+  replies Comment[] @relation("CommentReplies")
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("comments")
+}
+
+model Save {
+  id     String @id @default(uuid())
+  userId String
+  postId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  post   Post   @relation(fields: [postId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+
+  @@unique([userId, postId])
+  @@map("saves")
+}
+
+// ─────────────────────────────────────────
+// TRIPS
+// ─────────────────────────────────────────
+
+model Trip {
+  id          String    @id @default(uuid())
+  userId      String
+  title       String
+  destination String
+  description String?
+  coverImage  String?   // Cloudinary URL
+  startDate   DateTime?
+  endDate     DateTime?
+  status      TripStatus @default(PLANNING)
+  isPublic    Boolean   @default(false)
+  budget      Int?      // THB
+
+  user  User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  days  TripDay[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("trips")
+}
+
+enum TripStatus {
+  PLANNING
+  CONFIRMED
+  ONGOING
+  COMPLETED
+  CANCELLED
+}
+
+model TripDay {
+  id     String     @id @default(uuid())
+  tripId String
+  day    Int        // 1, 2, 3, ...
+  date   DateTime?
+  note   String?
+
+  trip  Trip       @relation(fields: [tripId], references: [id], onDelete: Cascade)
+  items TripItem[]
+
+  @@unique([tripId, day])
+  @@map("trip_days")
+}
+
+model TripItem {
+  id       String   @id @default(uuid())
+  dayId    String
+  placeId  String?
+  name     String   // fallback if no placeId
+  note     String?
+  time     String?  // "09:00"
+  duration Int?     // minutes
+  cost     Int?     // THB
+  order    Int      @default(0)
+
+  day   TripDay @relation(fields: [dayId], references: [id], onDelete: Cascade)
+  place Place?  @relation(fields: [placeId], references: [id])
+
+  @@map("trip_items")
+}
+
+// ─────────────────────────────────────────
+// NOTIFICATIONS
+// ─────────────────────────────────────────
+
+model Notification {
+  id         String           @id @default(uuid())
+  userId     String
+  type       NotificationType
+  title      String
+  body       String?
+  imageUrl   String?
+  actionUrl  String?
+  isRead     Boolean          @default(false)
+  actorId    String?          // who triggered this notification
+  referenceId String?         // postId, tripId, etc.
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-  @@unique([provider, providerAccountId])
+  createdAt DateTime @default(now())
+
+  @@map("notifications")
 }
 
-model Session {
-  id           String   @id @default(cuid())
-  sessionToken String   @unique
-  userId       String
-  expires      DateTime
-
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+enum NotificationType {
+  LIKE
+  COMMENT
+  FOLLOW
+  BUDDY_REQUEST
+  BUDDY_ACCEPTED
+  TRIP_INVITE
+  SYSTEM
 }
 
-model VerificationToken {
-  identifier String
-  token      String   @unique
-  expires    DateTime
+// ─────────────────────────────────────────
+// TRAVEL BUDDY
+// ─────────────────────────────────────────
 
-  @@unique([identifier, token])
+model BuddyRequest {
+  id          String        @id @default(uuid())
+  fromId      String
+  toId        String
+  message     String?
+  destination String?
+  startDate   DateTime?
+  endDate     DateTime?
+  status      BuddyStatus   @default(PENDING)
+
+  from User @relation("BuddyRequestFrom", fields: [fromId], references: [id], onDelete: Cascade)
+  to   User @relation("BuddyRequestTo",   fields: [toId],   references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([fromId, toId])
+  @@map("buddy_requests")
+}
+
+enum BuddyStatus {
+  PENDING
+  ACCEPTED
+  DECLINED
 }

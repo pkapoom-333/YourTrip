@@ -4,9 +4,8 @@
     {
       "name": "yourtrip-dev",
       "runtimeExecutable": "npm",
-      "runtimeArgs": ["run", "--prefix", "your-trip-web", "dev"],
-      "port": 3000,
-      "autoPort": true
+      "runtimeArgs": ["run", "--prefix", "C:/Users/user/Documents/your-trip/your-trip-web", "dev"],
+      "port": 5555
     }
   ]
 }
