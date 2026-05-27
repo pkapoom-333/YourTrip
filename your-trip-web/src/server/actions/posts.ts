@@ -206,17 +206,27 @@ export interface PostDetail {
   user: { id: string; name: string | null; username: string | null; avatarUrl: string | null };
   likesCount: number;
   commentsCount: number;
+  likedByMe: boolean;
+  savedByMe: boolean;
 }
 
 export async function getPostById(postId: string): Promise<{ data: PostDetail | null }> {
   try {
-    const post = await prisma.post.findUnique({
-      where: { id: postId },
-      include: {
-        user: { select: { id: true, name: true, username: true, avatarUrl: true } },
-        _count: { select: { likes: true, comments: true } },
-      },
-    });
+    const supabase = await createServerClient();
+    const { data: { user: me } } = await supabase.auth.getUser();
+
+    const [post, likedByMe, savedByMe] = await Promise.all([
+      prisma.post.findUnique({
+        where: { id: postId },
+        include: {
+          user: { select: { id: true, name: true, username: true, avatarUrl: true } },
+          _count: { select: { likes: true, comments: true } },
+        },
+      }),
+      me ? prisma.like.findUnique({ where: { userId_postId: { userId: me.id, postId } } }) : null,
+      me ? prisma.save.findUnique({ where: { userId_postId: { userId: me.id, postId } } }) : null,
+    ]);
+
     if (!post) return { data: null };
     return {
       data: {
@@ -230,6 +240,8 @@ export async function getPostById(postId: string): Promise<{ data: PostDetail | 
         user: post.user,
         likesCount: post._count.likes,
         commentsCount: post._count.comments,
+        likedByMe: !!likedByMe,
+        savedByMe: !!savedByMe,
       },
     };
   } catch {
