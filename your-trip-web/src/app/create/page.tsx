@@ -5,8 +5,9 @@ import AppShell from "@/components/AppShell";
 import { useRouter } from "next/navigation";
 import { createPost } from "@/server/actions/posts";
 import { ImageUpload, type UploadedImage } from "@/components/ImageUpload";
+import { useUser } from "@/hooks/useUser";
 import {
-  MapPin, Tag, X, ChevronLeft, Smile,
+  MapPin, Tag, X, ChevronLeft, Smile, AlertCircle,
 } from "lucide-react";
 
 const MAX_CHARS = 500;
@@ -19,15 +20,21 @@ const suggestedTags = [
 
 export default function CreatePage() {
   const router = useRouter();
+  const { user } = useUser();
   const [content, setContent] = useState("");
   const [images, setImages] = useState<UploadedImage[]>([]);
   const [location, setLocation] = useState("");
   const [tags, setTags] = useState<string[]>([]);
   const [tagInput, setTagInput] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   const remaining = MAX_CHARS - content.length;
   const canPost = content.trim().length > 0 && !isSubmitting;
+
+  const displayName = user?.user_metadata?.full_name ?? user?.email?.split("@")[0] ?? "You";
+  const avatarUrl = user?.user_metadata?.avatar_url as string | undefined;
+  const initials = displayName.charAt(0).toUpperCase();
 
   function addTag(tag: string) {
     const cleaned = tag.replace(/^#/, "").trim();
@@ -43,17 +50,23 @@ export default function CreatePage() {
 
   async function handlePost() {
     if (!canPost) return;
+    setError(null);
     setIsSubmitting(true);
     try {
-      await createPost({
+      const result = await createPost({
         content: content.trim(),
         tags: tags.length > 0 ? tags : undefined,
         location: location.trim() || undefined,
         images: images.map((img) => img.url),
       });
+      if (result?.error) {
+        setError(result.error.message);
+        return;
+      }
       router.push("/feed");
+      router.refresh();
     } catch {
-      router.push("/feed");
+      setError("เกิดข้อผิดพลาด กรุณาลองใหม่");
     } finally {
       setIsSubmitting(false);
     }
@@ -78,14 +91,31 @@ export default function CreatePage() {
           </button>
         </div>
 
+        {/* Error banner */}
+        {error && (
+          <div className="mx-4 mt-3 flex items-center gap-2 bg-red-50 border border-red-200 text-red-700 text-sm px-3 py-2.5 rounded-xl">
+            <AlertCircle className="w-4 h-4 flex-shrink-0" />
+            {error}
+            <button onClick={() => setError(null)} className="ml-auto">
+              <X className="w-3.5 h-3.5" />
+            </button>
+          </div>
+        )}
+
         <div className="px-4 py-4 space-y-4">
           {/* Author row */}
           <div className="flex items-start gap-3">
-            <div className="w-10 h-10 bg-[#398AB9] rounded-full flex items-center justify-center text-white text-sm font-bold flex-shrink-0">
-              YT
-            </div>
+            {avatarUrl ? (
+              <img src={avatarUrl} alt={displayName}
+                className="w-10 h-10 rounded-full object-cover flex-shrink-0"
+                referrerPolicy="no-referrer" />
+            ) : (
+              <div className="w-10 h-10 bg-[#398AB9] rounded-full flex items-center justify-center text-white text-sm font-bold flex-shrink-0">
+                {initials}
+              </div>
+            )}
             <div className="flex-1">
-              <p className="text-sm font-semibold text-gray-900 mb-0.5">Your Trip User</p>
+              <p className="text-sm font-semibold text-gray-900 mb-0.5">{displayName}</p>
               {location && (
                 <div className="flex items-center gap-1 text-[11px] text-[#398AB9]">
                   <MapPin className="w-3 h-3" />
