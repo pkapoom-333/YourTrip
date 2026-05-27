@@ -66,6 +66,9 @@ export const itineraryItemSchema = z.object({
   location: z.string().max(100).optional(),
   notes: z.string().max(300).optional(),
   placeId: z.string().optional(),
+  duration: z.number().int().nonnegative().optional(),    // minutes at this place
+  travelTimeTo: z.number().int().nonnegative().optional(), // minutes to travel here
+  cost: z.number().nonnegative().optional(),              // THB
 });
 
 export type CreateTripInput = z.infer<typeof createTripSchema>;

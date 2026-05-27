@@ -268,15 +268,16 @@ model TripDay {
 }
 
 model TripItem {
-  id       String   @id @default(uuid())
-  dayId    String
-  placeId  String?
-  name     String   // fallback if no placeId
-  note     String?
-  time     String?  // "09:00"
-  duration Int?     // minutes
-  cost     Int?     // THB
-  order    Int      @default(0)
+  id           String   @id @default(uuid())
+  dayId        String
+  placeId      String?
+  name         String   // fallback if no placeId
+  note         String?
+  time         String?  // "09:00"
+  duration     Int?     // minutes spent at this place
+  travelTimeTo Int?     // minutes to travel TO this place from previous stop
+  cost         Int?     // THB
+  order        Int      @default(0)
 
   day   TripDay @relation(fields: [dayId], references: [id], onDelete: Cascade)
   place Place?  @relation(fields: [placeId], references: [id])
