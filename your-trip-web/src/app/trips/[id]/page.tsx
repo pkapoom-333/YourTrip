@@ -356,6 +356,9 @@ export default function TripDetailPage({ params }: { params: Promise<{ id: strin
         title: newItem.name,
         time: newItem.time || undefined,
         notes: newItem.note || undefined,
+        duration: newItem.duration ? parseInt(newItem.duration) : undefined,
+        travelTimeTo: newItem.travelTimeTo ? parseInt(newItem.travelTimeTo) : undefined,
+        cost: newItem.cost ? parseInt(newItem.cost) : undefined,
       });
       if (result.data) {
         setTrip((prev) => ({
