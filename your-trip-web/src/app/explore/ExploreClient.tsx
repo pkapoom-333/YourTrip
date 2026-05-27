@@ -44,7 +44,9 @@ function PlaceCard({ place }: { place: PlaceListItem }) {
       className="group bg-white rounded-2xl border border-gray-100 overflow-hidden hover:shadow-lg hover:shadow-gray-200/80 transition-all duration-300">
       <div className="relative aspect-[4/3] overflow-hidden">
         <img src={img} alt={place.name}
-          className="w-full h-full object-cover group-hover:scale-[1.04] transition-transform duration-500" />
+          className="w-full h-full object-cover group-hover:scale-[1.04] transition-transform duration-500"
+          referrerPolicy="no-referrer"
+          onError={(e) => { (e.target as HTMLImageElement).parentElement!.style.display = "none"; }} />
         <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent" />
         <div className="absolute top-3 right-3 bg-black/50 backdrop-blur-sm text-white text-xs font-bold px-2 py-0.5 rounded-full">
           {priceSymbol(place.priceRange)}
@@ -375,7 +377,9 @@ export default function ExploreClient({ initialPlaces }: { initialPlaces: PlaceL
                   className="flex gap-3 bg-white rounded-2xl border border-gray-100 p-3 hover:shadow-md transition-shadow group">
                   <div className="w-20 h-20 md:w-24 md:h-24 flex-shrink-0 rounded-xl overflow-hidden">
                     <img src={img} alt={p.name}
-                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
+                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                      referrerPolicy="no-referrer"
+                      onError={(e) => { (e.target as HTMLImageElement).parentElement!.style.display = "none"; }} />
                   </div>
                   <div className="flex-1 min-w-0">
                     <div className="flex items-start justify-between gap-2">

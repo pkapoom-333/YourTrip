@@ -118,7 +118,9 @@ export default function PlaceDetailClient({ place, slug }: { place: PlaceData; s
         {/* ── Hero Carousel ── */}
         <div className="relative aspect-[16/9] md:aspect-[2/1] overflow-hidden bg-gray-900 md:mt-6 md:mx-6 md:rounded-2xl">
           <img src={safeImages[imgIndex]} alt={place.name}
-            className="w-full h-full object-cover transition-opacity duration-500" />
+            className="w-full h-full object-cover transition-opacity duration-500"
+            referrerPolicy="no-referrer"
+            onError={(e) => { (e.target as HTMLImageElement).style.opacity = "0"; }} />
 
           <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-black/20" />
 
@@ -495,7 +497,9 @@ export default function PlaceDetailClient({ place, slug }: { place: PlaceData; s
                     className="group rounded-xl overflow-hidden border border-gray-100 bg-white hover:shadow-md transition">
                     <div className="aspect-square overflow-hidden">
                       <img src={n.img} alt={n.name}
-                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
+                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                        referrerPolicy="no-referrer"
+                        onError={(e) => { (e.target as HTMLImageElement).parentElement!.style.display = "none"; }} />
                     </div>
                     <div className="p-2">
                       <p className="text-xs font-medium text-gray-800 truncate">{n.name}</p>
