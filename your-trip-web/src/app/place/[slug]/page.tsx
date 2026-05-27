@@ -1,4 +1,4 @@
-import { getPlaceBySlug, type PlaceDetail } from "@/server/actions/places";
+import { getPlaceBySlug, getPlaces, type PlaceDetail } from "@/server/actions/places";
 import PlaceDetailClient, { type PlaceData } from "./PlaceDetailClient";
 
 // ─── Category labels ──────────────────────────────────────────────────────────
@@ -194,11 +194,26 @@ export default async function PlacePage({ params }: { params: Promise<{ slug: st
   const { slug } = await params;
 
   // Try DB first
-  const { data: dbPlace } = await getPlaceBySlug(slug);
+  const [{ data: dbPlace }, { data: allPlaces }] = await Promise.all([
+    getPlaceBySlug(slug),
+    getPlaces({ take: 50 }),
+  ]);
 
-  const placeData: PlaceData = dbPlace
-    ? mapToPlaceData(dbPlace)
-    : (MOCK_PLACES[slug] ?? MOCK_PLACES["doi-ang-khang"]);
+  if (dbPlace) {
+    const nearbyPlaces = allPlaces
+      .filter((p) => p.slug !== slug && (p.region === dbPlace.region || p.category === dbPlace.category))
+      .slice(0, 3)
+      .map((p) => ({
+        name: p.name,
+        category: p.category,
+        img: p.coverImage ?? "https://images.unsplash.com/photo-1476514525405-8d4b4c284c1e?auto=format&fit=crop&w=400&q=70",
+        slug: p.slug,
+      }));
 
+    const placeData = { ...mapToPlaceData(dbPlace), nearby: nearbyPlaces };
+    return <PlaceDetailClient place={placeData} slug={slug} />;
+  }
+
+  const placeData: PlaceData = MOCK_PLACES[slug] ?? MOCK_PLACES["doi-ang-khang"];
   return <PlaceDetailClient place={placeData} slug={slug} />;
 }
