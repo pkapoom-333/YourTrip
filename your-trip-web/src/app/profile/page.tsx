@@ -72,7 +72,8 @@ export default function ProfilePage() {
           <div className="flex items-center justify-between mb-4">
             {profile.avatarUrl ? (
               <img src={profile.avatarUrl} alt={profile.name}
-                className="w-20 h-20 rounded-full object-cover" />
+                className="w-20 h-20 rounded-full object-cover"
+                referrerPolicy="no-referrer" />
             ) : (
               <div className="w-20 h-20 bg-[#398AB9] rounded-full flex items-center justify-center text-white text-2xl font-bold">
                 {profile.name.charAt(0).toUpperCase()}
@@ -195,7 +196,9 @@ export default function ProfilePage() {
               myPosts.map((p) => (
                 <div key={p.id} className="relative aspect-square bg-gray-200 overflow-hidden group cursor-pointer">
                   {p.images[0] ? (
-                    <img src={p.images[0]} alt="" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
+                    <img src={p.images[0]} alt="" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                      referrerPolicy="no-referrer"
+                      onError={(e) => { (e.target as HTMLImageElement).parentElement!.style.display = "none"; }} />
                   ) : (
                     <div className="w-full h-full bg-gray-200 flex items-center justify-center">
                       <Grid3X3 className="w-6 h-6 text-gray-400" />
@@ -228,7 +231,9 @@ export default function ProfilePage() {
               {savedPosts.map((p) => (
                 <div key={p.id} className="relative aspect-square bg-gray-200 overflow-hidden group cursor-pointer">
                   {p.images[0] ? (
-                    <img src={p.images[0]} alt="" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
+                    <img src={p.images[0]} alt="" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                      referrerPolicy="no-referrer"
+                      onError={(e) => { (e.target as HTMLImageElement).parentElement!.style.display = "none"; }} />
                   ) : (
                     <div className="w-full h-full bg-gray-100 flex items-center justify-center">
                       <Bookmark className="w-5 h-5 text-gray-400" />
