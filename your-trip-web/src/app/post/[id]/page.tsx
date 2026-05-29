@@ -46,6 +46,8 @@ export default function PostDetailPage() {
       if (!data) { setNotFound(true); setLoading(false); return; }
       setPost(data);
       setLikeCount(data.likesCount);
+      setLiked(data.likedByMe);
+      setSaved(data.savedByMe);
       setLoading(false);
     });
   }, [id]);

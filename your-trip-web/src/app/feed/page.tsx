@@ -84,7 +84,7 @@ export default async function FeedPage() {
         },
         likes: p.likesCount,
         comments: p.commentsCount,
-        saved: false,
+        saved: p.savedByMe ?? false,
         time: fmtTime(p.createdAt),
         tags: p.tags ?? [],
       }))

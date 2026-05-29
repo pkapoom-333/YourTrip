@@ -2,7 +2,7 @@
 
 import { use, useState, useEffect } from "react";
 import AppShell from "@/components/AppShell";
-import { getTripById, addItineraryItem, deleteTripItem } from "@/server/actions/trips";
+import { getTripById, addItineraryItem, deleteTripItem, updateTripItem } from "@/server/actions/trips";
 import {
   ChevronLeft, Plus, MapPin, Clock, Wallet,
   Trash2, GripVertical, Calendar, Share2,
@@ -307,6 +307,7 @@ export default function TripDetailPage({ params }: { params: Promise<{ id: strin
   const budgetPercent = Math.min((totalCost / (trip.budget ?? 1)) * 100, 100);
 
   function updateItem(dayNum: number, itemId: string, patch: Partial<TripItem>) {
+    // Optimistic UI update
     setTrip((prev) => ({
       ...prev,
       days: prev.days.map((d) =>
@@ -315,6 +316,16 @@ export default function TripDetailPage({ params }: { params: Promise<{ id: strin
           : d
       ),
     }));
+    // Persist to DB (skip mock IDs)
+    if (!itemId.startsWith("new-") && !itemId.startsWith("i")) {
+      updateTripItem(itemId, {
+        duration: patch.duration,
+        travelTimeTo: patch.travelTimeTo,
+        cost: patch.cost,
+        note: patch.note,
+        time: patch.time,
+      }).catch(() => {});
+    }
   }
 
   function deleteItem(dayNum: number, itemId: string) {

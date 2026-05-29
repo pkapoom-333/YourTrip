@@ -32,7 +32,7 @@
 - [x] `/place/[slug]` nearby places จาก DB จริง ✅ (same region/category)
 - [x] Post detail (`/post/[id]`) — like/comment/share wired ✅
 - [x] Public profile (`/profile/[userId]`) — posts grid จริง ✅
-- [ ] Error boundaries ครบทุกหน้า
+- [x] Error boundaries ครบทุกหน้า ✅ (RouteError shared component + 13 error.tsx files)
 - [ ] Image onError handlers ครบ (done: PostCard, Explore, Place, Profile)
 - [ ] likedByMe state ใน /post/[id] โหลดจาก DB จริง
 
