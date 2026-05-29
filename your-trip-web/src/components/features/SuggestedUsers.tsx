@@ -81,6 +81,7 @@ export default function SuggestedUsers() {
                       src={u.avatarUrl}
                       alt={u.name ?? ""}
                       className="w-9 h-9 rounded-full object-cover flex-shrink-0"
+                      referrerPolicy="no-referrer"
                     />
                   ) : (
                     <div className={`w-9 h-9 ${color} rounded-full flex items-center justify-center text-white text-xs font-bold flex-shrink-0`}>
