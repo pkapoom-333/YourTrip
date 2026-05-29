@@ -54,6 +54,7 @@ export const createTripSchema = z.object({
   budget: z.number().positive().optional(),
   description: z.string().max(500).optional(),
   visibility: z.enum(["PUBLIC", "PRIVATE"]).default("PRIVATE"),
+  coverImage: z.string().url().optional(),
 }).refine((d) => new Date(d.startDate) <= new Date(d.endDate), {
   message: "วันสิ้นสุดต้องอยู่หลังวันเริ่มต้น",
   path: ["endDate"],
