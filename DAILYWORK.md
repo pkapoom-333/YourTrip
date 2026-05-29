@@ -33,8 +33,8 @@
 - [x] Post detail (`/post/[id]`) — like/comment/share wired ✅
 - [x] Public profile (`/profile/[userId]`) — posts grid จริง ✅
 - [x] Error boundaries ครบทุกหน้า ✅ (RouteError shared component + 13 error.tsx files)
-- [ ] Image onError handlers ครบ (done: PostCard, Explore, Place, Profile)
-- [ ] likedByMe state ใน /post/[id] โหลดจาก DB จริง
+- [x] Image onError handlers ครบ ✅ (Avatar shared component + referrerPolicy ทุกหน้า)
+- [x] likedByMe/savedByMe state ใน /post/[id] + feed โหลดจาก DB จริง ✅
 
 ### 🔵 LATER — Launch
 - [ ] Custom domain ผูกกับ your-trip-nu.vercel.app
@@ -62,6 +62,13 @@
 - [x] Nearby places ใน /place/[slug] ดึงจาก DB (same region/category)
 - [x] /create: real user avatar+name + error banner
 - [x] /trips/[id]: addItem ส่ง duration/travelTimeTo/cost ไป DB จริง
+- [x] updateTripItem: edit duration/travelTimeTo/cost persist ลง DB ✅
+- [x] Feed liked/saved state จาก DB batch query ✅
+- [x] loading.tsx skeletons: /post/[id], /profile/edit, /trips/[id] ✅
+- [x] Avatar shared component (referrerPolicy + onError fallback initials) ✅
+- [x] /trips/new cover image upload wired (ImageUpload + Cloudinary) ✅
+- [x] Seed data 21 places (เพิ่มจาก 11 → 21) ✅
+- [x] /profile/edit redirect → /profile หลัง save สำเร็จ ✅
 
 ---
 
