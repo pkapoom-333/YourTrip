@@ -161,6 +161,9 @@ export async function createComment(
 
 export async function getFeed(cursor?: string) {
   try {
+    const supabase = await createServerClient();
+    const { data: { user: me } } = await supabase.auth.getUser();
+
     const posts = await prisma.post.findMany({
       take: 10,
       ...(cursor ? { skip: 1, cursor: { id: cursor } } : {}),
@@ -173,6 +176,17 @@ export async function getFeed(cursor?: string) {
     });
 
     const nextCursor = posts.length === 10 ? posts[posts.length - 1].id : undefined;
+    const postIds = posts.map((p) => p.id);
+
+    // Fetch liked/saved state for current user in one batch query
+    const [likedSet, savedSet] = me
+      ? await Promise.all([
+          prisma.like.findMany({ where: { userId: me.id, postId: { in: postIds } }, select: { postId: true } })
+            .then((rows) => new Set(rows.map((r) => r.postId))),
+          prisma.save.findMany({ where: { userId: me.id, postId: { in: postIds } }, select: { postId: true } })
+            .then((rows) => new Set(rows.map((r) => r.postId))),
+        ])
+      : [new Set<string>(), new Set<string>()];
 
     return {
       data: posts.map((p) => ({
@@ -186,6 +200,8 @@ export async function getFeed(cursor?: string) {
         user: p.user,
         likesCount: p._count.likes,
         commentsCount: p._count.comments,
+        likedByMe: likedSet.has(p.id),
+        savedByMe: savedSet.has(p.id),
       })),
       nextCursor,
       hasMore: !!nextCursor,
