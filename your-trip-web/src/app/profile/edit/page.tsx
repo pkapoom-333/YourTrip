@@ -102,7 +102,10 @@ export default function EditProfilePage() {
         setErrorMsg(result.error.message);
       } else {
         setSaved(true);
-        setTimeout(() => setSaved(false), 2000);
+        setTimeout(() => {
+          router.push("/profile");
+          router.refresh();
+        }, 800);
       }
     } finally {
       setSaving(false);
