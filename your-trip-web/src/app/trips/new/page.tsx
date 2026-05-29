@@ -4,6 +4,7 @@ import { useState } from "react";
 import AppShell from "@/components/AppShell";
 import { useRouter } from "next/navigation";
 import { createTrip } from "@/server/actions/trips";
+import { ImageUpload, type UploadedImage } from "@/components/ImageUpload";
 import {
   ChevronLeft, MapPin, Calendar, Image as ImageIcon,
   Wallet, Globe, Lock, Sparkles, Check,
@@ -47,6 +48,7 @@ export default function NewTripPage() {
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [selectedDuration, setSelectedDuration] = useState(2); // index
+  const [coverImages, setCoverImages] = useState<UploadedImage[]>([]);
 
   function set<K extends keyof typeof form>(key: K, value: typeof form[K]) {
     setForm((f) => ({ ...f, [key]: value }));
@@ -73,6 +75,7 @@ export default function NewTripPage() {
         budget: form.budget,
         description: form.description || undefined,
         visibility: form.isPublic ? "PUBLIC" : "PRIVATE",
+        coverImage: coverImages[0]?.url || undefined,
       });
 
       if (result.data) {
@@ -304,14 +307,17 @@ export default function NewTripPage() {
                 <ImageIcon className="inline w-4 h-4 mr-1.5 text-[#398AB9]" />
                 ภาพหน้าปก <span className="text-gray-400 font-normal">(ไม่บังคับ)</span>
               </label>
-              <button className="w-full h-32 border-2 border-dashed border-gray-200 rounded-2xl flex flex-col items-center justify-center gap-2 text-gray-400 hover:border-[#398AB9] hover:text-[#398AB9] transition group">
-                <ImageIcon className="w-6 h-6 group-hover:scale-110 transition-transform" />
-                <span className="text-sm">อัปโหลดรูปภาพ</span>
-                <span className="text-xs text-gray-300">PNG, JPG ขนาดสูงสุด 5MB</span>
-              </button>
-              <p className="text-xs text-gray-400 mt-2 text-center">
-                หรือใช้รูปจาก Unsplash โดยอัตโนมัติ
-              </p>
+              <ImageUpload
+                value={coverImages}
+                onChange={setCoverImages}
+                maxImages={1}
+                folder="your-trip/covers"
+              />
+              {coverImages.length === 0 && (
+                <p className="text-xs text-gray-400 mt-2 text-center">
+                  หากไม่อัปโหลด ระบบจะใช้รูปจาก Unsplash อัตโนมัติ
+                </p>
+              )}
             </div>
 
             {/* Privacy */}

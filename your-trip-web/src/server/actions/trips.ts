@@ -21,7 +21,7 @@ export async function createTrip(input: CreateTripInput) {
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return { error: { message: "กรุณาเข้าสู่ระบบ" } };
 
-    const { title, destination, startDate, endDate, budget, description, visibility } = parsed.data;
+    const { title, destination, startDate, endDate, budget, description, visibility, coverImage } = parsed.data;
     const numDays = daysBetween(startDate, endDate);
 
     const trip = await prisma.trip.create({
@@ -34,6 +34,7 @@ export async function createTrip(input: CreateTripInput) {
         budget,
         description,
         isPublic: visibility === "PUBLIC",
+        coverImage: coverImage ?? null,
         days: {
           create: Array.from({ length: numDays }, (_, i) => ({
             day: i + 1,
