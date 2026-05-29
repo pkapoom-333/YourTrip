@@ -5,6 +5,7 @@ import Link from "next/link";
 import { Heart, MessageCircle, Send, Bookmark, MapPin, MoreHorizontal } from "lucide-react";
 import { toggleLike, toggleSave } from "@/server/actions/posts";
 import { CommentSection } from "./CommentSection";
+import { Avatar } from "@/components/shared/Avatar";
 
 export interface PostCardData {
   id: number | string;
@@ -69,23 +70,11 @@ export function PostCard({ post }: { post: PostCardData }) {
       {/* Post header */}
       <div className="flex items-center gap-3 p-3.5">
         {post.user.id ? (
-          <Link href={`/profile/${post.user.id}`} className="flex-shrink-0">
-            {post.user.avatarUrl ? (
-              <img src={post.user.avatarUrl} alt={post.user.name}
-                className="w-10 h-10 rounded-full object-cover" />
-            ) : (
-              <div className={`w-10 h-10 ${post.user.bg ?? "bg-[#398AB9]"} rounded-full flex items-center justify-center font-bold text-white text-sm`}>
-                {post.user.initials ?? post.user.name.charAt(0).toUpperCase()}
-              </div>
-            )}
+          <Link href={`/profile/${post.user.id}`}>
+            <Avatar src={post.user.avatarUrl} name={post.user.name} />
           </Link>
-        ) : post.user.avatarUrl ? (
-          <img src={post.user.avatarUrl} alt={post.user.name}
-            className="w-10 h-10 rounded-full object-cover flex-shrink-0" />
         ) : (
-          <div className={`w-10 h-10 ${post.user.bg ?? "bg-[#398AB9]"} rounded-full flex items-center justify-center font-bold text-white text-sm flex-shrink-0`}>
-            {post.user.initials ?? post.user.name.charAt(0).toUpperCase()}
-          </div>
+          <Avatar src={post.user.avatarUrl} name={post.user.name} />
         )}
         <div className="flex-1 min-w-0">
           {post.user.id ? (
@@ -124,6 +113,8 @@ export function PostCard({ post }: { post: PostCardData }) {
           src={post.img}
           alt={post.title ?? ""}
           className="w-full h-full object-cover transition-transform duration-300 hover:scale-105"
+          referrerPolicy="no-referrer"
+          onError={(e) => { (e.target as HTMLImageElement).parentElement!.style.display = "none"; }}
         />
         {/* Tags */}
         {post.tags.length > 0 && (

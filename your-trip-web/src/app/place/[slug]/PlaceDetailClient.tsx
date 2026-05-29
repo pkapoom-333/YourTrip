@@ -11,6 +11,7 @@ import {
   MessageCircle, MoreHorizontal, ThumbsUp, ChevronDown, PenLine,
 } from "lucide-react";
 import { createReview } from "@/server/actions/places";
+import { Avatar } from "@/components/shared/Avatar";
 
 /* ── types ────────────────────────────────────────────────── */
 export interface PlaceData {
@@ -391,14 +392,7 @@ export default function PlaceDetailClient({ place, slug }: { place: PlaceData; s
                   <div key={r.id} className="bg-white rounded-xl border border-gray-100 p-4">
                     <div className="flex items-start justify-between gap-3">
                       <div className="flex items-start gap-3">
-                        {r.avatarUrl ? (
-                          <img src={r.avatarUrl} alt={r.user}
-                            className="w-9 h-9 rounded-full object-cover flex-shrink-0" />
-                        ) : (
-                          <div className={`w-9 h-9 ${r.bg} rounded-full flex items-center justify-center text-white text-xs font-bold flex-shrink-0`}>
-                            {r.initials}
-                          </div>
-                        )}
+                        <Avatar src={r.avatarUrl} name={r.user} className="w-9 h-9 text-xs" />
                         <div>
                           <p className="text-sm font-semibold text-gray-900">{r.user}</p>
                           <div className="flex items-center gap-2 mt-0.5">

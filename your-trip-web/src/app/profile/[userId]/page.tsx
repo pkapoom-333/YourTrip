@@ -16,6 +16,7 @@ import {
   checkIsFollowing,
   type PostGridItem,
 } from "@/server/actions/profile";
+import { Avatar } from "@/components/shared/Avatar";
 
 interface ProfileState {
   id: string;
@@ -149,17 +150,7 @@ export default function UserProfilePage() {
         <div className="bg-white border-b border-gray-100 px-4 md:px-6 pt-4 pb-5">
           <div className="flex items-center justify-between mb-4">
             {/* Avatar */}
-            {profile.avatarUrl ? (
-              <img
-                src={profile.avatarUrl}
-                alt={profile.name}
-                className="w-20 h-20 rounded-full object-cover"
-              />
-            ) : (
-              <div className={`w-20 h-20 ${avatarColor} rounded-full flex items-center justify-center text-white text-2xl font-bold`}>
-                {initials}
-              </div>
-            )}
+            <Avatar src={profile.avatarUrl} name={profile.name} className="w-20 h-20 text-2xl" />
 
             {/* Stats */}
             <div className="flex gap-6 text-center">

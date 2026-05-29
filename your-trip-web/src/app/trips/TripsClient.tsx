@@ -95,7 +95,9 @@ export default function TripsClient({ initialTrips }: { initialTrips: TripSummar
           return (
             <div key={trip.id} className="bg-white rounded-2xl border border-gray-100 overflow-hidden hover:shadow-md transition-shadow">
               <div className="relative h-36 overflow-hidden">
-                <img src={trip.img || PLACEHOLDER_IMG} alt={trip.title} className="w-full h-full object-cover" />
+                <img src={trip.img || PLACEHOLDER_IMG} alt={trip.title} className="w-full h-full object-cover"
+                  referrerPolicy="no-referrer"
+                  onError={(e) => { (e.target as HTMLImageElement).src = PLACEHOLDER_IMG; }} />
                 <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent" />
                 <div className="absolute top-3 left-3">
                   <span className={`text-[10px] font-semibold px-2.5 py-1 rounded-full ${s.color}`}>{s.label}</span>

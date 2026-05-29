@@ -12,6 +12,7 @@ import {
   type PostDetail,
 } from "@/server/actions/posts";
 import { CommentSection } from "@/components/features/CommentSection";
+import { Avatar } from "@/components/shared/Avatar";
 
 const AVATAR_COLORS = [
   "bg-[#398AB9]", "bg-emerald-500", "bg-violet-500",
@@ -122,15 +123,8 @@ export default function PostDetailPage() {
       <div className="max-w-2xl mx-auto">
         {/* User info */}
         <div className="flex items-center gap-3 px-4 py-3 bg-white border-b border-gray-50">
-          <Link href={`/profile/${post.user.id}`} className="flex-shrink-0">
-            {post.user.avatarUrl ? (
-              <img src={post.user.avatarUrl} alt={post.user.name ?? ""}
-                className="w-10 h-10 rounded-full object-cover" />
-            ) : (
-              <div className={`w-10 h-10 ${avatarColor} rounded-full flex items-center justify-center text-white font-bold text-sm`}>
-                {initials}
-              </div>
-            )}
+          <Link href={`/profile/${post.user.id}`}>
+            <Avatar src={post.user.avatarUrl} name={post.user.name ?? "U"} />
           </Link>
           <div className="flex-1 min-w-0">
             <Link href={`/profile/${post.user.id}`}

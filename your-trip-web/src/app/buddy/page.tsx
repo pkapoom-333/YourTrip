@@ -17,6 +17,7 @@ import {
   type BuddyProfileItem,
   type BuddyRequestItem,
 } from "@/server/actions/buddy";
+import { Avatar } from "@/components/shared/Avatar";
 
 interface BuddyProfile {
   id: string;
@@ -306,13 +307,7 @@ export default function BuddyPage() {
                 return (
                   <div key={req.id} className="bg-white rounded-2xl border border-gray-100 p-4">
                     <div className="flex items-center gap-3 mb-3">
-                      {req.from.avatarUrl ? (
-                        <img src={req.from.avatarUrl} alt="" className="w-12 h-12 rounded-full object-cover" />
-                      ) : (
-                        <div className="w-12 h-12 rounded-full bg-violet-400 flex items-center justify-center text-white font-bold text-sm">
-                          {initials}
-                        </div>
-                      )}
+                      <Avatar src={req.from.avatarUrl} name={req.from.name ?? "ผู้ใช้"} className="w-12 h-12" />
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-1.5">
                           <p className="font-semibold text-gray-900 text-sm">{req.from.name ?? "ผู้ใช้"}</p>
@@ -371,13 +366,7 @@ export default function BuddyPage() {
                   const initials = (m.from.name ?? "ผ").split(" ").map((w) => w.charAt(0)).join("").slice(0, 2);
                   return (
                     <div key={m.id} className="bg-white rounded-2xl border border-gray-100 p-4 flex items-center gap-3">
-                      {m.from.avatarUrl ? (
-                        <img src={m.from.avatarUrl} alt="" className="w-12 h-12 rounded-full object-cover" />
-                      ) : (
-                        <div className="w-12 h-12 rounded-full bg-[#398AB9] flex items-center justify-center text-white font-bold">
-                          {initials}
-                        </div>
-                      )}
+                      <Avatar src={m.from.avatarUrl} name={m.from.name ?? "ผู้ใช้"} className="w-12 h-12" />
                       <div className="flex-1 min-w-0">
                         <p className="font-semibold text-gray-900 text-sm">{m.from.name ?? "ผู้ใช้"}</p>
                         {m.destination && (
@@ -397,13 +386,7 @@ export default function BuddyPage() {
                 {/* Optimistic local likes (pending send) */}
                 {matchedBuddies.map((buddy) => (
                   <div key={buddy.id} className="bg-white rounded-2xl border border-gray-100 p-4 flex items-center gap-3 opacity-70">
-                    {buddy.avatarUrl ? (
-                      <img src={buddy.avatarUrl} alt="" className="w-12 h-12 rounded-full object-cover" />
-                    ) : (
-                      <div className="w-12 h-12 rounded-full bg-[#398AB9] flex items-center justify-center text-white font-bold">
-                        {buddy.avatar}
-                      </div>
-                    )}
+                    <Avatar src={buddy.avatarUrl} name={buddy.name} className="w-12 h-12" />
                     <div className="flex-1 min-w-0">
                       <p className="font-semibold text-gray-900 text-sm">{buddy.name}</p>
                       <p className="text-xs text-gray-400 mt-0.5">รอการตอบรับ...</p>
@@ -439,7 +422,9 @@ function BuddyCard({
         <div className={`grid gap-0.5 ${buddy.photos.length >= 2 ? "grid-cols-2" : "grid-cols-1"}`}>
           {buddy.photos.map((p, i) => (
             <div key={i} className={`${buddy.photos.length === 1 ? "aspect-[4/3]" : "aspect-square"} overflow-hidden`}>
-              <img src={p} alt="" className="w-full h-full object-cover" />
+              <img src={p} alt="" className="w-full h-full object-cover"
+                referrerPolicy="no-referrer"
+                onError={(e) => { (e.target as HTMLImageElement).parentElement!.style.display = "none"; }} />
             </div>
           ))}
         </div>
@@ -448,15 +433,7 @@ function BuddyCard({
       <div className="p-4">
         {/* Name row */}
         <div className="flex items-start gap-3 mb-3">
-          <div className="w-12 h-12 rounded-full overflow-hidden flex-shrink-0">
-            {buddy.avatarUrl ? (
-              <img src={buddy.avatarUrl} alt="" className="w-full h-full object-cover" />
-            ) : (
-              <div className="w-full h-full bg-[#398AB9] flex items-center justify-center text-white font-bold text-sm">
-                {buddy.avatar}
-              </div>
-            )}
-          </div>
+          <Avatar src={buddy.avatarUrl} name={buddy.name} className="w-12 h-12" />
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-1.5">
               <p className="font-bold text-gray-900">{buddy.name}</p>

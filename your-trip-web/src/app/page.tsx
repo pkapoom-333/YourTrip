@@ -9,32 +9,16 @@ export const metadata: Metadata = {
 };
 
 const destinations = [
-  {
-    name: "เชียงใหม่, ไทย",
-    tag: "วัฒนธรรม & ธรรมชาติ",
-    img: "https://images.unsplash.com/photo-1528360983277-13d401cdc186?auto=format&fit=crop&w=600&q=80",
-  },
-  {
-    name: "บาหลี, อินโดนีเซีย",
-    tag: "เกาะสวรรค์",
-    img: "https://images.unsplash.com/photo-1537996194471-e657df975ab4?auto=format&fit=crop&w=600&q=80",
-  },
-  {
-    name: "ซานโตรีนี, กรีซ",
-    tag: "โรแมนติก",
-    img: "https://images.unsplash.com/photo-1570077188670-e3a8d69ac5ff?auto=format&fit=crop&w=600&q=80",
-  },
-  {
-    name: "ฮาลองเบย์, เวียดนาม",
-    tag: "มหัศจรรย์โลก",
-    img: "https://images.unsplash.com/photo-1528127269322-539801943592?auto=format&fit=crop&w=600&q=80",
-  },
+  { name: "เชียงใหม่, ไทย",        tag: "วัฒนธรรม & ธรรมชาติ", from: "from-emerald-400",  to: "to-teal-600",    emoji: "🏔️" },
+  { name: "บาหลี, อินโดนีเซีย",    tag: "เกาะสวรรค์",           from: "from-orange-400",  to: "to-rose-500",    emoji: "🌴" },
+  { name: "ซานโตรีนี, กรีซ",       tag: "โรแมนติก",             from: "from-sky-400",     to: "to-blue-600",    emoji: "🏛️" },
+  { name: "ฮาลองเบย์, เวียดนาม",   tag: "มหัศจรรย์โลก",         from: "from-cyan-400",    to: "to-emerald-600", emoji: "⛵" },
 ];
 
 const features = [
-  { icon: "✈️", title: "วางแผนทริป", desc: "สร้าง itinerary รายวัน ติดตามงบประมาณ และจัดการทริปได้ในที่เดียว" },
-  { icon: "📸", title: "แชร์ประสบการณ์", desc: "โพสต์รูปสวย เพิ่มแท็ก บอกสถานที่ และสร้างแรงบันดาลใจให้ชุมชน" },
-  { icon: "🗺️", title: "ค้นพบสถานที่", desc: "ข้อมูลครบ: เวลาเปิด ราคา การเดินทาง รีวิวจริงจากนักเดินทาง" },
+  { icon: "✈️", title: "วางแผนทริป",        desc: "สร้าง itinerary รายวัน ติดตามงบประมาณ และจัดการทริปได้ในที่เดียว" },
+  { icon: "📸", title: "แชร์ประสบการณ์",    desc: "โพสต์รูปสวย เพิ่มแท็ก บอกสถานที่ และสร้างแรงบันดาลใจให้ชุมชน" },
+  { icon: "🗺️", title: "ค้นพบสถานที่",     desc: "ข้อมูลครบ: เวลาเปิด ราคา การเดินทาง รีวิวจริงจากนักเดินทาง" },
   { icon: "👥", title: "หาเพื่อนร่วมทริป", desc: "Travel Buddy Matching — เจอคนที่อยากไปที่เดียวกับคุณ" },
   { icon: "⭐", title: "รีวิวที่เชื่อถือได้", desc: "รีวิวจากชุมชนจริง ไม่ใช่โฆษณา — ตัดสินใจได้มั่นใจขึ้น" },
   { icon: "📱", title: "ใช้ได้ทุกอุปกรณ์", desc: "PWA ติดตั้งลงมือถือได้เหมือนแอป ใช้งานง่ายทั้ง iOS และ Android" },
@@ -42,72 +26,48 @@ const features = [
 
 const testimonials = [
   {
-    name: "มินตรา พลเยี่ยม",
-    role: "Solo Traveler",
-    avatar: "มต",
-    bg: "bg-pink-400",
+    name: "มินตรา พลเยี่ยม", role: "Solo Traveler", avatar: "มต", bg: "bg-pink-400",
     text: "ใช้ Your Trip วางแผนทริปเดี่ยวครั้งแรกไปเชียงใหม่ ข้อมูลสถานที่ครบมาก ช่วยได้เยอะมากๆ แนะนำเลย!",
-    rating: 5,
-    trips: 12,
+    rating: 5, trips: 12,
   },
   {
-    name: "ณัฐพล วงค์ใจ",
-    role: "Adventure Seeker",
-    avatar: "ณว",
-    bg: "bg-emerald-500",
+    name: "ณัฐพล วงค์ใจ", role: "Adventure Seeker", avatar: "ณว", bg: "bg-emerald-500",
     text: "หาเพื่อนร่วมทริปผ่าน Travel Buddy ได้เพื่อนดีมาก ทริปดอยอ่างขางครั้งนั้นเป็นทริปที่ดีที่สุดในชีวิต",
-    rating: 5,
-    trips: 47,
+    rating: 5, trips: 47,
   },
   {
-    name: "ภาณุวัฒน์ รัตนชาติ",
-    role: "Digital Nomad",
-    avatar: "ภว",
-    bg: "bg-violet-500",
+    name: "ภาณุวัฒน์ รัตนชาติ", role: "Digital Nomad", avatar: "ภว", bg: "bg-violet-500",
     text: "ฟีเจอร์ itinerary builder ช่วยได้มากตอนวางแผน 2 สัปดาห์ในบาหลี Track งบได้ real-time เลย",
-    rating: 5,
-    trips: 35,
+    rating: 5, trips: 35,
   },
 ];
 
 const steps = [
-  { n: "01", title: "สมัครฟรี", desc: "สร้างบัญชีด้วย Google ใช้เวลาไม่ถึง 1 นาที" },
-  { n: "02", title: "ค้นพบสถานที่", desc: "Browse สถานที่กว่า 50,000 แห่ง พร้อมรีวิวจากชุมชน" },
-  { n: "03", title: "วางแผนและไป!", desc: "สร้าง itinerary หาเพื่อนร่วมทริป แล้วออกเดินทาง" },
+  { n: "01", title: "สมัครฟรี",       desc: "สร้างบัญชีด้วย Google ใช้เวลาไม่ถึง 1 นาที" },
+  { n: "02", title: "ค้นพบสถานที่",   desc: "Browse สถานที่กว่า 50,000 แห่ง พร้อมรีวิวจากชุมชน" },
+  { n: "03", title: "วางแผนและไป!",   desc: "สร้าง itinerary หาเพื่อนร่วมทริป แล้วออกเดินทาง" },
 ];
 
 export default function LandingPage() {
   return (
     <div className="min-h-screen bg-white">
       {/* ─── HERO ─── */}
-      <section className="relative h-screen min-h-[600px]">
-        {/* Background photo */}
-        <div
-          className="absolute inset-0 bg-cover bg-center"
-          style={{
-            backgroundImage:
-              "url('https://images.unsplash.com/photo-1476514525405-8d4b4c284c1e?auto=format&fit=crop&w=1920&q=80')",
-          }}
+      <section className="relative h-screen min-h-[600px] bg-gradient-to-br from-[#0f2942] via-[#1C658C] to-[#398AB9]">
+        {/* Subtle pattern overlay */}
+        <div className="absolute inset-0 opacity-10"
+          style={{ backgroundImage: "radial-gradient(circle at 25% 25%, white 1px, transparent 1px), radial-gradient(circle at 75% 75%, white 1px, transparent 1px)", backgroundSize: "60px 60px" }}
         />
-        {/* Gradient */}
-        <div className="absolute inset-0 bg-gradient-to-b from-black/20 via-black/30 to-black/85" />
 
         {/* Navbar */}
         <nav className="absolute top-0 left-0 right-0 z-20 flex items-center justify-between px-6 py-5 md:px-12">
-          <span className="text-2xl font-bold text-[#398AB9] drop-shadow-lg">
-            Your Trip
-          </span>
+          <span className="text-2xl font-bold text-white">Your Trip</span>
           <div className="flex gap-3">
-            <Link
-              href="/login"
-              className="text-white text-sm font-medium bg-white/15 backdrop-blur-sm px-5 py-2 rounded-full border border-white/20 hover:bg-white/25 transition"
-            >
+            <Link href="/login"
+              className="text-white text-sm font-medium bg-white/15 backdrop-blur-sm px-5 py-2 rounded-full border border-white/25 hover:bg-white/25 transition">
               เข้าสู่ระบบ
             </Link>
-            <Link
-              href="/register"
-              className="text-white text-sm font-bold bg-[#398AB9] px-5 py-2 rounded-full hover:bg-[#1C658C] transition shadow"
-            >
+            <Link href="/register"
+              className="text-white text-sm font-bold bg-white/20 backdrop-blur-sm px-5 py-2 rounded-full border border-white/30 hover:bg-white/30 transition">
               สมัครฟรี
             </Link>
           </div>
@@ -116,23 +76,23 @@ export default function LandingPage() {
         {/* Hero content */}
         <div className="relative z-10 flex flex-col items-center justify-center h-full px-6 text-center">
           <div className="flex items-center gap-2 mb-4">
-            <Compass className="w-5 h-5 text-[#398AB9]" />
-            <span className="text-white/70 text-xs tracking-[0.2em] uppercase">Travel Community</span>
+            <Compass className="w-5 h-5 text-white/70" />
+            <span className="text-white/60 text-xs tracking-[0.2em] uppercase">Travel Community</span>
           </div>
 
           <h1 className="text-5xl md:text-7xl font-bold text-white leading-tight mb-4">
             โลกใบนี้<br />
-            <span className="text-[#398AB9]">รอคุณอยู่</span>
+            <span className="text-[#7EC8E3]">รอคุณอยู่</span>
           </h1>
 
-          <p className="text-white/75 text-lg md:text-xl max-w-lg mb-10 leading-relaxed">
+          <p className="text-white/70 text-lg md:text-xl max-w-lg mb-10 leading-relaxed">
             ค้นพบสถานที่สวยงาม แบ่งปันประสบการณ์<br className="hidden md:block" />
             และสร้างแรงบันดาลใจให้นักเดินทางทั่วโลก
           </p>
 
           <div className="flex flex-col sm:flex-row gap-3 w-full max-w-xs sm:max-w-sm">
             <Link href="/register" className="flex-1">
-              <button className="w-full bg-[#398AB9] hover:bg-[#1C658C] text-white font-bold py-4 rounded-2xl transition shadow-lg shadow-[#398AB9]/40 text-sm">
+              <button className="w-full bg-white text-[#1C658C] font-bold py-4 rounded-2xl transition shadow-lg text-sm hover:bg-white/90">
                 เริ่มต้นเดินทาง →
               </button>
             </Link>
@@ -152,7 +112,7 @@ export default function LandingPage() {
             ].map((s) => (
               <div key={s.l}>
                 <p className="text-2xl font-bold text-white">{s.v}</p>
-                <p className="text-white/55 text-xs mt-0.5">{s.l}</p>
+                <p className="text-white/50 text-xs mt-0.5">{s.l}</p>
               </div>
             ))}
           </div>
@@ -160,7 +120,7 @@ export default function LandingPage() {
 
         {/* Scroll hint */}
         <div className="absolute bottom-8 left-1/2 -translate-x-1/2 animate-bounce z-10">
-          <ChevronDown className="text-white/50 w-6 h-6" />
+          <ChevronDown className="text-white/40 w-6 h-6" />
         </div>
       </section>
 
@@ -169,28 +129,19 @@ export default function LandingPage() {
         <div className="max-w-5xl mx-auto">
           <div className="flex items-center gap-2 mb-2">
             <MapPin className="w-4 h-4 text-[#398AB9]" />
-            <span className="text-[#398AB9] text-xs font-semibold uppercase tracking-widest">
-              Trending Now
-            </span>
+            <span className="text-[#398AB9] text-xs font-semibold uppercase tracking-widest">Trending Now</span>
           </div>
-          <h2 className="text-3xl md:text-4xl font-bold text-[#1F1F1F] mb-10">
-            จุดหมายยอดนิยม
-          </h2>
+          <h2 className="text-3xl md:text-4xl font-bold text-[#1F1F1F] mb-10">จุดหมายยอดนิยม</h2>
 
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             {destinations.map((d) => (
-              <div
-                key={d.name}
-                className="group relative rounded-2xl overflow-hidden aspect-[3/4] cursor-pointer shadow-md hover:shadow-xl transition-shadow"
-              >
-                <img
-                  src={d.img}
-                  alt={d.name}
-                  className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
-                />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/75 via-black/10 to-transparent" />
-                <div className="absolute bottom-0 left-0 right-0 p-4">
-                  <span className="inline-block text-[10px] font-semibold text-white bg-[#398AB9]/80 backdrop-blur-sm px-2 py-0.5 rounded-full mb-2">
+              <div key={d.name}
+                className={`group relative rounded-2xl overflow-hidden aspect-[3/4] cursor-pointer shadow-md hover:shadow-xl transition-all hover:-translate-y-1 bg-gradient-to-b ${d.from} ${d.to} flex flex-col items-center justify-center`}>
+                <div className="text-5xl mb-3 group-hover:scale-110 transition-transform duration-300">
+                  {d.emoji}
+                </div>
+                <div className="absolute bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-black/50 to-transparent">
+                  <span className="inline-block text-[10px] font-semibold text-white bg-white/20 backdrop-blur-sm px-2 py-0.5 rounded-full mb-2">
                     {d.tag}
                   </span>
                   <p className="text-white font-semibold text-sm leading-tight">{d.name}</p>
@@ -201,14 +152,12 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* ─── FEATURES / COMMUNITY ─── */}
+      {/* ─── FEATURES ─── */}
       <section className="bg-[#F1F7FB] px-6 py-20">
         <div className="max-w-5xl mx-auto text-center">
           <div className="flex items-center justify-center gap-2 mb-2">
             <Users className="w-4 h-4 text-[#398AB9]" />
-            <span className="text-[#398AB9] text-xs font-semibold uppercase tracking-widest">
-              Community
-            </span>
+            <span className="text-[#398AB9] text-xs font-semibold uppercase tracking-widest">Community</span>
           </div>
           <h2 className="text-3xl md:text-4xl font-bold text-[#1F1F1F] mb-4">
             ร่วมเป็นส่วนหนึ่ง<br />ของชุมชนนักเดินทาง
@@ -219,10 +168,8 @@ export default function LandingPage() {
 
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-5 mb-12">
             {features.map((f) => (
-              <div
-                key={f.title}
-                className="bg-white rounded-2xl p-6 text-left shadow-sm hover:shadow-md hover:-translate-y-1 transition-all duration-200"
-              >
+              <div key={f.title}
+                className="bg-white rounded-2xl p-6 text-left shadow-sm hover:shadow-md hover:-translate-y-1 transition-all duration-200">
                 <div className="text-3xl mb-3">{f.icon}</div>
                 <h3 className="font-bold text-[#1F1F1F] text-base mb-1.5">{f.title}</h3>
                 <p className="text-gray-400 text-sm leading-relaxed">{f.desc}</p>
@@ -242,9 +189,7 @@ export default function LandingPage() {
       <section className="px-6 py-20 bg-white">
         <div className="max-w-4xl mx-auto text-center">
           <span className="text-[#398AB9] text-xs font-semibold uppercase tracking-widest">How it works</span>
-          <h2 className="text-3xl md:text-4xl font-bold text-[#1F1F1F] mt-2 mb-12">
-            เริ่มต้นได้ง่ายมาก
-          </h2>
+          <h2 className="text-3xl md:text-4xl font-bold text-[#1F1F1F] mt-2 mb-12">เริ่มต้นได้ง่ายมาก</h2>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             {steps.map((s, i) => (
               <div key={s.n} className="relative">
@@ -267,14 +212,11 @@ export default function LandingPage() {
         <div className="max-w-5xl mx-auto">
           <div className="text-center mb-12">
             <span className="text-[#398AB9] text-xs font-semibold uppercase tracking-widest">Reviews</span>
-            <h2 className="text-3xl md:text-4xl font-bold text-[#1F1F1F] mt-2">
-              นักเดินทางพูดถึงเรา
-            </h2>
+            <h2 className="text-3xl md:text-4xl font-bold text-[#1F1F1F] mt-2">นักเดินทางพูดถึงเรา</h2>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
             {testimonials.map((t) => (
               <div key={t.name} className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
-                {/* Stars */}
                 <div className="flex gap-0.5 mb-4">
                   {[...Array(t.rating)].map((_, i) => (
                     <Star key={i} className="w-4 h-4 fill-amber-400 text-amber-400" />
@@ -297,16 +239,11 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* ─── INSPIRATION STRIP ─── */}
-      <section className="relative py-24 overflow-hidden">
-        <div
-          className="absolute inset-0 bg-cover bg-center"
-          style={{
-            backgroundImage:
-              "url('https://images.unsplash.com/photo-1506905925346-21bda4d32df4?auto=format&fit=crop&w=1920&q=80')",
-          }}
+      {/* ─── CTA STRIP ─── */}
+      <section className="relative py-24 overflow-hidden bg-gradient-to-br from-[#1C658C] via-[#398AB9] to-[#5BA3C9]">
+        <div className="absolute inset-0 opacity-10"
+          style={{ backgroundImage: "radial-gradient(circle at 20% 80%, white 1px, transparent 1px), radial-gradient(circle at 80% 20%, white 1px, transparent 1px)", backgroundSize: "40px 40px" }}
         />
-        <div className="absolute inset-0 bg-[#1C658C]/80" />
         <div className="relative z-10 text-center px-6">
           <p className="text-white/70 text-sm uppercase tracking-widest mb-3">Your next adventure awaits</p>
           <h2 className="text-4xl md:text-5xl font-bold text-white mb-6">
@@ -327,8 +264,7 @@ export default function LandingPage() {
             <div className="col-span-2 md:col-span-1">
               <p className="text-[#398AB9] font-bold text-xl mb-3">Your Trip</p>
               <p className="text-sm text-white/40 leading-relaxed">
-                สังคมแห่งการท่องเที่ยว<br />
-                ค้นพบ แบ่งปัน วางแผน
+                สังคมแห่งการท่องเที่ยว<br />ค้นพบ แบ่งปัน วางแผน
               </p>
             </div>
             <div>

@@ -389,7 +389,9 @@ export default function TripDetailPage({ params }: { params: Promise<{ id: strin
       <div className="max-w-2xl mx-auto">
         {/* Hero */}
         <div className="relative h-52 md:h-64 overflow-hidden">
-          <img src={trip.coverImage} alt={trip.title} className="w-full h-full object-cover" />
+          <img src={trip.coverImage} alt={trip.title} className="w-full h-full object-cover"
+            referrerPolicy="no-referrer"
+            onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }} />
           <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
           <div className="absolute top-4 left-4">
             <Link href="/trips"

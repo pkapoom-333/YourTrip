@@ -7,6 +7,7 @@ import { Settings, MapPin, Grid3X3, Bookmark, Heart, Star } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { getProfile, getUserPosts, getUserSavedPosts, type PostGridItem } from "@/server/actions/profile";
 import { useUser } from "@/hooks/useUser";
+import { Avatar } from "@/components/shared/Avatar";
 
 // Mock fallback posts (shown when DB not configured)
 const MOCK_POSTS: PostGridItem[] = [
@@ -70,15 +71,7 @@ export default function ProfilePage() {
         {/* ── Profile header ── */}
         <div className="bg-white border-b border-gray-100 px-4 md:px-6 pt-4 pb-5 md:rounded-t-2xl">
           <div className="flex items-center justify-between mb-4">
-            {profile.avatarUrl ? (
-              <img src={profile.avatarUrl} alt={profile.name}
-                className="w-20 h-20 rounded-full object-cover"
-                referrerPolicy="no-referrer" />
-            ) : (
-              <div className="w-20 h-20 bg-[#398AB9] rounded-full flex items-center justify-center text-white text-2xl font-bold">
-                {profile.name.charAt(0).toUpperCase()}
-              </div>
-            )}
+            <Avatar src={profile.avatarUrl} name={profile.name} className="w-20 h-20 text-2xl" />
             <div className="flex gap-3 text-center">
               <div>
                 <p className="text-xl font-bold text-gray-900">{profile.postsCount}</p>

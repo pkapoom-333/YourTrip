@@ -5,6 +5,7 @@ import Link from "next/link";
 import { Search, Star, MapPin, SlidersHorizontal, X, LayoutGrid, List, ArrowUpDown, Users, UserPlus, UserCheck } from "lucide-react";
 import type { PlaceListItem } from "@/server/actions/places";
 import { searchUsers, followUser, unfollowUser, type UserCard } from "@/server/actions/profile";
+import { Avatar } from "@/components/shared/Avatar";
 
 /* ── static data ── */
 const categories = [
@@ -162,14 +163,8 @@ function PeopleTab({ query }: { query: string }) {
         const isFollowing = following[u.id] ?? u.isFollowing;
         return (
           <div key={u.id} className="flex items-center gap-3 bg-white rounded-2xl border border-gray-100 p-4">
-            <Link href={`/profile/${u.id}`} className="flex-shrink-0">
-              {u.avatarUrl ? (
-                <img src={u.avatarUrl} alt={u.name ?? ""} className="w-12 h-12 rounded-full object-cover" />
-              ) : (
-                <div className={`w-12 h-12 ${color} rounded-full flex items-center justify-center text-white font-bold`}>
-                  {initials}
-                </div>
-              )}
+            <Link href={`/profile/${u.id}`}>
+              <Avatar src={u.avatarUrl} name={u.name ?? "U"} className="w-12 h-12" />
             </Link>
             <div className="flex-1 min-w-0">
               <Link href={`/profile/${u.id}`}

@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import { createPost } from "@/server/actions/posts";
 import { ImageUpload, type UploadedImage } from "@/components/ImageUpload";
 import { useUser } from "@/hooks/useUser";
+import { Avatar } from "@/components/shared/Avatar";
 import {
   MapPin, Tag, X, ChevronLeft, Smile, AlertCircle,
 } from "lucide-react";
@@ -105,15 +106,7 @@ export default function CreatePage() {
         <div className="px-4 py-4 space-y-4">
           {/* Author row */}
           <div className="flex items-start gap-3">
-            {avatarUrl ? (
-              <img src={avatarUrl} alt={displayName}
-                className="w-10 h-10 rounded-full object-cover flex-shrink-0"
-                referrerPolicy="no-referrer" />
-            ) : (
-              <div className="w-10 h-10 bg-[#398AB9] rounded-full flex items-center justify-center text-white text-sm font-bold flex-shrink-0">
-                {initials}
-              </div>
-            )}
+            <Avatar src={avatarUrl} name={displayName} />
             <div className="flex-1">
               <p className="text-sm font-semibold text-gray-900 mb-0.5">{displayName}</p>
               {location && (
