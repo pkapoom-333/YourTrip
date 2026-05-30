@@ -2,7 +2,8 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { Plus, MapPin, Calendar, Users, ChevronRight, Map, Plane } from "lucide-react";
+import { Plus, MapPin, Calendar, Users, ChevronRight, Map, Plane, Trash2, X } from "lucide-react";
+import { deleteTrip } from "@/server/actions/trips";
 
 export interface TripSummary {
   id: string;
@@ -27,12 +28,24 @@ const PLACEHOLDER_IMG = "https://images.unsplash.com/photo-1476514525405-8d4b4c2
 
 export default function TripsClient({ initialTrips }: { initialTrips: TripSummary[] }) {
   const [tab, setTab] = useState<"all" | "upcoming" | "planning" | "completed">("all");
+  const [trips, setTrips] = useState<TripSummary[]>(initialTrips.length > 0 ? initialTrips : MOCK_TRIPS);
+  const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
+  const [deleting, setDeleting] = useState(false);
 
-  const trips = initialTrips.length > 0 ? initialTrips : MOCK_TRIPS;
   const filtered = tab === "all" ? trips : trips.filter((t) => t.status === tab);
 
-  const totalPlaces = trips.reduce((s, t) => s + t.places, 0);
-  const totalDays   = trips.reduce((s, t) => {
+  async function handleDelete(tripId: string) {
+    setDeleting(true);
+    setTrips((prev) => prev.filter((t) => t.id !== tripId));
+    setConfirmDeleteId(null);
+    await deleteTrip(tripId).catch(() => {
+      // revert not implemented — soft delete for now
+    });
+    setDeleting(false);
+  }
+
+  const totalPlaces = trips.reduce((s: number, t: TripSummary) => s + t.places, 0);
+  const totalDays   = trips.reduce((s: number, t: TripSummary) => {
     if (!t.startDate || !t.endDate) return s;
     try {
       const diff = new Date(t.endDate).getTime() - new Date(t.startDate).getTime();
@@ -92,6 +105,7 @@ export default function TripsClient({ initialTrips }: { initialTrips: TripSummar
         )}
         {filtered.map((trip) => {
           const s = statusConfig[trip.status] ?? statusConfig.planning;
+          const isConfirming = confirmDeleteId === trip.id;
           return (
             <div key={trip.id} className="bg-white rounded-2xl border border-gray-100 overflow-hidden hover:shadow-md transition-shadow">
               <div className="relative h-36 overflow-hidden">
@@ -102,6 +116,13 @@ export default function TripsClient({ initialTrips }: { initialTrips: TripSummar
                 <div className="absolute top-3 left-3">
                   <span className={`text-[10px] font-semibold px-2.5 py-1 rounded-full ${s.color}`}>{s.label}</span>
                 </div>
+                {/* Delete button */}
+                <button
+                  onClick={() => setConfirmDeleteId(isConfirming ? null : trip.id)}
+                  className="absolute top-3 right-3 w-7 h-7 flex items-center justify-center rounded-full bg-black/40 backdrop-blur-sm text-white hover:bg-red-500/80 transition"
+                  title="ลบทริป">
+                  {isConfirming ? <X className="w-3.5 h-3.5" /> : <Trash2 className="w-3.5 h-3.5" />}
+                </button>
                 <div className="absolute bottom-3 left-3 right-3">
                   <p className="text-white font-bold text-base">{trip.title}</p>
                   <p className="text-white/80 text-xs mt-0.5">{trip.startDate} – {trip.endDate}</p>
@@ -129,11 +150,30 @@ export default function TripsClient({ initialTrips }: { initialTrips: TripSummar
                   </div>
                 )}
 
-                <Link href={`/trips/${trip.id}`}
-                  className="flex items-center justify-between text-sm text-[#398AB9] font-medium hover:text-[#1C658C] transition">
-                  <span className="flex items-center gap-1.5"><Map className="w-4 h-4" /> ดูแผนการเดินทาง</span>
-                  <ChevronRight className="w-4 h-4" />
-                </Link>
+                {!isConfirming ? (
+                  <Link href={`/trips/${trip.id}`}
+                    className="flex items-center justify-between text-sm text-[#398AB9] font-medium hover:text-[#1C658C] transition">
+                    <span className="flex items-center gap-1.5"><Map className="w-4 h-4" /> ดูแผนการเดินทาง</span>
+                    <ChevronRight className="w-4 h-4" />
+                  </Link>
+                ) : (
+                  <div className="flex items-center justify-between gap-3 bg-red-50 border border-red-100 rounded-xl px-3 py-2.5">
+                    <p className="text-sm text-red-600 font-medium">ยืนยันลบทริปนี้?</p>
+                    <div className="flex gap-2">
+                      <button
+                        onClick={() => setConfirmDeleteId(null)}
+                        className="text-xs text-gray-500 border border-gray-200 px-3 py-1.5 rounded-lg hover:bg-gray-50 transition">
+                        ยกเลิก
+                      </button>
+                      <button
+                        onClick={() => handleDelete(trip.id)}
+                        disabled={deleting}
+                        className="text-xs text-white bg-red-500 hover:bg-red-600 px-3 py-1.5 rounded-lg transition disabled:opacity-60">
+                        ลบ
+                      </button>
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
           );

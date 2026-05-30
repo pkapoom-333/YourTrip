@@ -188,8 +188,7 @@ export default async function FeedPage() {
                   <Link key={p.name} href={`/place/${p.name}`}
                     className="flex items-center gap-3 hover:bg-gray-50 -mx-2 px-2 py-1.5 rounded-xl transition">
                     <img src={p.img} alt={p.name} className="w-10 h-10 rounded-lg object-cover flex-shrink-0"
-                      referrerPolicy="no-referrer"
-                      onError={(e) => { (e.target as HTMLImageElement).parentElement!.style.display = "none"; }} />
+                      referrerPolicy="no-referrer" />
                     <div>
                       <p className="text-sm font-medium text-gray-800">{p.name}</p>
                       <p className="text-[11px] text-gray-400">{p.cat}</p>
