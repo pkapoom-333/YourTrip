@@ -1,18 +1,19 @@
 "use client";
 
-import { use, useState, useEffect, useCallback } from "react";
+import { use, useState, useEffect, useCallback, useRef } from "react";
 import AppShell from "@/components/AppShell";
 import { getTripById, addItineraryItem, deleteTripItem, updateTripItem } from "@/server/actions/trips";
 import {
   ChevronLeft, Plus, MapPin, Clock, Wallet,
   Trash2, GripVertical, Calendar, Share2,
   Edit3, ChevronDown, ChevronUp, Flag, Car, Map,
-  Navigation,
+  Navigation, Search, Loader2, X,
 } from "lucide-react";
 import Link from "next/link";
 import dynamic from "next/dynamic";
 import { getDrivingRoute, haversineKm } from "@/lib/osrm";
 import type { MapPoint } from "@/components/features/TripDayMap";
+import { searchPlacesForTrip, type PlacePickerItem } from "@/server/actions/places";
 
 const TripDayMap = dynamic(() => import("@/components/features/TripDayMap"), { ssr: false });
 
@@ -109,6 +110,69 @@ function fmtMin(min: number) {
   const h = Math.floor(min / 60);
   const m = min % 60;
   return m > 0 ? `${h} ชม. ${m} นาที` : `${h} ชม.`;
+}
+
+/** Search & pick a place from DB to link to an itinerary item */
+function PlacePicker({
+  onSelect,
+}: {
+  onSelect: (p: PlacePickerItem) => void;
+}) {
+  const [q, setQ] = useState("");
+  const [results, setResults] = useState<PlacePickerItem[]>([]);
+  const [loading, setLoading] = useState(false);
+  const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  function handleChange(v: string) {
+    setQ(v);
+    if (timerRef.current) clearTimeout(timerRef.current);
+    if (!v.trim()) { setResults([]); return; }
+    timerRef.current = setTimeout(async () => {
+      setLoading(true);
+      const { data } = await searchPlacesForTrip(v, 6);
+      setResults(data);
+      setLoading(false);
+    }, 300);
+  }
+
+  return (
+    <div className="relative">
+      <div className="relative">
+        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+        <input
+          value={q}
+          onChange={(e) => handleChange(e.target.value)}
+          placeholder="ค้นหาสถานที่ใน YourTrip..."
+          className="w-full pl-9 pr-3 py-3 border border-[#398AB9]/30 bg-[#398AB9]/5 rounded-xl text-sm focus:outline-none focus:border-[#398AB9] transition"
+        />
+        {loading && <Loader2 className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 animate-spin" />}
+      </div>
+
+      {results.length > 0 && (
+        <div className="absolute z-10 w-full mt-1 bg-white border border-gray-100 rounded-xl shadow-lg overflow-hidden">
+          {results.map((p) => (
+            <button
+              key={p.id}
+              type="button"
+              onClick={() => { onSelect(p); setQ(""); setResults([]); }}
+              className="w-full flex items-center gap-3 px-4 py-2.5 hover:bg-[#398AB9]/5 transition text-left"
+            >
+              <MapPin className="w-4 h-4 text-[#398AB9] flex-shrink-0" />
+              <div className="min-w-0">
+                <p className="text-sm font-medium text-gray-800 truncate">{p.name}</p>
+                <p className="text-[11px] text-gray-400 truncate">{p.province ?? p.nameEn}</p>
+              </div>
+              {p.lat && p.lng && (
+                <span className="ml-auto text-[10px] bg-emerald-50 text-emerald-600 px-2 py-0.5 rounded-full flex-shrink-0">
+                  📍 มีแผนที่
+                </span>
+              )}
+            </button>
+          ))}
+        </div>
+      )}
+    </div>
+  );
 }
 
 /** เส้นเชื่อมระหว่างสถานที่ — แสดงเวลาเดินทาง + ระยะทาง */
@@ -282,6 +346,9 @@ export default function TripDetailPage({ params }: { params: Promise<{ id: strin
     name: "", time: "", cost: "", note: "",
     duration: "", travelTimeTo: "",
     type: "place" as TripItem["type"],
+    placeId: "" as string | undefined,
+    placeLat: undefined as number | undefined,
+    placeLng: undefined as number | undefined,
   });
 
   useEffect(() => {
@@ -398,6 +465,8 @@ export default function TripDetailPage({ params }: { params: Promise<{ id: strin
       cost: newItem.cost ? parseInt(newItem.cost) : undefined,
       note: newItem.note || undefined,
       type: newItem.type,
+      lat: newItem.placeLat,
+      lng: newItem.placeLng,
     };
     setTrip((prev) => ({
       ...prev,
@@ -405,7 +474,7 @@ export default function TripDetailPage({ params }: { params: Promise<{ id: strin
         d.day === activeDay ? { ...d, items: [...d.items, item] } : d
       ),
     }));
-    setNewItem({ name: "", time: "", cost: "", note: "", duration: "", travelTimeTo: "", type: "place" });
+    setNewItem({ name: "", time: "", cost: "", note: "", duration: "", travelTimeTo: "", type: "place", placeId: "", placeLat: undefined, placeLng: undefined });
     setShowAddModal(false);
     try {
       const result = await addItineraryItem(trip.id, {
@@ -416,6 +485,7 @@ export default function TripDetailPage({ params }: { params: Promise<{ id: strin
         duration: newItem.duration ? parseInt(newItem.duration) : undefined,
         travelTimeTo: newItem.travelTimeTo ? parseInt(newItem.travelTimeTo) : undefined,
         cost: newItem.cost ? parseInt(newItem.cost) : undefined,
+        placeId: newItem.placeId || undefined,
       });
       if (result.data) {
         setTrip((prev) => ({
@@ -621,12 +691,44 @@ export default function TripDetailPage({ params }: { params: Promise<{ id: strin
               </div>
 
               <div className="space-y-3">
-                <input
-                  value={newItem.name}
-                  onChange={(e) => setNewItem((p) => ({ ...p, name: e.target.value }))}
-                  placeholder="ชื่อสถานที่ / กิจกรรม *"
-                  className="w-full px-4 py-3 border border-gray-200 rounded-xl text-sm focus:outline-none focus:border-[#398AB9]"
+                {/* Place picker from DB */}
+                <PlacePicker
+                  onSelect={(p) => setNewItem((prev) => ({
+                    ...prev,
+                    name: p.name,
+                    placeId: p.id,
+                    placeLat: p.lat ?? undefined,
+                    placeLng: p.lng ?? undefined,
+                    type: p.category === "cafe" || p.category === "restaurant" ? "food" : "place",
+                  }))}
                 />
+
+                {/* Selected place badge */}
+                {newItem.placeId && (
+                  <div className="flex items-center gap-2 bg-emerald-50 border border-emerald-100 rounded-xl px-3 py-2">
+                    <MapPin className="w-4 h-4 text-emerald-600 flex-shrink-0" />
+                    <span className="text-sm text-emerald-700 font-medium flex-1 truncate">{newItem.name}</span>
+                    {newItem.placeLat && (
+                      <span className="text-[10px] bg-emerald-100 text-emerald-600 px-2 py-0.5 rounded-full">📍 มีแผนที่</span>
+                    )}
+                    <button
+                      type="button"
+                      onClick={() => setNewItem((p) => ({ ...p, placeId: "", placeLat: undefined, placeLng: undefined, name: "" }))}
+                      className="text-emerald-400 hover:text-emerald-600 transition">
+                      <X className="w-3.5 h-3.5" />
+                    </button>
+                  </div>
+                )}
+
+                {/* Manual name (shown when no place selected) */}
+                {!newItem.placeId && (
+                  <input
+                    value={newItem.name}
+                    onChange={(e) => setNewItem((p) => ({ ...p, name: e.target.value }))}
+                    placeholder="หรือพิมพ์ชื่อเอง..."
+                    className="w-full px-4 py-3 border border-gray-200 rounded-xl text-sm focus:outline-none focus:border-[#398AB9]"
+                  />
+                )}
                 <div className="flex gap-2">
                   <div className="relative flex-1">
                     <Clock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />

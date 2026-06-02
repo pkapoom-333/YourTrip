@@ -217,3 +217,35 @@ export async function createReview(
     return { data: { id: `mock-review-${Date.now()}` } };
   }
 }
+
+export interface PlacePickerItem {
+  id: string;
+  slug: string;
+  name: string;
+  nameEn: string | null;
+  province: string | null;
+  category: string;
+  lat: number | null;
+  lng: number | null;
+}
+
+/** ค้นหา place สำหรับ trip item picker (ไม่ต้อง auth) */
+export async function searchPlacesForTrip(query: string, take = 8): Promise<{ data: PlacePickerItem[] }> {
+  if (!query.trim()) return { data: [] };
+  try {
+    const rows = await prisma.place.findMany({
+      where: {
+        OR: [
+          { name: { contains: query, mode: "insensitive" } },
+          { nameEn: { contains: query, mode: "insensitive" } },
+          { province: { contains: query, mode: "insensitive" } },
+        ],
+      },
+      select: { id: true, slug: true, name: true, nameEn: true, province: true, category: true, lat: true, lng: true },
+      take,
+    });
+    return { data: rows };
+  } catch {
+    return { data: [] };
+  }
+}
