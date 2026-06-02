@@ -1,14 +1,20 @@
 "use client";
 
-import { use, useState, useEffect } from "react";
+import { use, useState, useEffect, useCallback } from "react";
 import AppShell from "@/components/AppShell";
 import { getTripById, addItineraryItem, deleteTripItem, updateTripItem } from "@/server/actions/trips";
 import {
   ChevronLeft, Plus, MapPin, Clock, Wallet,
   Trash2, GripVertical, Calendar, Share2,
-  Edit3, ChevronDown, ChevronUp, Flag, Car,
+  Edit3, ChevronDown, ChevronUp, Flag, Car, Map,
+  Navigation,
 } from "lucide-react";
 import Link from "next/link";
+import dynamic from "next/dynamic";
+import { getDrivingRoute, haversineKm } from "@/lib/osrm";
+import type { MapPoint } from "@/components/features/TripDayMap";
+
+const TripDayMap = dynamic(() => import("@/components/features/TripDayMap"), { ssr: false });
 
 interface TripItem {
   id: string;
@@ -19,6 +25,8 @@ interface TripItem {
   cost?: number;
   note?: string;
   type: "place" | "food" | "hotel" | "transport" | "activity";
+  lat?: number;
+  lng?: number;
 }
 
 interface TripDay {
@@ -103,12 +111,14 @@ function fmtMin(min: number) {
   return m > 0 ? `${h} ชม. ${m} นาที` : `${h} ชม.`;
 }
 
-/** เส้นเชื่อมระหว่างสถานที่ — แสดงเวลาเดินทาง */
+/** เส้นเชื่อมระหว่างสถานที่ — แสดงเวลาเดินทาง + ระยะทาง */
 function TravelConnector({
   minutes,
+  distanceKm,
   onEdit,
 }: {
   minutes: number;
+  distanceKm?: number;
   onEdit: (m: number) => void;
 }) {
   const [editing, setEditing] = useState(false);
@@ -150,10 +160,15 @@ function TravelConnector({
       ) : (
         <button
           onClick={() => { setVal(String(minutes)); setEditing(true); }}
-          className="flex items-center gap-1 text-xs text-gray-400 hover:text-[#398AB9] transition group"
+          className="flex items-center gap-1.5 text-xs text-gray-400 hover:text-[#398AB9] transition group"
         >
           <Clock className="w-3 h-3" />
           <span>เดินทาง {fmtMin(minutes)}</span>
+          {distanceKm !== undefined && (
+            <span className="text-[10px] bg-[#398AB9]/10 text-[#398AB9] px-1.5 py-0.5 rounded-full font-medium">
+              {distanceKm} km
+            </span>
+          )}
           <span className="opacity-0 group-hover:opacity-100 text-[10px] ml-1">✏️</span>
         </button>
       )}
@@ -261,6 +276,8 @@ export default function TripDetailPage({ params }: { params: Promise<{ id: strin
   const [trip, setTrip] = useState(MOCK_TRIP);
   const [activeDay, setActiveDay] = useState(1);
   const [showAddModal, setShowAddModal] = useState(false);
+  const [showMap, setShowMap] = useState(false);
+  const [routeSegments, setRouteSegments] = useState<Array<{ distanceKm: number; durationMin: number }>>([]);
   const [newItem, setNewItem] = useState({
     name: "", time: "", cost: "", note: "",
     duration: "", travelTimeTo: "",
@@ -294,6 +311,8 @@ export default function TripDetailPage({ params }: { params: Promise<{ id: strin
               cost: item.cost ?? undefined,
               note: item.note ?? undefined,
               type: "place" as TripItem["type"],
+              lat: item.place?.lat ?? undefined,
+              lng: item.place?.lng ?? undefined,
             })),
           })),
         });
@@ -303,6 +322,33 @@ export default function TripDetailPage({ params }: { params: Promise<{ id: strin
   }, [id]);
 
   const currentDay = trip.days.find((d) => d.day === activeDay);
+
+  // Fetch OSRM route whenever activeDay changes and has coords
+  const fetchRoute = useCallback(async () => {
+    if (!currentDay) return;
+    const coords = currentDay.items
+      .filter((i) => i.lat && i.lng)
+      .map((i) => ({ lat: i.lat!, lng: i.lng! }));
+
+    if (coords.length < 2) {
+      // Haversine fallback for consecutive pairs
+      const segs = [];
+      for (let i = 0; i < coords.length - 1; i++) {
+        const km = haversineKm(coords[i], coords[i + 1]);
+        segs.push({ distanceKm: km, durationMin: Math.round((km / 40) * 60) });
+      }
+      setRouteSegments(segs);
+      return;
+    }
+    try {
+      const segs = await getDrivingRoute(coords);
+      setRouteSegments(segs);
+    } catch {
+      setRouteSegments([]);
+    }
+  }, [currentDay]);
+
+  useEffect(() => { fetchRoute(); }, [fetchRoute]);
   const totalCost = trip.days.flatMap((d) => d.items).reduce((s, i) => s + (i.cost ?? 0), 0);
   const budgetPercent = Math.min((totalCost / (trip.budget ?? 1)) * 100, 100);
 
@@ -463,16 +509,59 @@ export default function TripDetailPage({ params }: { params: Promise<{ id: strin
         {/* Active day */}
         {currentDay && (
           <div className="px-4 py-4">
-            <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center justify-between mb-3">
               <div>
                 <h2 className="text-base font-bold text-gray-800">วันที่ {currentDay.day}</h2>
                 <p className="text-xs text-gray-400 mt-0.5">{currentDay.date}</p>
               </div>
-              <div className="flex items-center gap-1 text-xs text-gray-500">
-                <Wallet className="w-3.5 h-3.5" />
-                ฿{currentDay.items.reduce((s, i) => s + (i.cost ?? 0), 0).toLocaleString()}
+              <div className="flex items-center gap-2">
+                <div className="flex items-center gap-1 text-xs text-gray-500">
+                  <Wallet className="w-3.5 h-3.5" />
+                  ฿{currentDay.items.reduce((s, i) => s + (i.cost ?? 0), 0).toLocaleString()}
+                </div>
+                <button
+                  onClick={() => setShowMap((v) => !v)}
+                  className={`flex items-center gap-1.5 text-xs font-medium px-3 py-1.5 rounded-xl transition ${
+                    showMap
+                      ? "bg-[#398AB9] text-white"
+                      : "border border-gray-200 text-gray-500 hover:border-[#398AB9] hover:text-[#398AB9]"
+                  }`}>
+                  <Map className="w-3.5 h-3.5" />
+                  แผนที่
+                </button>
               </div>
             </div>
+
+            {/* Map panel */}
+            {showMap && (
+              <div className="mb-4">
+                <TripDayMap
+                  points={currentDay.items
+                    .filter((i) => i.lat && i.lng)
+                    .map((i, idx) => ({
+                      name: i.name,
+                      lat: i.lat!,
+                      lng: i.lng!,
+                      order: idx + 1,
+                    } satisfies MapPoint))
+                  }
+                />
+                {/* Route summary */}
+                {routeSegments.length > 0 && (
+                  <div className="mt-2 flex gap-2 flex-wrap">
+                    {routeSegments.map((seg, i) => (
+                      <div key={i} className="flex items-center gap-1 bg-[#398AB9]/8 text-[#398AB9] text-[11px] font-medium px-2.5 py-1 rounded-full">
+                        <Navigation className="w-3 h-3" />
+                        {currentDay.items[i]?.name.slice(0, 8)} → {currentDay.items[i + 1]?.name.slice(0, 8)}
+                        <span className="text-[#1C658C] font-bold ml-1">{seg.distanceKm} km</span>
+                        <span className="text-gray-400">·</span>
+                        <span>~{seg.durationMin} นาที</span>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
 
             {/* Item list with travel connectors */}
             <div className="mb-4">
@@ -492,7 +581,8 @@ export default function TripDetailPage({ params }: { params: Promise<{ id: strin
                     {/* Travel connector — แสดงหลังทุก item ยกเว้นตัวสุดท้าย */}
                     {idx < currentDay.items.length - 1 && (
                       <TravelConnector
-                        minutes={item.travelTimeTo ?? 15}
+                        minutes={item.travelTimeTo ?? routeSegments[idx]?.durationMin ?? 15}
+                        distanceKm={routeSegments[idx]?.distanceKm}
                         onEdit={(m) => updateItem(currentDay.day, item.id, { travelTimeTo: m })}
                       />
                     )}

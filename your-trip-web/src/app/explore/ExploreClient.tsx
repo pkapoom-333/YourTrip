@@ -2,7 +2,8 @@
 
 import { useState, useEffect, useCallback } from "react";
 import Link from "next/link";
-import { Search, Star, MapPin, SlidersHorizontal, X, LayoutGrid, List, ArrowUpDown, Users, UserPlus, UserCheck } from "lucide-react";
+import { Search, Star, MapPin, SlidersHorizontal, X, LayoutGrid, List, ArrowUpDown, Users, UserPlus, UserCheck, Bookmark } from "lucide-react";
+import { useLocalStorage } from "@/hooks/useLocalStorage";
 import type { PlaceListItem } from "@/server/actions/places";
 import { searchUsers, followUser, unfollowUser, type UserCard } from "@/server/actions/profile";
 import { Avatar } from "@/components/shared/Avatar";
@@ -36,21 +37,27 @@ function fmt(n: number) {
   return n >= 1000 ? (n / 1000).toFixed(1).replace(".0", "") + "K" : String(n);
 }
 
-function PlaceCard({ place }: { place: PlaceListItem }) {
+function PlaceCard({ place, saved, onToggleSave }: {
+  place: PlaceListItem;
+  saved: boolean;
+  onToggleSave: (id: string) => void;
+}) {
   const img = place.coverImage ??
     "https://images.unsplash.com/photo-1476514525405-8d4b4c284c1e?auto=format&fit=crop&w=600&q=80";
 
   return (
-    <Link href={`/place/${place.slug}`}
-      className="group bg-white rounded-2xl border border-gray-100 overflow-hidden hover:shadow-lg hover:shadow-gray-200/80 transition-all duration-300">
+    <div className="group bg-white rounded-2xl border border-gray-100 overflow-hidden hover:shadow-lg hover:shadow-gray-200/80 transition-all duration-300">
+      <Link href={`/place/${place.slug}`}>
       <div className="relative aspect-[4/3] overflow-hidden">
         <img src={img} alt={place.name}
           className="w-full h-full object-cover group-hover:scale-[1.04] transition-transform duration-500"
           referrerPolicy="no-referrer"
           onError={(e) => { (e.target as HTMLImageElement).parentElement!.style.display = "none"; }} />
         <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent" />
-        <div className="absolute top-3 right-3 bg-black/50 backdrop-blur-sm text-white text-xs font-bold px-2 py-0.5 rounded-full">
-          {priceSymbol(place.priceRange)}
+        <div className="absolute top-3 right-3 flex items-center gap-1.5">
+          <span className="bg-black/50 backdrop-blur-sm text-white text-xs font-bold px-2 py-0.5 rounded-full">
+            {priceSymbol(place.priceRange)}
+          </span>
         </div>
         {place.isFeatured && (
           <div className="absolute top-3 left-3 text-[10px] font-semibold px-2 py-0.5 rounded-full bg-[#398AB9]/90 text-white">
@@ -67,13 +74,28 @@ function PlaceCard({ place }: { place: PlaceListItem }) {
           )}
         </div>
       </div>
+      </Link>
       <div className="p-3">
-        <p className="font-semibold text-gray-900 text-sm truncate">{place.name}</p>
-        <div className="flex items-center gap-1 mt-0.5">
-          <MapPin className="w-3 h-3 text-[#398AB9] flex-shrink-0" />
-          <span className="text-[11px] text-gray-400 truncate">
-            {place.province ?? place.country}
-          </span>
+        <div className="flex items-start justify-between gap-2">
+          <Link href={`/place/${place.slug}`} className="flex-1 min-w-0">
+            <p className="font-semibold text-gray-900 text-sm truncate">{place.name}</p>
+            <div className="flex items-center gap-1 mt-0.5">
+              <MapPin className="w-3 h-3 text-[#398AB9] flex-shrink-0" />
+              <span className="text-[11px] text-gray-400 truncate">
+                {place.province ?? place.country}
+              </span>
+            </div>
+          </Link>
+          <button
+            onClick={() => onToggleSave(place.id)}
+            className={`flex-shrink-0 p-1.5 rounded-lg transition ${
+              saved
+                ? "text-[#398AB9] bg-[#398AB9]/10"
+                : "text-gray-300 hover:text-[#398AB9] hover:bg-[#398AB9]/5"
+            }`}
+            title={saved ? "ลบออกจาก wishlist" : "บันทึก"}>
+            <Bookmark className={`w-3.5 h-3.5 ${saved ? "fill-current" : ""}`} />
+          </button>
         </div>
         <div className="flex gap-1 mt-2 flex-wrap">
           <span className="text-[10px] bg-[#398AB9]/8 text-[#398AB9] px-2 py-0.5 rounded-full font-medium">
@@ -84,7 +106,7 @@ function PlaceCard({ place }: { place: PlaceListItem }) {
           )}
         </div>
       </div>
-    </Link>
+    </div>
   );
 }
 
@@ -197,6 +219,13 @@ type SearchMode = "places" | "people";
 export default function ExploreClient({ initialPlaces }: { initialPlaces: PlaceListItem[] }) {
   const [query, setQuery] = useState("");
   const [searchMode, setSearchMode] = useState<SearchMode>("places");
+  const [wishlist, setWishlist] = useLocalStorage<string[]>("place_wishlist", []);
+
+  function toggleSave(id: string) {
+    setWishlist((prev) =>
+      prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]
+    );
+  }
   const [activeCategory, setActiveCategory] = useState("all");
   const [activeRegion, setActiveRegion] = useState("all");
   const [showFilter, setShowFilter] = useState(false);
@@ -360,7 +389,9 @@ export default function ExploreClient({ initialPlaces }: { initialPlaces: PlaceL
       {filtered.length > 0 ? (
         viewMode === "grid" ? (
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 md:gap-4">
-            {filtered.map((p) => <PlaceCard key={p.id} place={p} />)}
+            {filtered.map((p) => (
+              <PlaceCard key={p.id} place={p} saved={wishlist.includes(p.id)} onToggleSave={toggleSave} />
+            ))}
           </div>
         ) : (
           <div className="space-y-3">

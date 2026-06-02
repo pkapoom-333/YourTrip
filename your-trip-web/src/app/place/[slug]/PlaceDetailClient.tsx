@@ -92,6 +92,19 @@ export default function PlaceDetailClient({ place, slug }: { place: PlaceData; s
   const [reviewText, setReviewText] = useState("");
   const [reviewSubmitting, setReviewSubmitting] = useState(false);
   const [reviewDone, setReviewDone] = useState(false);
+  const [shareCopied, setShareCopied] = useState(false);
+
+  async function handleShare() {
+    const url = typeof window !== "undefined" ? window.location.href : "";
+    const shareData = { title: place.name, text: `${place.name} — ${place.location}`, url };
+    if (navigator.share) {
+      try { await navigator.share(shareData); } catch { /* user cancelled */ }
+    } else {
+      await navigator.clipboard.writeText(url);
+      setShareCopied(true);
+      setTimeout(() => setShareCopied(false), 2000);
+    }
+  }
 
   async function handleSubmitReview(e: React.FormEvent) {
     e.preventDefault();
@@ -136,8 +149,16 @@ export default function PlaceDetailClient({ place, slug }: { place: PlaceData; s
                 className="w-9 h-9 bg-black/30 backdrop-blur-sm rounded-full flex items-center justify-center hover:bg-black/50 transition">
                 <Bookmark className={`w-5 h-5 ${saved ? "fill-white text-white" : "text-white"}`} />
               </button>
-              <button className="w-9 h-9 bg-black/30 backdrop-blur-sm rounded-full flex items-center justify-center hover:bg-black/50 transition">
+              <button
+                onClick={handleShare}
+                className="relative w-9 h-9 bg-black/30 backdrop-blur-sm rounded-full flex items-center justify-center hover:bg-black/50 transition"
+                title="แชร์">
                 <Share2 className="w-5 h-5 text-white" />
+                {shareCopied && (
+                  <span className="absolute -bottom-8 left-1/2 -translate-x-1/2 whitespace-nowrap text-[10px] font-medium bg-gray-900 text-white px-2 py-1 rounded-lg">
+                    คัดลอก URL แล้ว ✓
+                  </span>
+                )}
               </button>
             </div>
           </div>

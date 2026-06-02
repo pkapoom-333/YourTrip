@@ -2,8 +2,8 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { Plus, MapPin, Calendar, Users, ChevronRight, Map, Plane, Trash2, X } from "lucide-react";
-import { deleteTrip } from "@/server/actions/trips";
+import { Plus, MapPin, Calendar, Users, ChevronRight, Map, Plane, Trash2, X, ChevronDown } from "lucide-react";
+import { deleteTrip, updateTripStatus } from "@/server/actions/trips";
 
 export interface TripSummary {
   id: string;
@@ -38,10 +38,20 @@ export default function TripsClient({ initialTrips }: { initialTrips: TripSummar
     setDeleting(true);
     setTrips((prev) => prev.filter((t) => t.id !== tripId));
     setConfirmDeleteId(null);
-    await deleteTrip(tripId).catch(() => {
-      // revert not implemented — soft delete for now
-    });
+    await deleteTrip(tripId).catch(() => {});
     setDeleting(false);
+  }
+
+  const STATUS_CYCLE: TripSummary["status"][] = ["planning", "upcoming", "completed"];
+  const DB_STATUS: Record<TripSummary["status"], "PLANNING" | "CONFIRMED" | "COMPLETED" | "CANCELLED"> = {
+    planning: "PLANNING", upcoming: "CONFIRMED", completed: "COMPLETED", cancelled: "CANCELLED",
+  };
+
+  async function cycleStatus(tripId: string, current: TripSummary["status"]) {
+    const idx = STATUS_CYCLE.indexOf(current);
+    const next = STATUS_CYCLE[(idx + 1) % STATUS_CYCLE.length];
+    setTrips((prev) => prev.map((t) => t.id === tripId ? { ...t, status: next } : t));
+    await updateTripStatus(tripId, DB_STATUS[next]).catch(() => {});
   }
 
   const totalPlaces = trips.reduce((s: number, t: TripSummary) => s + t.places, 0);
@@ -114,7 +124,13 @@ export default function TripsClient({ initialTrips }: { initialTrips: TripSummar
                   onError={(e) => { (e.target as HTMLImageElement).src = PLACEHOLDER_IMG; }} />
                 <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent" />
                 <div className="absolute top-3 left-3">
-                  <span className={`text-[10px] font-semibold px-2.5 py-1 rounded-full ${s.color}`}>{s.label}</span>
+                  <button
+                    onClick={() => cycleStatus(trip.id, trip.status)}
+                    className={`flex items-center gap-1 text-[10px] font-semibold px-2.5 py-1 rounded-full transition hover:opacity-80 ${s.color}`}
+                    title="กดเพื่อเปลี่ยนสถานะ">
+                    {s.label}
+                    <ChevronDown className="w-3 h-3 opacity-60" />
+                  </button>
                 </div>
                 {/* Delete button */}
                 <button

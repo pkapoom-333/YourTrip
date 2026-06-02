@@ -96,7 +96,7 @@ export async function getTripById(tripId: string) {
           include: {
             items: {
               include: {
-                place: { select: { id: true, slug: true, name: true } },
+                place: { select: { id: true, slug: true, name: true, lat: true, lng: true } },
               },
               orderBy: { order: "asc" },
             },
@@ -198,6 +198,22 @@ export async function updateTripItem(
     return { data: { success: true } };
   } catch {
     return { data: { success: true } }; // optimistic — UI already updated
+  }
+}
+
+export async function updateTripStatus(tripId: string, status: "PLANNING" | "CONFIRMED" | "ONGOING" | "COMPLETED" | "CANCELLED") {
+  try {
+    const supabase = await createServerClient();
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return { error: { message: "กรุณาเข้าสู่ระบบ" } };
+
+    await prisma.trip.update({
+      where: { id: tripId, userId: user.id },
+      data: { status },
+    });
+    return { data: { success: true } };
+  } catch {
+    return { data: { success: true } };
   }
 }
 
