@@ -18,7 +18,8 @@
       "mcp__Claude_Preview__preview_snapshot",
       "mcp__Claude_Preview__preview_click",
       "mcp__Claude_Preview__preview_fill",
-      "mcp__Claude_Preview__preview_inspect"
+      "mcp__Claude_Preview__preview_inspect",
+      "mcp__Claude_Preview__preview_resize"
     ]
   }
 }

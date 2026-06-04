@@ -1,13 +1,11 @@
 # PROGRESS.md
 # Travel Community App — Dev Log
 
-## Status: Phase 1 | Day 5 | 2026-05-25
+## Status: Phase 2 | Day 8 | 2026-06-04
 
 ## Current sprint task
-→ **DONE**: Prisma 7 runtime connection fixed (@prisma/adapter-pg)
-→ **DONE**: DB seeded (11 places)
-→ **DONE**: Build passes clean (0 TS errors, all pages dynamic)
-→ **NEXT**: Add Cloudinary env vars → test image upload → deploy to Vercel
+→ **DONE**: Day 8 — Feed compose/empty state, Explore wishlist, Place share, Trips delete+status cycle, Trip map (Leaflet+OSRM), Place picker autocomplete
+→ **NEXT**: E2E test login → create post → feed; Explore wishlist sync to DB; Post tagging place
 
 ---
 
