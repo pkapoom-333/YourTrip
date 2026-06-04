@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback } from "react";
 import Link from "next/link";
 import { Search, Star, MapPin, SlidersHorizontal, X, LayoutGrid, List, ArrowUpDown, Users, UserPlus, UserCheck, Bookmark } from "lucide-react";
-import { useLocalStorage } from "@/hooks/useLocalStorage";
+import { toggleSavePlace } from "@/server/actions/savedPlaces";
 import type { PlaceListItem } from "@/server/actions/places";
 import { searchUsers, followUser, unfollowUser, type UserCard } from "@/server/actions/profile";
 import { Avatar } from "@/components/shared/Avatar";
@@ -216,15 +216,26 @@ function PeopleTab({ query }: { query: string }) {
 
 type SearchMode = "places" | "people";
 
-export default function ExploreClient({ initialPlaces }: { initialPlaces: PlaceListItem[] }) {
+export default function ExploreClient({ initialPlaces, initialSaved = [] }: { initialPlaces: PlaceListItem[]; initialSaved?: string[] }) {
   const [query, setQuery] = useState("");
   const [searchMode, setSearchMode] = useState<SearchMode>("places");
-  const [wishlist, setWishlist] = useLocalStorage<string[]>("place_wishlist", []);
+  const [savedIds, setSavedIds] = useState<Set<string>>(new Set(initialSaved));
 
-  function toggleSave(id: string) {
-    setWishlist((prev) =>
-      prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]
-    );
+  async function toggleSave(id: string) {
+    // Optimistic update
+    setSavedIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id); else next.add(id);
+      return next;
+    });
+    // Sync to DB (silently ignore error — optimistic stays)
+    toggleSavePlace(id).catch(() => {
+      setSavedIds((prev) => {
+        const next = new Set(prev);
+        if (next.has(id)) next.delete(id); else next.add(id);
+        return next;
+      });
+    });
   }
   const [activeCategory, setActiveCategory] = useState("all");
   const [activeRegion, setActiveRegion] = useState("all");
@@ -390,7 +401,7 @@ export default function ExploreClient({ initialPlaces }: { initialPlaces: PlaceL
         viewMode === "grid" ? (
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 md:gap-4">
             {filtered.map((p) => (
-              <PlaceCard key={p.id} place={p} saved={wishlist.includes(p.id)} onToggleSave={toggleSave} />
+              <PlaceCard key={p.id} place={p} saved={savedIds.has(p.id)} onToggleSave={toggleSave} />
             ))}
           </div>
         ) : (

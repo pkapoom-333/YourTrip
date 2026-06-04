@@ -40,6 +40,7 @@ model User {
   buddyReceived BuddyRequest[]   @relation("BuddyRequestTo")
   following     Follow[]         @relation("Follower")
   followers     Follow[]         @relation("Following")
+  savedPlaces   SavedPlace[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -109,9 +110,10 @@ model Place {
   isFeatured   Boolean  @default(false)
 
   // Relations
-  images     PlaceImage[]
-  reviews    Review[]
-  tripItems  TripItem[]
+  images      PlaceImage[]
+  reviews     Review[]
+  tripItems   TripItem[]
+  savedBy     SavedPlace[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -128,6 +130,19 @@ model PlaceImage {
   place   Place  @relation(fields: [placeId], references: [id], onDelete: Cascade)
 
   @@map("place_images")
+}
+
+model SavedPlace {
+  id      String @id @default(uuid())
+  userId  String
+  placeId String
+  user    User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  place   Place  @relation(fields: [placeId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+
+  @@unique([userId, placeId])
+  @@map("saved_places")
 }
 
 model Review {

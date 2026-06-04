@@ -2,6 +2,7 @@ import AppShell from "@/components/AppShell";
 import ExploreClient from "./ExploreClient";
 import { getPlaces } from "@/server/actions/places";
 import type { PlaceListItem } from "@/server/actions/places";
+import { getSavedPlaceIds } from "@/server/actions/savedPlaces";
 
 // Mock data fallback (shown when DB not configured yet)
 const MOCK_PLACES: PlaceListItem[] = [
@@ -25,8 +26,10 @@ const MOCK_PLACES: PlaceListItem[] = [
 ];
 
 export default async function ExplorePage() {
-  // Try fetching from DB; fall back to mock data if DB not configured
-  const { data: dbPlaces } = await getPlaces({ take: 50 });
+  const [{ data: dbPlaces }, savedIds] = await Promise.all([
+    getPlaces({ take: 50 }),
+    getSavedPlaceIds(),
+  ]);
   const places = dbPlaces.length > 0 ? dbPlaces : MOCK_PLACES;
 
   return (
@@ -34,7 +37,7 @@ export default async function ExplorePage() {
       <header className="md:hidden sticky top-0 z-40 bg-white border-b border-gray-100 px-4 py-3">
         <span className="text-lg font-bold text-[#398AB9]">สำรวจ</span>
       </header>
-      <ExploreClient initialPlaces={places} />
+      <ExploreClient initialPlaces={places} initialSaved={savedIds} />
     </AppShell>
   );
 }

@@ -6,6 +6,8 @@ import Link from "next/link";
 import { Settings, MapPin, Grid3X3, Bookmark, Heart, Star } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { getProfile, getUserPosts, getUserSavedPosts, type PostGridItem } from "@/server/actions/profile";
+import { getSavedPlaces, type SavedPlaceItem } from "@/server/actions/savedPlaces";
+import { Star as StarIcon } from "lucide-react";
 import { useUser } from "@/hooks/useUser";
 import { Avatar } from "@/components/shared/Avatar";
 
@@ -36,6 +38,8 @@ export default function ProfilePage() {
   });
   const [myPosts, setMyPosts] = useState<PostGridItem[]>(MOCK_POSTS);
   const [savedPosts, setSavedPosts] = useState<PostGridItem[]>([]);
+  const [savedPlaces, setSavedPlaces] = useState<SavedPlaceItem[]>([]);
+  const [savedSubTab, setSavedSubTab] = useState<"posts" | "places">("places");
 
   useEffect(() => {
     getProfile().then(({ data }) => {
@@ -56,6 +60,7 @@ export default function ProfilePage() {
       if (data.length > 0) setMyPosts(data);
     });
     getUserSavedPosts().then(({ data }) => setSavedPosts(data));
+    getSavedPlaces().then(({ data }) => setSavedPlaces(data));
   }, []);
 
   return (
@@ -210,38 +215,106 @@ export default function ProfilePage() {
         )}
 
         {tab === "saved" && (
-          savedPosts.length === 0 ? (
-            <div className="flex flex-col items-center justify-center py-16 text-center px-8">
-              <Bookmark className="w-12 h-12 text-gray-200 mb-4" />
-              <p className="text-gray-500 font-medium">ยังไม่มีที่บันทึก</p>
-              <p className="text-sm text-gray-400 mt-1">กด บันทึก บนโพสต์หรือสถานที่ที่ชอบ</p>
-              <Link href="/explore" className="mt-4 text-sm text-[#398AB9] font-medium hover:underline">
-                สำรวจสถานที่
-              </Link>
-            </div>
-          ) : (
-            <div className="grid grid-cols-3 gap-px bg-gray-100">
-              {savedPosts.map((p) => (
-                <div key={p.id} className="relative aspect-square bg-gray-200 overflow-hidden group cursor-pointer">
-                  {p.images[0] ? (
-                    <img src={p.images[0]} alt="" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                      referrerPolicy="no-referrer"
-                      onError={(e) => { (e.target as HTMLImageElement).parentElement!.style.display = "none"; }} />
-                  ) : (
-                    <div className="w-full h-full bg-gray-100 flex items-center justify-center">
-                      <Bookmark className="w-5 h-5 text-gray-400" />
-                    </div>
+          <div>
+            {/* Sub-tabs */}
+            <div className="flex bg-white border-b border-gray-100 px-4 gap-4">
+              {([
+                { key: "places", label: "สถานที่", count: savedPlaces.length },
+                { key: "posts",  label: "โพสต์",   count: savedPosts.length },
+              ] as const).map(({ key, label, count }) => (
+                <button key={key} onClick={() => setSavedSubTab(key)}
+                  className={`py-3 text-sm font-medium border-b-2 transition flex items-center gap-1.5 ${
+                    savedSubTab === key ? "border-[#398AB9] text-[#398AB9]" : "border-transparent text-gray-400"
+                  }`}>
+                  {label}
+                  {count > 0 && (
+                    <span className="text-[10px] bg-gray-100 text-gray-500 px-1.5 py-0.5 rounded-full">{count}</span>
                   )}
-                  <div className="absolute inset-0 bg-black/0 group-hover:bg-black/30 transition flex items-center justify-center opacity-0 group-hover:opacity-100">
-                    <div className="flex items-center gap-1.5 text-white font-semibold text-sm">
-                      <Heart className="w-4 h-4 fill-white" />
-                      {p.likesCount}
-                    </div>
-                  </div>
-                </div>
+                </button>
               ))}
             </div>
-          )
+
+            {/* Saved places */}
+            {savedSubTab === "places" && (
+              savedPlaces.length === 0 ? (
+                <div className="flex flex-col items-center justify-center py-16 text-center px-8">
+                  <Bookmark className="w-12 h-12 text-gray-200 mb-4" />
+                  <p className="text-gray-500 font-medium">ยังไม่มีสถานที่ที่บันทึก</p>
+                  <p className="text-sm text-gray-400 mt-1">กด 🔖 บนสถานที่ที่ชอบใน สำรวจ</p>
+                  <Link href="/explore" className="mt-4 text-sm text-[#398AB9] font-medium hover:underline">
+                    สำรวจสถานที่
+                  </Link>
+                </div>
+              ) : (
+                <div className="p-4 space-y-3">
+                  {savedPlaces.map((s) => (
+                    <Link key={s.id} href={`/place/${s.place.slug}`}
+                      className="flex gap-3 bg-white rounded-2xl border border-gray-100 p-3 hover:shadow-md transition-shadow group">
+                      <div className="w-20 h-20 flex-shrink-0 rounded-xl overflow-hidden bg-gray-100">
+                        {s.place.coverImage ? (
+                          <img src={s.place.coverImage} alt={s.place.name}
+                            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                            referrerPolicy="no-referrer"
+                            onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }} />
+                        ) : (
+                          <div className="w-full h-full flex items-center justify-center text-2xl">🗺️</div>
+                        )}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="font-semibold text-sm text-gray-900 truncate">{s.place.name}</p>
+                        <div className="flex items-center gap-1 mt-0.5">
+                          <MapPin className="w-3 h-3 text-[#398AB9] flex-shrink-0" />
+                          <span className="text-xs text-gray-400 truncate">{s.place.province ?? s.place.nameEn}</span>
+                        </div>
+                        {s.place.rating > 0 && (
+                          <div className="flex items-center gap-1 mt-1">
+                            <StarIcon className="w-3 h-3 fill-amber-400 text-amber-400" />
+                            <span className="text-xs font-semibold text-gray-700">{s.place.rating.toFixed(1)}</span>
+                          </div>
+                        )}
+                        <span className="text-[10px] bg-[#398AB9]/8 text-[#398AB9] px-2 py-0.5 rounded-full mt-1.5 inline-block">
+                          {"฿".repeat(s.place.priceRange)}
+                        </span>
+                      </div>
+                    </Link>
+                  ))}
+                </div>
+              )
+            )}
+
+            {/* Saved posts */}
+            {savedSubTab === "posts" && (
+              savedPosts.length === 0 ? (
+                <div className="flex flex-col items-center justify-center py-16 text-center px-8">
+                  <Bookmark className="w-12 h-12 text-gray-200 mb-4" />
+                  <p className="text-gray-500 font-medium">ยังไม่มีโพสต์ที่บันทึก</p>
+                </div>
+              ) : (
+                <div className="grid grid-cols-3 gap-px bg-gray-100">
+                  {savedPosts.map((p) => (
+                    <Link key={p.id} href={`/post/${p.id}`}
+                      className="relative aspect-square bg-gray-200 overflow-hidden group cursor-pointer">
+                      {p.images[0] ? (
+                        <img src={p.images[0]} alt="" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                          referrerPolicy="no-referrer"
+                          onError={(e) => { (e.target as HTMLImageElement).parentElement!.style.display = "none"; }} />
+                      ) : (
+                        <div className="w-full h-full bg-gray-100 flex items-center justify-center">
+                          <Bookmark className="w-5 h-5 text-gray-400" />
+                        </div>
+                      )}
+                      <div className="absolute inset-0 bg-black/0 group-hover:bg-black/30 transition flex items-center justify-center opacity-0 group-hover:opacity-100">
+                        <div className="flex items-center gap-1.5 text-white font-semibold text-sm">
+                          <Heart className="w-4 h-4 fill-white" />
+                          {p.likesCount}
+                        </div>
+                      </div>
+                    </Link>
+                  ))}
+                </div>
+              )
+            )}
+          </div>
         )}
 
         {tab === "reviews" && (

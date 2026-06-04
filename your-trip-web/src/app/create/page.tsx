@@ -1,14 +1,15 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef } from "react";
 import AppShell from "@/components/AppShell";
 import { useRouter } from "next/navigation";
 import { createPost } from "@/server/actions/posts";
 import { ImageUpload, type UploadedImage } from "@/components/ImageUpload";
 import { useUser } from "@/hooks/useUser";
 import { Avatar } from "@/components/shared/Avatar";
+import { searchPlacesForTrip, type PlacePickerItem } from "@/server/actions/places";
 import {
-  MapPin, Tag, X, ChevronLeft, Smile, AlertCircle,
+  MapPin, Tag, X, ChevronLeft, Smile, AlertCircle, Search, Loader2,
 } from "lucide-react";
 
 const MAX_CHARS = 500;
@@ -25,6 +26,11 @@ export default function CreatePage() {
   const [content, setContent] = useState("");
   const [images, setImages] = useState<UploadedImage[]>([]);
   const [location, setLocation] = useState("");
+  const [placeId, setPlaceId] = useState<string | undefined>();
+  const [placeSearchQ, setPlaceSearchQ] = useState("");
+  const [placeResults, setPlaceResults] = useState<PlacePickerItem[]>([]);
+  const [placeSearching, setPlaceSearching] = useState(false);
+  const placeTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [tags, setTags] = useState<string[]>([]);
   const [tagInput, setTagInput] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -36,6 +42,32 @@ export default function CreatePage() {
   const displayName = user?.user_metadata?.full_name ?? user?.email?.split("@")[0] ?? "You";
   const avatarUrl = user?.user_metadata?.avatar_url as string | undefined;
   const initials = displayName.charAt(0).toUpperCase();
+
+  function searchPlace(q: string) {
+    setPlaceSearchQ(q);
+    if (placeTimerRef.current) clearTimeout(placeTimerRef.current);
+    if (!q.trim()) { setPlaceResults([]); return; }
+    placeTimerRef.current = setTimeout(async () => {
+      setPlaceSearching(true);
+      const { data } = await searchPlacesForTrip(q, 5);
+      setPlaceResults(data);
+      setPlaceSearching(false);
+    }, 300);
+  }
+
+  function selectPlace(p: PlacePickerItem) {
+    setLocation(p.name);
+    setPlaceId(p.id);
+    setPlaceSearchQ("");
+    setPlaceResults([]);
+  }
+
+  function clearPlace() {
+    setLocation("");
+    setPlaceId(undefined);
+    setPlaceSearchQ("");
+    setPlaceResults([]);
+  }
 
   function addTag(tag: string) {
     const cleaned = tag.replace(/^#/, "").trim();
@@ -58,6 +90,7 @@ export default function CreatePage() {
         content: content.trim(),
         tags: tags.length > 0 ? tags : undefined,
         location: location.trim() || undefined,
+        placeId: placeId || undefined,
         images: images.map((img) => img.url),
       });
       if (result?.error) {
@@ -141,19 +174,48 @@ export default function CreatePage() {
             folder="your-trip/posts"
           />
 
-          {/* Location input */}
-          <div className="flex items-center gap-2 bg-gray-50 rounded-xl px-3 py-2">
-            <MapPin className="w-4 h-4 text-[#398AB9] flex-shrink-0" />
-            <input
-              value={location}
-              onChange={(e) => setLocation(e.target.value)}
-              placeholder="เพิ่มสถานที่ (เช่น ดอยอ่างขาง, เชียงใหม่)"
-              className="flex-1 text-sm text-gray-700 placeholder:text-gray-400 bg-transparent outline-none"
-            />
-            {location && (
-              <button onClick={() => setLocation("")}>
-                <X className="w-3.5 h-3.5 text-gray-400" />
-              </button>
+          {/* Place tag */}
+          <div className="relative">
+            {placeId ? (
+              /* Selected place badge */
+              <div className="flex items-center gap-2 bg-[#398AB9]/8 border border-[#398AB9]/20 rounded-xl px-3 py-2.5">
+                <MapPin className="w-4 h-4 text-[#398AB9] flex-shrink-0" />
+                <span className="flex-1 text-sm text-[#398AB9] font-medium">{location}</span>
+                <button onClick={clearPlace}>
+                  <X className="w-3.5 h-3.5 text-[#398AB9]/60 hover:text-[#398AB9]" />
+                </button>
+              </div>
+            ) : (
+              /* Search input */
+              <div className="flex items-center gap-2 bg-gray-50 rounded-xl px-3 py-2">
+                <MapPin className="w-4 h-4 text-[#398AB9] flex-shrink-0" />
+                <input
+                  value={placeSearchQ}
+                  onChange={(e) => searchPlace(e.target.value)}
+                  placeholder="แท็กสถานที่ (ค้นหาจาก YourTrip...)"
+                  className="flex-1 text-sm text-gray-700 placeholder:text-gray-400 bg-transparent outline-none"
+                />
+                {placeSearching
+                  ? <Loader2 className="w-3.5 h-3.5 text-gray-400 animate-spin" />
+                  : placeSearchQ && <button onClick={clearPlace}><X className="w-3.5 h-3.5 text-gray-400" /></button>
+                }
+              </div>
+            )}
+
+            {/* Dropdown results */}
+            {placeResults.length > 0 && (
+              <div className="absolute z-20 w-full mt-1 bg-white border border-gray-100 rounded-xl shadow-lg overflow-hidden">
+                {placeResults.map((p) => (
+                  <button key={p.id} type="button" onClick={() => selectPlace(p)}
+                    className="w-full flex items-center gap-3 px-4 py-2.5 hover:bg-[#398AB9]/5 text-left transition">
+                    <MapPin className="w-4 h-4 text-[#398AB9] flex-shrink-0" />
+                    <div className="min-w-0">
+                      <p className="text-sm font-medium text-gray-800 truncate">{p.name}</p>
+                      <p className="text-[11px] text-gray-400">{p.province ?? p.nameEn}</p>
+                    </div>
+                  </button>
+                ))}
+              </div>
             )}
           </div>
 
