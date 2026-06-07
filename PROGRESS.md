@@ -1,11 +1,11 @@
 # PROGRESS.md
 # Travel Community App — Dev Log
 
-## Status: Phase 2 | Day 8 | 2026-06-04
+## Status: Phase 2 | Day 10 | 2026-06-07
 
 ## Current sprint task
-→ **DONE**: Day 8 — Feed compose/empty state, Explore wishlist, Place share, Trips delete+status cycle, Trip map (Leaflet+OSRM), Place picker autocomplete
-→ **NEXT**: E2E test login → create post → feed; Explore wishlist sync to DB; Post tagging place
+→ **DONE**: Day 9-10 — SavedPlace DB+SQL, Explore wishlist→DB, Profile saved tab, Create post place picker, PostCard place badge (Post→Place relation), Feed tag filter chip
+→ **NEXT**: E2E test (login → create post w/ place tag → feed badge); Seed post data; Deploy to Vercel
 
 ---
 
@@ -137,3 +137,4 @@
 | 2026-06-02 | Day 8 cont: Explore wishlist save (localStorage); Place share button (Web Share API + clipboard fallback); Trips status cycle (planning→upcoming→completed); Trip day map (Leaflet + OpenStreetMap) + OSRM driving distance/time between itinerary places | ~70% | seed lat/lng ให้ places → map จะแสดงผลจริง |
 | 2026-06-02 | Day 8 cont.2: Trip place picker autocomplete (searchPlacesForTrip + debounce 300ms); lat/lng propagate optimistically to map; fix not-found.tsx use client (source of persistent onClick error) | ~85% | ทดสอบ trip map ด้วย real data หลัง login |
 | 2026-06-04 | Day 9: SavedPlace model+SQL migration; Explore wishlist→DB (optimistic); Profile saved tab (สถานที่/โพสต์ sub-tab); Create post place picker (placeId link) | ~90% | E2E wishlist test + PostCard place badge |
+| 2026-06-07 | Day 10: PostCard place badge (Post→Place Prisma relation wired; getFeed includes place; blue clickable badge); Feed tag filter chips UI; PROGRESS.md updated | ~25% | Deploy Vercel → E2E test → seed post data |

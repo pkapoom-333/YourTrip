@@ -70,6 +70,31 @@ function FeedEmptyState() {
   );
 }
 
+// Popular tags shown as filter chips
+const POPULAR_TAGS = ["ทั้งหมด", "เที่ยวเหนือ", "ธรรมชาติ", "คาเฟ่", "ต่างประเทศ", "ทะเล", "Hiking", "อาหาร", "โรแมนติก"];
+
+function TagFilterBar({ active, onChange }: { active: string; onChange: (t: string) => void }) {
+  return (
+    <div className="bg-white md:rounded-2xl border border-gray-100 px-3 py-2.5 overflow-x-auto scrollbar-none">
+      <div className="flex gap-2 w-max">
+        {POPULAR_TAGS.map((tag) => (
+          <button
+            key={tag}
+            onClick={() => onChange(tag)}
+            className={`px-3.5 py-1.5 rounded-full text-xs font-medium whitespace-nowrap transition-all ${
+              active === tag
+                ? "bg-[#398AB9] text-white shadow-sm"
+                : "bg-gray-100 text-gray-500 hover:bg-gray-200"
+            }`}
+          >
+            {tag === "ทั้งหมด" ? tag : `#${tag}`}
+          </button>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 interface FeedPostsClientProps {
   initialPosts: PostCardData[];
   initialCursor?: string;
@@ -81,7 +106,13 @@ export function FeedPostsClient({ initialPosts, initialCursor, initialHasMore = 
   const [cursor, setCursor] = useState<string | undefined>(initialCursor);
   const [hasMore, setHasMore] = useState(initialHasMore);
   const [loading, setLoading] = useState(false);
+  const [activeTag, setActiveTag] = useState("ทั้งหมด");
   const sentinelRef = useRef<HTMLDivElement>(null);
+
+  // Client-side filter by tag
+  const filteredPosts = activeTag === "ทั้งหมด"
+    ? posts
+    : posts.filter((p) => p.tags.includes(activeTag));
 
   const loadMore = useCallback(async () => {
     if (loading || !hasMore) return;
@@ -140,10 +171,19 @@ export function FeedPostsClient({ initialPosts, initialCursor, initialHasMore = 
       {/* Compose box */}
       <ComposeBox />
 
+      {/* Tag filter chips */}
+      <TagFilterBar active={activeTag} onChange={setActiveTag} />
+
       {/* Empty state */}
       {posts.length === 0 && !loading && <FeedEmptyState />}
 
-      {posts.map((post) => (
+      {filteredPosts.length === 0 && posts.length > 0 && !loading && (
+        <div className="bg-white md:rounded-2xl border border-gray-100 py-12 text-center text-sm text-gray-400">
+          ไม่มีโพสต์ที่แท็ก #{activeTag}
+        </div>
+      )}
+
+      {filteredPosts.map((post) => (
         <PostCard key={String(post.id)} post={post} />
       ))}
 
