@@ -171,6 +171,7 @@ export async function getFeed(cursor?: string) {
       orderBy: { createdAt: "desc" },
       include: {
         user: { select: { id: true, name: true, username: true, avatarUrl: true } },
+        place: { select: { id: true, slug: true, name: true } },
         _count: { select: { likes: true, comments: true } },
       },
     });
@@ -202,6 +203,7 @@ export async function getFeed(cursor?: string) {
         commentsCount: p._count.comments,
         likedByMe: likedSet.has(p.id),
         savedByMe: savedSet.has(p.id),
+        place: p.place ? { id: p.place.id, slug: p.place.slug, name: p.place.name } : null,
       })),
       nextCursor,
       hasMore: !!nextCursor,

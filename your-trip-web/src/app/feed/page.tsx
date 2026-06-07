@@ -87,6 +87,7 @@ export default async function FeedPage() {
         saved: p.savedByMe ?? false,
         time: fmtTime(p.createdAt),
         tags: p.tags ?? [],
+        place: p.place ?? null,
       }))
     : MOCK_POSTS;
 

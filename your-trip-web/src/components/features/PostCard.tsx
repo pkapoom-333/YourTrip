@@ -27,6 +27,7 @@ export interface PostCardData {
   saved: boolean;
   time: string;
   tags: string[];
+  place?: { id: string; slug: string; name: string } | null;
 }
 
 function fmt(n: number) {
@@ -84,18 +85,19 @@ export function PostCard({ post }: { post: PostCardData }) {
           ) : (
             <p className="text-sm font-semibold text-gray-900">{post.user.name}</p>
           )}
-          {post.user.location && (
+          {/* Place badge (linked to DB place) — takes priority over free-text location */}
+          {post.place ? (
+            <Link href={`/place/${post.place.slug}`}
+              className="flex items-center gap-1 text-[11px] text-[#398AB9] hover:underline transition truncate w-fit">
+              <MapPin className="w-2.5 h-2.5 flex-shrink-0" />
+              {post.place.name}
+            </Link>
+          ) : post.user.location ? (
             <div className="flex items-center gap-1 text-[11px] text-gray-400">
               <MapPin className="w-2.5 h-2.5" />
-              {post.slug ? (
-                <Link href={`/place/${post.slug}`} className="hover:text-[#398AB9] transition truncate">
-                  {post.user.location}
-                </Link>
-              ) : (
-                <span className="truncate">{post.user.location}</span>
-              )}
+              <span className="truncate">{post.user.location}</span>
             </div>
-          )}
+          ) : null}
         </div>
         <div className="flex items-center gap-2">
           <span className="text-[10px] text-gray-400">{post.time}</span>

@@ -114,6 +114,7 @@ model Place {
   reviews     Review[]
   tripItems   TripItem[]
   savedBy     SavedPlace[]
+  posts       Post[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -180,6 +181,7 @@ model Post {
 
   // Relations
   user     User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  place    Place?    @relation(fields: [placeId], references: [id])
   likes    Like[]
   comments Comment[]
   saves    Save[]

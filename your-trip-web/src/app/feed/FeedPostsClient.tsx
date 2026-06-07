@@ -104,6 +104,7 @@ export function FeedPostsClient({ initialPosts, initialCursor, initialHasMore = 
         saved: p.savedByMe ?? false,
         time: fmtTime(p.createdAt),
         tags: p.tags ?? [],
+        place: p.place ?? null,
       }));
 
       setPosts((prev) => [...prev, ...newPosts]);
