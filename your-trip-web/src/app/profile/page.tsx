@@ -131,12 +131,12 @@ export default function ProfilePage() {
             )}
           </div>
 
-          {/* achievements */}
+          {/* achievements — real counts */}
           <div className="flex gap-3 mt-3 overflow-x-auto scrollbar-none">
             {[
-              { icon: "🗺️", label: "Explorer", count: "23 ประเทศ" },
-              { icon: "📸", label: "Photographer", count: "48 โพสต์" },
-              { icon: "⭐", label: "Top Reviewer", count: "156 รีวิว" },
+              { icon: "📸", label: "Photographer", count: `${profile.postsCount} โพสต์` },
+              { icon: "🗺️", label: "Explorer", count: `${savedPlaces.length} สถานที่บันทึก` },
+              { icon: "👥", label: "Social", count: `${profile.followersCount} ผู้ติดตาม` },
             ].map((b) => (
               <div key={b.label} className="flex items-center gap-2 bg-gray-50 px-3 py-2 rounded-xl flex-shrink-0">
                 <span className="text-base">{b.icon}</span>
