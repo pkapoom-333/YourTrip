@@ -219,11 +219,30 @@ type SearchMode = "places" | "people";
 
 const PAGE_SIZE = 12;
 
+const RECENT_KEY = "yourtrip_recent_searches";
+const MAX_RECENT = 8;
+
+function loadRecent(): string[] {
+  if (typeof window === "undefined") return [];
+  try { return JSON.parse(localStorage.getItem(RECENT_KEY) ?? "[]") as string[]; } catch { return []; }
+}
+
+function saveRecent(q: string) {
+  if (!q.trim()) return;
+  const prev = loadRecent().filter((s) => s !== q);
+  localStorage.setItem(RECENT_KEY, JSON.stringify([q, ...prev].slice(0, MAX_RECENT)));
+}
+
 export default function ExploreClient({ initialPlaces, initialSaved = [] }: { initialPlaces: PlaceListItem[]; initialSaved?: string[] }) {
   const [query, setQuery] = useState("");
   const [searchMode, setSearchMode] = useState<SearchMode>("places");
+  const [searchFocused, setSearchFocused] = useState(false);
+  const [recentSearches, setRecentSearches] = useState<string[]>([]);
   const [savedIds, setSavedIds] = useState<Set<string>>(new Set(initialSaved));
   const [displayCount, setDisplayCount] = useState(PAGE_SIZE);
+
+  // Load recent searches from localStorage on mount
+  useEffect(() => { setRecentSearches(loadRecent()); }, []);
 
   async function toggleSave(id: string) {
     // Optimistic update
@@ -291,6 +310,15 @@ export default function ExploreClient({ initialPlaces, initialSaved = [] }: { in
           <input
             value={query}
             onChange={(e) => setQuery(e.target.value)}
+            onFocus={() => setSearchFocused(true)}
+            onBlur={() => setTimeout(() => setSearchFocused(false), 150)}
+            onKeyDown={(e) => {
+              if (e.key === "Enter" && query.trim()) {
+                saveRecent(query.trim());
+                setRecentSearches(loadRecent());
+                setSearchFocused(false);
+              }
+            }}
             placeholder={searchMode === "places" ? "ค้นหาสถานที่, ร้านอาหาร, คาเฟ่..." : "ค้นหาชื่อ หรือ @username..."}
             className="w-full pl-9 pr-10 py-2.5 bg-white border border-gray-200 rounded-xl text-sm text-gray-700 placeholder:text-gray-400 focus:outline-none focus:border-[#398AB9] focus:ring-2 focus:ring-[#398AB9]/10 transition"
           />
@@ -299,6 +327,23 @@ export default function ExploreClient({ initialPlaces, initialSaved = [] }: { in
               className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600">
               <X className="w-4 h-4" />
             </button>
+          )}
+          {/* Recent searches dropdown */}
+          {searchFocused && !query && recentSearches.length > 0 && (
+            <div className="absolute top-full left-0 right-0 mt-1.5 bg-white border border-gray-100 rounded-xl shadow-lg z-50 overflow-hidden">
+              <div className="flex items-center justify-between px-3 py-2 border-b border-gray-50">
+                <span className="text-[11px] text-gray-400 font-medium">ค้นหาล่าสุด</span>
+                <button onClick={() => { localStorage.removeItem(RECENT_KEY); setRecentSearches([]); }}
+                  className="text-[11px] text-[#398AB9] hover:underline">ล้าง</button>
+              </div>
+              {recentSearches.map((s) => (
+                <button key={s} onClick={() => { setQuery(s); setSearchFocused(false); }}
+                  className="w-full text-left flex items-center gap-2 px-3 py-2 text-sm text-gray-700 hover:bg-gray-50 transition">
+                  <Search className="w-3.5 h-3.5 text-gray-300" />
+                  {s}
+                </button>
+              ))}
+            </div>
           )}
         </div>
         {searchMode === "places" && (
