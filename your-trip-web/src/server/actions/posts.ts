@@ -2,6 +2,8 @@
 
 import { prisma } from "@/lib/prisma";
 import { createClient as createServerClient } from "@/lib/supabase/server";
+import { createNotification } from "./notifications";
+import { NotificationType } from "@prisma/client";
 import { createPostSchema, type CreatePostInput } from "@/lib/validations";
 
 export async function createPost(input: CreatePostInput) {
@@ -48,7 +50,25 @@ export async function toggleLike(postId: string) {
       return { data: { liked: false } };
     }
 
-    await prisma.like.create({ data: { userId: user.id, postId } });
+    const like = await prisma.like.create({
+      data: { userId: user.id, postId },
+      include: {
+        post: { select: { userId: true, content: true } },
+        user: { select: { name: true, avatarUrl: true } },
+      },
+    });
+    // Notify post owner
+    if (like.post) {
+      await createNotification({
+        userId: like.post.userId,
+        type: NotificationType.LIKE,
+        title: `${like.user.name ?? "ใครบางคน"} ถูกใจโพสต์ของคุณ`,
+        body: like.post.content?.slice(0, 80) ?? undefined,
+        actionUrl: `/post/${postId}`,
+        actorId: user.id,
+        imageUrl: like.user.avatarUrl ?? undefined,
+      });
+    }
     return { data: { liked: true } };
   } catch {
     return { data: { liked: true } };
@@ -134,8 +154,22 @@ export async function createComment(
       data: { postId, content, userId: user.id, parentId: parentId ?? null },
       include: {
         user: { select: { id: true, name: true, username: true, avatarUrl: true } },
+        post: { select: { userId: true, content: true } },
       },
     });
+
+    // Notify post owner (skip for replies — they get notified below)
+    if (comment.post && !parentId) {
+      await createNotification({
+        userId: comment.post.userId,
+        type: NotificationType.COMMENT,
+        title: `${comment.user.name ?? "ใครบางคน"} แสดงความคิดเห็นในโพสต์ของคุณ`,
+        body: content.slice(0, 80),
+        actionUrl: `/post/${postId}`,
+        actorId: user.id,
+        imageUrl: comment.user.avatarUrl ?? undefined,
+      });
+    }
 
     return {
       data: {

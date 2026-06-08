@@ -1,6 +1,8 @@
 "use server";
 
 import { prisma } from "@/lib/prisma";
+import { createNotification } from "./notifications";
+import { NotificationType } from "@prisma/client";
 import { createClient as createServerClient } from "@/lib/supabase/server";
 import { updateProfileSchema, type UpdateProfileInput } from "@/lib/validations";
 
@@ -129,8 +131,20 @@ export async function followUser(targetId: string) {
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return { error: { message: "กรุณาเข้าสู่ระบบ" } };
 
+    const follower = await prisma.user.findUnique({
+      where: { id: user.id },
+      select: { name: true, avatarUrl: true },
+    });
     await prisma.follow.create({
       data: { followerId: user.id, followingId: targetId },
+    });
+    await createNotification({
+      userId: targetId,
+      type: NotificationType.FOLLOW,
+      title: `${follower?.name ?? "ใครบางคน"} เริ่มติดตามคุณ`,
+      actionUrl: `/profile/${user.id}`,
+      actorId: user.id,
+      imageUrl: follower?.avatarUrl ?? undefined,
     });
     return { data: { following: true } };
   } catch {

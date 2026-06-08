@@ -1,6 +1,7 @@
 "use server";
 
 import { prisma } from "@/lib/prisma";
+import { NotificationType } from "@prisma/client";
 import { createClient as createServerClient } from "@/lib/supabase/server";
 
 export interface NotificationItem {
@@ -13,6 +14,35 @@ export interface NotificationItem {
   isRead: boolean;
   actorId: string | null;
   createdAt: Date;
+}
+
+// ─── Internal helper (not exported as server action — called from other actions) ─
+export async function createNotification(input: {
+  userId: string;       // recipient
+  type: NotificationType;
+  title: string;
+  body?: string;
+  imageUrl?: string;
+  actionUrl?: string;
+  actorId?: string;
+}) {
+  try {
+    // Don't notify yourself
+    if (input.actorId && input.actorId === input.userId) return;
+    await prisma.notification.create({
+      data: {
+        userId: input.userId,
+        type: input.type,
+        title: input.title,
+        body: input.body ?? null,
+        imageUrl: input.imageUrl ?? null,
+        actionUrl: input.actionUrl ?? null,
+        actorId: input.actorId ?? null,
+      },
+    });
+  } catch {
+    // Silently ignore — notifications are non-critical
+  }
 }
 
 export async function getNotifications(limit = 30): Promise<{ data: NotificationItem[] }> {

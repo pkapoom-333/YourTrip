@@ -202,7 +202,7 @@ export default async function FeedPage() {
                       {p.coverImage ? (
                         <img src={p.coverImage} alt={p.name}
                           className="w-10 h-10 rounded-lg object-cover flex-shrink-0"
-                          referrerPolicy="no-referrer" />
+                          loading="lazy" referrerPolicy="no-referrer" />
                       ) : (
                         <div className="w-10 h-10 rounded-lg bg-[#398AB9]/10 flex items-center justify-center flex-shrink-0">
                           <span className="text-base">🗺️</span>

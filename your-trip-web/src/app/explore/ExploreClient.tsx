@@ -52,6 +52,7 @@ function PlaceCard({ place, saved, onToggleSave }: {
         <img src={img} alt={place.name}
           className="w-full h-full object-cover group-hover:scale-[1.04] transition-transform duration-500"
           referrerPolicy="no-referrer"
+          loading="lazy"
           onError={(e) => { (e.target as HTMLImageElement).parentElement!.style.display = "none"; }} />
         <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent" />
         <div className="absolute top-3 right-3 flex items-center gap-1.5">
@@ -428,6 +429,7 @@ export default function ExploreClient({ initialPlaces, initialSaved = [] }: { in
                   <div className="w-20 h-20 md:w-24 md:h-24 flex-shrink-0 rounded-xl overflow-hidden">
                     <img src={img} alt={p.name}
                       className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                      loading="lazy"
                       referrerPolicy="no-referrer"
                       onError={(e) => { (e.target as HTMLImageElement).parentElement!.style.display = "none"; }} />
                   </div>
