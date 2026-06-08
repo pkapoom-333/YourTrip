@@ -1,6 +1,12 @@
+import type { Metadata } from "next";
 import AppShell from "@/components/AppShell";
 import ExploreClient from "./ExploreClient";
 import { getPlaces } from "@/server/actions/places";
+
+export const metadata: Metadata = {
+  title: "สำรวจสถานที่ | Your Trip",
+  description: "ค้นพบสถานที่ท่องเที่ยว ร้านอาหาร คาเฟ่ พร้อมรีวิวจากชุมชนนักเดินทางจริง",
+};
 import type { PlaceListItem } from "@/server/actions/places";
 import { getSavedPlaceIds } from "@/server/actions/savedPlaces";
 

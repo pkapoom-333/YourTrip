@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { MapPin, Users, Compass, ChevronDown, Star, CheckCircle } from "lucide-react";
 import type { Metadata } from "next";
+import { getPlaces } from "@/server/actions/places";
 
 export const metadata: Metadata = {
   title: "Your Trip — สังคมนักเดินทาง | ค้นพบ แบ่งปัน วางแผน",
@@ -48,7 +49,13 @@ const steps = [
   { n: "03", title: "วางแผนและไป!",   desc: "สร้าง itinerary หาเพื่อนร่วมทริป แล้วออกเดินทาง" },
 ];
 
-export default function LandingPage() {
+export default async function LandingPage() {
+  const { data: featuredPlaces } = await getPlaces({ featured: true, take: 4 });
+  // Fallback if DB is empty
+  const displayDestinations = featuredPlaces.length >= 4
+    ? featuredPlaces
+    : null;
+
   return (
     <div className="min-h-screen bg-white">
       {/* ─── HERO ─── */}
@@ -134,20 +141,43 @@ export default function LandingPage() {
           <h2 className="text-3xl md:text-4xl font-bold text-[#1F1F1F] mb-10">จุดหมายยอดนิยม</h2>
 
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            {destinations.map((d) => (
-              <div key={d.name}
-                className={`group relative rounded-2xl overflow-hidden aspect-[3/4] cursor-pointer shadow-md hover:shadow-xl transition-all hover:-translate-y-1 bg-gradient-to-b ${d.from} ${d.to} flex flex-col items-center justify-center`}>
-                <div className="text-5xl mb-3 group-hover:scale-110 transition-transform duration-300">
-                  {d.emoji}
-                </div>
-                <div className="absolute bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-black/50 to-transparent">
-                  <span className="inline-block text-[10px] font-semibold text-white bg-white/20 backdrop-blur-sm px-2 py-0.5 rounded-full mb-2">
-                    {d.tag}
-                  </span>
-                  <p className="text-white font-semibold text-sm leading-tight">{d.name}</p>
-                </div>
-              </div>
-            ))}
+            {displayDestinations
+              ? displayDestinations.map((p) => (
+                  <Link key={p.id} href={`/place/${p.slug}`}
+                    className="group relative rounded-2xl overflow-hidden aspect-[3/4] cursor-pointer shadow-md hover:shadow-xl transition-all hover:-translate-y-1 block">
+                    {p.coverImage ? (
+                      <img src={p.coverImage} alt={p.name}
+                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                        referrerPolicy="no-referrer" />
+                    ) : (
+                      <div className="w-full h-full bg-gradient-to-b from-[#398AB9] to-[#1C658C] flex items-center justify-center">
+                        <span className="text-5xl">🗺️</span>
+                      </div>
+                    )}
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
+                    <div className="absolute bottom-0 left-0 right-0 p-4">
+                      <span className="inline-block text-[10px] font-semibold text-white bg-white/20 backdrop-blur-sm px-2 py-0.5 rounded-full mb-2">
+                        {p.province ?? p.category}
+                      </span>
+                      <p className="text-white font-semibold text-sm leading-tight">{p.name}</p>
+                    </div>
+                  </Link>
+                ))
+              : destinations.map((d) => (
+                  <Link key={d.name} href="/explore"
+                    className={`group relative rounded-2xl overflow-hidden aspect-[3/4] cursor-pointer shadow-md hover:shadow-xl transition-all hover:-translate-y-1 bg-gradient-to-b ${d.from} ${d.to} flex flex-col items-center justify-center block`}>
+                    <div className="text-5xl mb-3 group-hover:scale-110 transition-transform duration-300">
+                      {d.emoji}
+                    </div>
+                    <div className="absolute bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-black/50 to-transparent">
+                      <span className="inline-block text-[10px] font-semibold text-white bg-white/20 backdrop-blur-sm px-2 py-0.5 rounded-full mb-2">
+                        {d.tag}
+                      </span>
+                      <p className="text-white font-semibold text-sm leading-tight">{d.name}</p>
+                    </div>
+                  </Link>
+                ))
+            }
           </div>
         </div>
       </section>

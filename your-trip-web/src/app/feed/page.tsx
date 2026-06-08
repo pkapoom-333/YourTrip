@@ -1,6 +1,12 @@
+import type { Metadata } from "next";
 import AppShell from "@/components/AppShell";
 import Link from "next/link";
 import { Search, Bell, TrendingUp } from "lucide-react";
+
+export const metadata: Metadata = {
+  title: "ฟีด | Your Trip",
+  description: "ดูโพสต์จากนักเดินทางทั่วโลก แชร์ประสบการณ์ และสร้างแรงบันดาลใจในการเดินทาง",
+};
 import { type PostCardData } from "@/components/features/PostCard";
 import { getFeed } from "@/server/actions/posts";
 import { getPlaces } from "@/server/actions/places";

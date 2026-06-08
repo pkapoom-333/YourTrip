@@ -1,6 +1,12 @@
+import type { Metadata } from "next";
 import AppShell from "@/components/AppShell";
 import TripsClient, { type TripSummary } from "./TripsClient";
 import { getUserTrips } from "@/server/actions/trips";
+
+export const metadata: Metadata = {
+  title: "ทริปของฉัน | Your Trip",
+  description: "วางแผนทริป สร้าง itinerary รายวัน ติดตามงบประมาณ และจัดการการเดินทางของคุณ",
+};
 
 const fmt = new Intl.DateTimeFormat("th-TH", { day: "numeric", month: "short", year: "numeric" });
 
