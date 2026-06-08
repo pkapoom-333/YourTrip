@@ -34,7 +34,7 @@ function fmt(n: number) {
   return n >= 1000 ? (n / 1000).toFixed(1).replace(".0", "") + "K" : String(n);
 }
 
-export function PostCard({ post }: { post: PostCardData }) {
+export function PostCard({ post, onTagClick }: { post: PostCardData; onTagClick?: (tag: string) => void }) {
   const [liked, setLiked] = useState(false);
   const [saved, setSaved] = useState(post.saved);
   const [likeCount, setLikeCount] = useState(post.likes);
@@ -122,9 +122,13 @@ export function PostCard({ post }: { post: PostCardData }) {
         {post.tags.length > 0 && (
           <div className="absolute bottom-2 left-2 flex gap-1 flex-wrap">
             {post.tags.map((tag) => (
-              <span key={tag} className="text-[10px] bg-black/50 text-white px-2 py-0.5 rounded-full backdrop-blur-sm">
+              <button
+                key={tag}
+                onClick={(e) => { e.preventDefault(); onTagClick?.(tag); }}
+                className="text-[10px] bg-black/50 text-white px-2 py-0.5 rounded-full backdrop-blur-sm hover:bg-[#398AB9]/80 transition"
+              >
                 #{tag}
-              </span>
+              </button>
             ))}
           </div>
         )}

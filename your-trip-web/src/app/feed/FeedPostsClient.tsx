@@ -184,7 +184,7 @@ export function FeedPostsClient({ initialPosts, initialCursor, initialHasMore = 
       )}
 
       {filteredPosts.map((post) => (
-        <PostCard key={String(post.id)} post={post} />
+        <PostCard key={String(post.id)} post={post} onTagClick={(tag) => setActiveTag(tag)} />
       ))}
 
       {/* Infinite scroll sentinel */}
