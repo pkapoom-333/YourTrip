@@ -3,6 +3,7 @@ import Link from "next/link";
 import { Search, Bell, TrendingUp } from "lucide-react";
 import { type PostCardData } from "@/components/features/PostCard";
 import { getFeed } from "@/server/actions/posts";
+import { getPlaces } from "@/server/actions/places";
 import { FeedPostsClient } from "./FeedPostsClient";
 import SuggestedUsers from "@/components/features/SuggestedUsers";
 
@@ -69,7 +70,13 @@ const fmtTime = (d: Date) => {
 };
 
 export default async function FeedPage() {
-  const { data: dbPosts, nextCursor, hasMore } = await getFeed();
+  const [
+    { data: dbPosts, nextCursor, hasMore },
+    { data: featuredPlaces },
+  ] = await Promise.all([
+    getFeed(),
+    getPlaces({ featured: true, take: 3 }),
+  ]);
 
   const feedPosts: PostCardData[] = dbPosts.length > 0
     ? dbPosts.map((p) => ({
@@ -177,27 +184,42 @@ export default async function FeedPage() {
               <SuggestedUsers />
             </div>
 
-            {/* Suggested places */}
-            <div className="bg-white rounded-2xl border border-gray-100 p-5">
-              <h3 className="text-sm font-semibold text-gray-900 mb-4">สถานที่แนะนำ</h3>
-              <div className="space-y-3">
-                {[
-                  { name: "ดอยอินทนนท์", cat: "สถานที่เที่ยว", img: "https://images.unsplash.com/photo-1528360983277-13d401cdc186?auto=format&fit=crop&w=200&q=70" },
-                  { name: "ฮาลองเบย์", cat: "สถานที่เที่ยว", img: "https://images.unsplash.com/photo-1528127269322-539801943592?auto=format&fit=crop&w=200&q=70" },
-                  { name: "Cafe Amazon", cat: "คาเฟ่", img: "https://images.unsplash.com/photo-1509042239860-f550ce710b93?auto=format&fit=crop&w=200&q=70" },
-                ].map((p) => (
-                  <Link key={p.name} href={`/place/${p.name}`}
-                    className="flex items-center gap-3 hover:bg-gray-50 -mx-2 px-2 py-1.5 rounded-xl transition">
-                    <img src={p.img} alt={p.name} className="w-10 h-10 rounded-lg object-cover flex-shrink-0"
-                      referrerPolicy="no-referrer" />
-                    <div>
-                      <p className="text-sm font-medium text-gray-800">{p.name}</p>
-                      <p className="text-[11px] text-gray-400">{p.cat}</p>
-                    </div>
-                  </Link>
-                ))}
+            {/* Suggested places — from DB */}
+            {featuredPlaces.length > 0 && (
+              <div className="bg-white rounded-2xl border border-gray-100 p-5">
+                <h3 className="text-sm font-semibold text-gray-900 mb-4">สถานที่แนะนำ</h3>
+                <div className="space-y-3">
+                  {featuredPlaces.map((p) => (
+                    <Link key={p.id} href={`/place/${p.slug}`}
+                      className="flex items-center gap-3 hover:bg-gray-50 -mx-2 px-2 py-1.5 rounded-xl transition">
+                      {p.coverImage ? (
+                        <img src={p.coverImage} alt={p.name}
+                          className="w-10 h-10 rounded-lg object-cover flex-shrink-0"
+                          referrerPolicy="no-referrer" />
+                      ) : (
+                        <div className="w-10 h-10 rounded-lg bg-[#398AB9]/10 flex items-center justify-center flex-shrink-0">
+                          <span className="text-base">🗺️</span>
+                        </div>
+                      )}
+                      <div className="min-w-0">
+                        <p className="text-sm font-medium text-gray-800 truncate">{p.name}</p>
+                        <p className="text-[11px] text-gray-400 capitalize">
+                          {p.category === "attraction" ? "สถานที่เที่ยว"
+                            : p.category === "cafe" ? "คาเฟ่"
+                            : p.category === "restaurant" ? "ร้านอาหาร"
+                            : p.category}
+                          {p.province ? ` · ${p.province}` : ""}
+                        </p>
+                      </div>
+                    </Link>
+                  ))}
+                </div>
+                <Link href="/explore"
+                  className="block mt-3 text-center text-xs text-[#398AB9] font-medium hover:underline">
+                  ดูสถานที่ทั้งหมด →
+                </Link>
               </div>
-            </div>
+            )}
           </aside>
         </div>
       </div>

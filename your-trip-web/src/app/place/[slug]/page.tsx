@@ -1,5 +1,39 @@
+import type { Metadata } from "next";
 import { getPlaceBySlug, getPlaces, type PlaceDetail } from "@/server/actions/places";
 import PlaceDetailClient, { type PlaceData } from "./PlaceDetailClient";
+
+const BASE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? "https://your-trip-nu.vercel.app";
+
+export async function generateMetadata(
+  { params }: { params: Promise<{ slug: string }> }
+): Promise<Metadata> {
+  const { slug } = await params;
+  const { data: place } = await getPlaceBySlug(slug);
+  if (!place) return { title: "สถานที่ท่องเที่ยว | Your Trip" };
+
+  const title = `${place.name} — ${place.province ?? "ท่องเที่ยว"} | Your Trip`;
+  const description = place.description?.slice(0, 160) ??
+    `ข้อมูลสถานที่ ${place.name} รีวิว เวลาเปิด ราคา และการเดินทาง`;
+  const image = place.images[0]?.url;
+
+  return {
+    title,
+    description,
+    openGraph: {
+      title,
+      description,
+      url: `${BASE_URL}/place/${slug}`,
+      type: "website",
+      ...(image && { images: [{ url: image, width: 1200, height: 630, alt: place.name }] }),
+    },
+    twitter: {
+      card: "summary_large_image",
+      title,
+      description,
+      ...(image && { images: [image] }),
+    },
+  };
+}
 
 // ─── Category labels ──────────────────────────────────────────────────────────
 const CAT_TH: Record<string, string> = {
