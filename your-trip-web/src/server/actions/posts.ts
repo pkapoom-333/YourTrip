@@ -27,9 +27,9 @@ export async function createPost(input: CreatePostInput) {
     });
 
     return { data: { id: post.id, ...parsed.data } };
-  } catch {
-    // TODO: remove fallback after DB is configured
-    return { data: { id: "mock-post-id", ...parsed.data } };
+  } catch (err) {
+    console.error("[createPost]", err);
+    return { error: { message: "ไม่สามารถสร้างโพสต์ได้ กรุณาลองใหม่อีกครั้ง" } };
   }
 }
 
