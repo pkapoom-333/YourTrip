@@ -1,11 +1,11 @@
 # PROGRESS.md
 # Travel Community App — Dev Log
 
-## Status: Phase 2 | Day 10 | 2026-06-07
+## Status: Phase 2 | Day 12 | 2026-06-09
 
 ## Current sprint task
-→ **DONE**: Day 9-10 — SavedPlace DB+SQL, Explore wishlist→DB, Profile saved tab, Create post place picker, PostCard place badge (Post→Place relation), Feed tag filter chip
-→ **NEXT**: E2E test (login → create post w/ place tag → feed badge); Seed post data; Deploy to Vercel
+→ **DONE**: Day 11-12 — Post detail place badge, Clickable post tags→filter, Feed suggested places from DB, Place detail SEO og:image, Landing page real featured places, Explore load-more pagination, SEO metadata /feed /explore /trips, sitemap dynamic DB slugs, robots.ts URL fix
+→ **NEXT**: Deploy to Vercel (push to remote → Vercel auto-build); E2E test login → create post → feed badge
 
 ---
 
@@ -138,3 +138,4 @@
 | 2026-06-02 | Day 8 cont.2: Trip place picker autocomplete (searchPlacesForTrip + debounce 300ms); lat/lng propagate optimistically to map; fix not-found.tsx use client (source of persistent onClick error) | ~85% | ทดสอบ trip map ด้วย real data หลัง login |
 | 2026-06-04 | Day 9: SavedPlace model+SQL migration; Explore wishlist→DB (optimistic); Profile saved tab (สถานที่/โพสต์ sub-tab); Create post place picker (placeId link) | ~90% | E2E wishlist test + PostCard place badge |
 | 2026-06-07 | Day 10: PostCard place badge (Post→Place Prisma relation wired; getFeed includes place; blue clickable badge); Feed tag filter chips UI; PROGRESS.md updated | ~25% | Deploy Vercel → E2E test → seed post data |
+| 2026-06-09 | Day 11: Post detail place badge; clickable post tags→filter feed; Feed right panel suggested places from DB; Place detail SEO generateMetadata (og:image); Landing page real featured places from DB; Explore load-more pagination (12/page); SEO metadata /feed /explore /trips; sitemap+robots.ts URL fix | ~70% | Deploy → E2E test |
