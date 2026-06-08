@@ -132,6 +132,7 @@ export function FeedPostsClient({ initialPosts, initialCursor, initialHasMore = 
         },
         likes: p.likesCount,
         comments: p.commentsCount,
+        liked: p.likedByMe ?? false,
         saved: p.savedByMe ?? false,
         time: fmtTime(p.createdAt),
         tags: p.tags ?? [],

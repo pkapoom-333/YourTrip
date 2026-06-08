@@ -24,6 +24,7 @@ export interface PostCardData {
   likes: number;
   comments: number;
   shares?: number;
+  liked: boolean;
   saved: boolean;
   time: string;
   tags: string[];
@@ -35,7 +36,7 @@ function fmt(n: number) {
 }
 
 export function PostCard({ post, onTagClick }: { post: PostCardData; onTagClick?: (tag: string) => void }) {
-  const [liked, setLiked] = useState(false);
+  const [liked, setLiked] = useState(post.liked);
   const [saved, setSaved] = useState(post.saved);
   const [likeCount, setLikeCount] = useState(post.likes);
   const [isLiking, setIsLiking] = useState(false);
