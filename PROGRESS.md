@@ -1,11 +1,11 @@
 # PROGRESS.md
 # Travel Community App — Dev Log
 
-## Status: Phase 2 | Day 12 | 2026-06-09
+## Status: Phase 2 | Day 12 (cont.) | 2026-06-09
 
 ## Current sprint task
-→ **DONE**: Day 11-12 — Post detail place badge, Clickable post tags→filter, Feed suggested places from DB, Place detail SEO og:image, Landing page real featured places, Explore load-more pagination, SEO metadata /feed /explore /trips, sitemap dynamic DB slugs, robots.ts URL fix
-→ **NEXT**: Deploy to Vercel (push to remote → Vercel auto-build); E2E test login → create post → feed badge
+→ **DONE Day 12 session 2**: S7 (place bookmark wired), S1 (extended search), S10 (duplicate trip), S9 (image lazy loading), A11 (real notifications on like/comment/follow), A12 (trips count in profile), A13 (search history localStorage), A14 (post edit/delete for owner), A15 (trip share link)
+→ **NEXT**: Deploy to Vercel (push to remote); Quest S2 (seed demo posts); Quest S6 (geolocation sort)
 
 ---
 

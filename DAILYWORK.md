@@ -19,26 +19,26 @@ PROGRESS ████████████████░░░░ 78%  (Day 
 
 | # | Quest | XP | Status |
 |---|-------|----|--------|
-| 1 | **Full-text search** `/explore` — เพิ่ม postgres `to_tsvector` search ใน `getPlaces` action | 300 | ⬜ |
+| 1 | **Full-text search** `/explore` — เพิ่ม multi-field ILIKE search (name, nameEn, province, description) | 300 | ✅ |
 | 2 | **Seed demo posts** — เพิ่ม seed script สร้าง demo posts + users (ไม่ใช้ OAuth UUID จริง) | 250 | ⬜ |
-| 3 | **Place reviews** — wire `createReview` action ให้ submit จาก `/place/[slug]` star picker form | 250 | ⬜ |
-| 4 | **Feed: likedByMe optimistic** — ตอนนี้ `liked` state เริ่มที่ `false` เสมอ แม้ DB บอก likedByMe=true | 200 | ⬜ |
-| 5 | **Post share button** — เพิ่ม share icon ใน PostCard → Web Share API + clipboard fallback | 150 | ⬜ |
+| 3 | **Place reviews** — wire `createReview` action ให้ submit จาก `/place/[slug]` star picker form | 250 | ✅ |
+| 4 | **Feed: likedByMe optimistic** — ตอนนี้ `liked` state เริ่มที่ `false` เสมอ แม้ DB บอก likedByMe=true | 200 | ✅ |
+| 5 | **Post share button** — เพิ่ม share icon ใน PostCard → Web Share API + clipboard fallback | 150 | ✅ |
 | 6 | **Explore: sort by "ใกล้ฉัน"** — Geolocation API → sort by distance จาก lat/lng | 200 | ⬜ |
-| 7 | **Place detail: save to wishlist** — ปุ่ม Bookmark บน `/place/[slug]` hero section | 150 | ⬜ |
-| 8 | **Loading skeletons** ใน /explore, /notifications, /buddy | 100 | ⬜ |
-| 9 | **Image lazy loading** — ใช้ `loading="lazy"` บนทุก `<img>` tag ที่ยังไม่มี | 100 | ⬜ |
-| 10 | **Trips: duplicate trip** — ปุ่ม Copy บน trip card → clone trip + all days + items | 200 | ⬜ |
+| 7 | **Place detail: save to wishlist** — ปุ่ม Bookmark บน `/place/[slug]` hero section | 150 | ✅ |
+| 8 | **Loading skeletons** ใน /explore, /notifications, /buddy | 100 | ✅ |
+| 9 | **Image lazy loading** — ใช้ `loading="lazy"` บนทุก `<img>` tag ที่ยังไม่มี | 100 | ✅ |
+| 10 | **Trips: duplicate trip** — ปุ่ม Copy บน trip card → clone trip + all days + items | 200 | ✅ |
 
 ### 🛡️ TIER A — ทำหลัง S หมดแล้ว
 
 | # | Quest | XP | Status |
 |---|-------|----|--------|
-| 11 | **Notifications: create real notif** on like/comment/follow events | 300 | ⬜ |
-| 12 | **Profile stats: trips count** จาก DB จริง (ตอนนี้ไม่มี tripsCount ใน profile) | 150 | ⬜ |
-| 13 | **Search history** — บันทึก recent searches ใน localStorage | 100 | ⬜ |
-| 14 | **Post: edit/delete** — เจ้าของโพสต์ edit caption + delete (soft delete) | 200 | ⬜ |
-| 15 | **Trip: share link** — copy link `/trips/[id]` (ถ้า isPublic) | 100 | ⬜ |
+| 11 | **Notifications: create real notif** on like/comment/follow events | 300 | ✅ |
+| 12 | **Profile stats: trips count** จาก DB จริง (ตอนนี้ไม่มี tripsCount ใน profile) | 150 | ✅ |
+| 13 | **Search history** — บันทึก recent searches ใน localStorage | 100 | ✅ |
+| 14 | **Post: edit/delete** — เจ้าของโพสต์ edit caption + delete (hard delete) | 200 | ✅ |
+| 15 | **Trip: share link** — copy link `/trips/[id]` Web Share API | 100 | ✅ |
 
 ### 🏹 TIER B — Nice to have
 
@@ -126,8 +126,8 @@ PROGRESS ████████████████░░░░ 78%  (Day 
 
 ## 📊 XP TRACKER
 ```
-Total earned: ~4,200 XP (Day 1–12)
-This sprint target: +1,500 XP
+Total earned: ~6,750 XP (Day 1–12 session 2)
+This sprint: S7✅+S1✅+S10✅+S9✅+A11✅+A12✅+A13✅+A14✅+A15✅ = +2,550 XP
 ```
 
 ---
