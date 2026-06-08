@@ -11,6 +11,7 @@ import {
   MessageCircle, MoreHorizontal, ThumbsUp, ChevronDown, PenLine,
 } from "lucide-react";
 import { createReview } from "@/server/actions/places";
+import { toggleSavePlace } from "@/server/actions/savedPlaces";
 import { Avatar } from "@/components/shared/Avatar";
 
 /* ── types ────────────────────────────────────────────────── */
@@ -82,9 +83,9 @@ function TransportTab({ icon: Icon, label, content }: { icon: React.ElementType;
 }
 
 /* ── main component ───────────────────────────────────────── */
-export default function PlaceDetailClient({ place, slug }: { place: PlaceData; slug: string }) {
+export default function PlaceDetailClient({ place, slug, initialSaved = false }: { place: PlaceData; slug: string; initialSaved?: boolean }) {
   const [imgIndex, setImgIndex] = useState(0);
-  const [saved, setSaved] = useState(false);
+  const [saved, setSaved] = useState(initialSaved);
   const [liked, setLiked] = useState(false);
   const [expanded, setExpanded] = useState(false);
   const [showReviewForm, setShowReviewForm] = useState(false);
@@ -145,7 +146,11 @@ export default function PlaceDetailClient({ place, slug }: { place: PlaceData; s
               <ChevronLeft className="w-5 h-5 text-white" />
             </Link>
             <div className="flex items-center gap-2">
-              <button onClick={() => setSaved(!saved)}
+              <button onClick={async () => {
+                  if (!place.id || place.id.startsWith("mock")) return;
+                  setSaved((s) => !s);
+                  try { await toggleSavePlace(place.id!); } catch { setSaved((s) => !s); }
+                }}
                 className="w-9 h-9 bg-black/30 backdrop-blur-sm rounded-full flex items-center justify-center hover:bg-black/50 transition">
                 <Bookmark className={`w-5 h-5 ${saved ? "fill-white text-white" : "text-white"}`} />
               </button>

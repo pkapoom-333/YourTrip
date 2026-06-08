@@ -22,7 +22,14 @@
       "Bash(python3 -c \"import sys,json; d=json.load\\(sys.stdin\\); print\\(d.get\\('version','?'\\)\\)\")",
       "Bash(node -e \"const z=require\\('zod'\\); console.log\\(z.ZodError && 'issues' in new z.ZodError\\([]\\) ? 'issues' : 'errors'\\)\")",
       "Bash(node -e \"const p=require\\('./node_modules/zod/package.json'\\); console.log\\(p.version\\)\")",
-      "Bash(git commit -m 'Day 2: chore: update PROGRESS.md night session log *)"
+      "Bash(git commit -m 'Day 2: chore: update PROGRESS.md night session log *)",
+      "Bash(ls src/app/robots*)",
+      "Bash(ls public/manifest*)",
+      "Bash(ls public/*.webmanifest)",
+      "Bash(ls src/app/manifest*)",
+      "Bash(dir \"C:\\\\Users\\\\user\\\\.claude\\\\\" /b 2>/dev/null)",
+      "Read(//mnt/c/Users/user/**)",
+      "Read(//mnt/c/Users/user/.claude/**)"
     ]
   }
 }

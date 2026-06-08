@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { getPlaceBySlug, getPlaces, type PlaceDetail } from "@/server/actions/places";
+import { getSavedPlaceIds } from "@/server/actions/savedPlaces";
 import PlaceDetailClient, { type PlaceData } from "./PlaceDetailClient";
 
 const BASE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? "https://your-trip-nu.vercel.app";
@@ -228,9 +229,10 @@ export default async function PlacePage({ params }: { params: Promise<{ slug: st
   const { slug } = await params;
 
   // Try DB first
-  const [{ data: dbPlace }, { data: allPlaces }] = await Promise.all([
+  const [{ data: dbPlace }, { data: allPlaces }, savedIds] = await Promise.all([
     getPlaceBySlug(slug),
     getPlaces({ take: 50 }),
+    getSavedPlaceIds().catch(() => [] as string[]),
   ]);
 
   if (dbPlace) {
@@ -245,7 +247,7 @@ export default async function PlacePage({ params }: { params: Promise<{ slug: st
       }));
 
     const placeData = { ...mapToPlaceData(dbPlace), nearby: nearbyPlaces };
-    return <PlaceDetailClient place={placeData} slug={slug} />;
+    return <PlaceDetailClient place={placeData} slug={slug} initialSaved={savedIds.includes(dbPlace.id)} />;
   }
 
   const placeData: PlaceData = MOCK_PLACES[slug] ?? MOCK_PLACES["doi-ang-khang"];
