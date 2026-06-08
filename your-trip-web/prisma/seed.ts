@@ -487,6 +487,111 @@ async function main() {
     console.log(`✅ Place: ${placeData.name}`);
   }
 
+  // ─── DEMO USERS + POSTS ──────────────────────────────────────────────────
+  // Note: these use fixed UUIDs (not real Supabase Auth UUIDs)
+  // They allow feed/explore to show content without requiring a logged-in user.
+
+  const demoUsers = [
+    {
+      id: "demo-user-001",
+      email: "freePeople@demo.yourtrip.app",
+      name: "free people",
+      username: "free_people",
+      avatarUrl: null,
+      bio: "นักเดินทางสายธรรมชาติ ✈️ ไปแล้ว 15 ประเทศ",
+      location: "เชียงใหม่",
+    },
+    {
+      id: "demo-user-002",
+      email: "shygirl@demo.yourtrip.app",
+      name: "shy girl",
+      username: "shy_girl_travel",
+      avatarUrl: null,
+      bio: "Solo traveler 🌸 ชอบคาเฟ่และธรรมชาติ",
+      location: "กรุงเทพ",
+    },
+    {
+      id: "demo-user-003",
+      email: "wanderer@demo.yourtrip.app",
+      name: "wanderer",
+      username: "wanderer_th",
+      avatarUrl: null,
+      bio: "Hiking + Photography 📸",
+      location: "เชียงราย",
+    },
+  ];
+
+  for (const u of demoUsers) {
+    await prisma.user.upsert({
+      where: { id: u.id },
+      update: {},
+      create: u,
+    });
+    console.log(`✅ Demo User: ${u.name}`);
+  }
+
+  // Demo posts (linked to real place slugs above)
+  const demoPosts = [
+    {
+      userId: "demo-user-001",
+      content: "ช่วงเช้าที่สวยงามบนยอดดอย อากาศเย็นสบาย ทิวทัศน์สุดสวย ❄️ ใครอยากสัมผัสธรรมชาติต้องมาที่นี่ #เที่ยวเหนือ #ธรรมชาติ",
+      images: ["https://images.unsplash.com/photo-1476514525405-8d4b4c284c1e?auto=format&fit=crop&w=800&q=80"],
+      tags: ["เที่ยวเหนือ", "ธรรมชาติ"],
+      location: "ดอยอินทนนท์, เชียงใหม่",
+      isPublic: true,
+      placeSlug: "doi-inthanon",
+    },
+    {
+      userId: "demo-user-002",
+      content: "คาเฟ่สวย วิวดี กาแฟอร่อย ☕ ต้องมาลอง! บรรยากาศดีมากเลย แนะนำมาช่วงเช้าจะได้วิวหมอกสวยๆ #คาเฟ่ #เที่ยวเหนือ",
+      images: ["https://images.unsplash.com/photo-1554118811-1e0d58224f24?auto=format&fit=crop&w=800&q=80"],
+      tags: ["คาเฟ่", "เที่ยวเหนือ"],
+      location: "เชียงใหม่",
+      isPublic: true,
+      placeSlug: null,
+    },
+    {
+      userId: "demo-user-003",
+      content: "วัดร่องขุ่น หรือ White Temple สวยมากๆ ทุกรายละเอียดประณีตมาก ศิลปะระดับโลก 🏛️ ถ้ามาเชียงรายต้องแวะ! #วัด #ต่างประเทศ",
+      images: ["https://images.unsplash.com/photo-1548013146-72479768bada?auto=format&fit=crop&w=800&q=80"],
+      tags: ["วัด", "เชียงราย"],
+      location: "วัดร่องขุ่น, เชียงราย",
+      isPublic: true,
+      placeSlug: "chiang-rai-white-temple",
+    },
+    {
+      userId: "demo-user-001",
+      content: "Hiking ดอยอินทนนท์สุดเจ๋ง! 2,565 ม. เหนือทะเล อากาศดี วิวสวย ขอแนะนำมาตอนเช้าๆ เพื่อดูทะเลหมอก 🌄 #Hiking #ธรรมชาติ",
+      images: ["https://images.unsplash.com/photo-1506905925346-21bda4d32df4?auto=format&fit=crop&w=800&q=80"],
+      tags: ["Hiking", "ธรรมชาติ", "เที่ยวเหนือ"],
+      location: "ดอยอินทนนท์, เชียงใหม่",
+      isPublic: true,
+      placeSlug: "doi-inthanon",
+    },
+    {
+      userId: "demo-user-002",
+      content: "ภูเก็ต ทะเลสวย น้ำใส ทรายขาว 🏖️ มาแล้วไม่อยากกลับเลย ถ้าใครชอบทะเลแนะนำเลย! #ทะเล #ภูเก็ต",
+      images: ["https://images.unsplash.com/photo-1552465011-b4e21bf6e79a?auto=format&fit=crop&w=800&q=80"],
+      tags: ["ทะเล", "ภูเก็ต"],
+      location: "ภูเก็ต",
+      isPublic: true,
+      placeSlug: null,
+    },
+  ];
+
+  for (const p of demoPosts) {
+    const { placeSlug, ...postData } = p;
+    let placeId: string | null = null;
+    if (placeSlug) {
+      const place = await prisma.place.findUnique({ where: { slug: placeSlug }, select: { id: true } });
+      placeId = place?.id ?? null;
+    }
+    await prisma.post.create({
+      data: { ...postData, placeId },
+    });
+    console.log(`✅ Demo Post: ${postData.content.slice(0, 30)}...`);
+  }
+
   console.log("🎉 Seed complete!");
 }
 
