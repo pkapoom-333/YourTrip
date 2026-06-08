@@ -67,6 +67,16 @@ export function PostCard({ post, onTagClick }: { post: PostCardData; onTagClick?
     }
   }
 
+  async function handleShare() {
+    const url = `${window.location.origin}/post/${post.id}`;
+    const text = post.caption.slice(0, 100);
+    if (navigator.share) {
+      try { await navigator.share({ title: post.user.name, text, url }); } catch { /* cancelled */ }
+    } else {
+      await navigator.clipboard.writeText(url).catch(() => {});
+    }
+  }
+
   return (
     <article className="bg-white border border-gray-100 rounded-2xl overflow-hidden">
       {/* Post header */}
@@ -153,12 +163,15 @@ export function PostCard({ post, onTagClick }: { post: PostCardData; onTagClick?
           <MessageCircle className="w-5 h-5" />
           <span className="text-xs font-medium">{fmt(post.comments)}</span>
         </Link>
-        {post.shares !== undefined && (
-        <button className="flex items-center gap-1.5 px-2 py-1.5 rounded-xl text-gray-400 hover:text-[#398AB9] hover:bg-[#398AB9]/5 transition">
+        <button
+          onClick={handleShare}
+          className="flex items-center gap-1.5 px-2 py-1.5 rounded-xl text-gray-400 hover:text-[#398AB9] hover:bg-[#398AB9]/5 transition"
+        >
           <Send className="w-5 h-5" />
-          <span className="text-xs font-medium">{fmt(post.shares)}</span>
+          {post.shares !== undefined && (
+            <span className="text-xs font-medium">{fmt(post.shares)}</span>
+          )}
         </button>
-        )}
         <div className="flex-1" />
         <button
           onClick={handleSave}
