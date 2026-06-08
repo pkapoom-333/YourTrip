@@ -216,10 +216,13 @@ function PeopleTab({ query }: { query: string }) {
 
 type SearchMode = "places" | "people";
 
+const PAGE_SIZE = 12;
+
 export default function ExploreClient({ initialPlaces, initialSaved = [] }: { initialPlaces: PlaceListItem[]; initialSaved?: string[] }) {
   const [query, setQuery] = useState("");
   const [searchMode, setSearchMode] = useState<SearchMode>("places");
   const [savedIds, setSavedIds] = useState<Set<string>>(new Set(initialSaved));
+  const [displayCount, setDisplayCount] = useState(PAGE_SIZE);
 
   async function toggleSave(id: string) {
     // Optimistic update
@@ -261,6 +264,16 @@ export default function ExploreClient({ initialPlaces, initialSaved = [] }: { in
       return 0;
     });
 
+  // Reset display count when filters change
+  const filterKey = `${query}|${activeCategory}|${activeRegion}|${sortKey}`;
+  const [prevFilterKey, setPrevFilterKey] = useState(filterKey);
+  if (filterKey !== prevFilterKey) {
+    setPrevFilterKey(filterKey);
+    setDisplayCount(PAGE_SIZE);
+  }
+
+  const displayedPlaces = filtered.slice(0, displayCount);
+  const hasMore = filtered.length > displayCount;
   const hasFilter = query || activeCategory !== "all" || activeRegion !== "all";
 
   return (
@@ -400,13 +413,13 @@ export default function ExploreClient({ initialPlaces, initialSaved = [] }: { in
       {filtered.length > 0 ? (
         viewMode === "grid" ? (
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 md:gap-4">
-            {filtered.map((p) => (
+            {displayedPlaces.map((p) => (
               <PlaceCard key={p.id} place={p} saved={savedIds.has(p.id)} onToggleSave={toggleSave} />
             ))}
           </div>
         ) : (
           <div className="space-y-3">
-            {filtered.map((p) => {
+            {displayedPlaces.map((p) => {
               const img = p.coverImage ??
                 "https://images.unsplash.com/photo-1476514525405-8d4b4c284c1e?auto=format&fit=crop&w=600&q=80";
               return (
@@ -459,6 +472,18 @@ export default function ExploreClient({ initialPlaces, initialSaved = [] }: { in
           <div className="text-5xl mb-4">🔍</div>
           <p className="text-gray-500 font-medium">ไม่พบสถานที่ที่ค้นหา</p>
           <p className="text-sm text-gray-400 mt-1">ลองเปลี่ยนคำค้นหาหรือตัวกรอง</p>
+        </div>
+      )}
+
+      {/* Load more */}
+      {hasMore && (
+        <div className="flex justify-center mt-6">
+          <button
+            onClick={() => setDisplayCount((n) => n + PAGE_SIZE)}
+            className="px-8 py-3 rounded-xl border border-[#398AB9] text-[#398AB9] text-sm font-medium hover:bg-[#398AB9]/5 transition"
+          >
+            โหลดเพิ่มเติม ({filtered.length - displayCount} สถานที่)
+          </button>
         </div>
       )}
 
