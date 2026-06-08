@@ -57,6 +57,7 @@ export async function getProfile(userId?: string) {
             posts: true,
             followers: true,
             following: true,
+            trips: true,
           },
         },
       },
@@ -72,7 +73,7 @@ export async function getProfile(userId?: string) {
             name: authUser.user_metadata?.full_name ?? null,
             avatarUrl: authUser.user_metadata?.avatar_url ?? null,
           },
-          include: { _count: { select: { posts: true, followers: true, following: true } } },
+          include: { _count: { select: { posts: true, followers: true, following: true, trips: true } } },
         });
         return {
           data: {
@@ -86,6 +87,7 @@ export async function getProfile(userId?: string) {
             postsCount: newUser._count.posts,
             followersCount: newUser._count.followers,
             followingCount: newUser._count.following,
+            tripsCount: newUser._count.trips,
           },
         };
       }
@@ -104,6 +106,7 @@ export async function getProfile(userId?: string) {
         postsCount: user._count.posts,
         followersCount: user._count.followers,
         followingCount: user._count.following,
+        tripsCount: user._count.trips,
       },
     };
   } catch {
@@ -120,6 +123,7 @@ export async function getProfile(userId?: string) {
         postsCount: 48,
         followersCount: 1200,
         followingCount: 234,
+        tripsCount: 3,
       },
     };
   }

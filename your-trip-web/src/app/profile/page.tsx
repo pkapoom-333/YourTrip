@@ -82,6 +82,10 @@ export default function ProfilePage() {
                 <p className="text-xl font-bold text-gray-900">{profile.postsCount}</p>
                 <p className="text-xs text-gray-400">โพสต์</p>
               </div>
+              <Link href="/trips" className="hover:opacity-80 transition">
+                <p className="text-xl font-bold text-gray-900">{(profile as { tripsCount?: number }).tripsCount ?? 0}</p>
+                <p className="text-xs text-gray-400">ทริป</p>
+              </Link>
               {user?.id ? (
                 <Link href={`/profile/${user.id}/followers`} className="hover:opacity-80 transition">
                   <p className="text-xl font-bold text-gray-900">
