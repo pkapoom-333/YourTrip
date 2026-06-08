@@ -227,6 +227,7 @@ export interface PostDetail {
   commentsCount: number;
   likedByMe: boolean;
   savedByMe: boolean;
+  place: { id: string; slug: string; name: string } | null;
 }
 
 export async function getPostById(postId: string): Promise<{ data: PostDetail | null }> {
@@ -239,6 +240,7 @@ export async function getPostById(postId: string): Promise<{ data: PostDetail | 
         where: { id: postId },
         include: {
           user: { select: { id: true, name: true, username: true, avatarUrl: true } },
+          place: { select: { id: true, slug: true, name: true } },
           _count: { select: { likes: true, comments: true } },
         },
       }),
@@ -261,6 +263,7 @@ export async function getPostById(postId: string): Promise<{ data: PostDetail | 
         commentsCount: post._count.comments,
         likedByMe: !!likedByMe,
         savedByMe: !!savedByMe,
+        place: post.place ? { id: post.place.id, slug: post.place.slug, name: post.place.name } : null,
       },
     };
   } catch {

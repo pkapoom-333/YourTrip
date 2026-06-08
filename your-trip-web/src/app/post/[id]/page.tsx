@@ -175,14 +175,20 @@ export default function PostDetailPage() {
         )}
 
         {/* Location + tags */}
-        {(post.location || post.tags.length > 0) && (
+        {(post.place || post.location || post.tags.length > 0) && (
           <div className="px-4 py-2 bg-white flex flex-wrap items-center gap-2 border-b border-gray-50">
-            {post.location && (
+            {post.place ? (
+              <Link href={`/place/${post.place.slug}`}
+                className="flex items-center gap-1 text-xs text-[#398AB9] hover:underline font-medium">
+                <MapPin className="w-3 h-3 flex-shrink-0" />
+                {post.place.name}
+              </Link>
+            ) : post.location ? (
               <div className="flex items-center gap-1 text-xs text-gray-500">
                 <MapPin className="w-3 h-3 text-[#398AB9]" />
                 {post.location}
               </div>
-            )}
+            ) : null}
             {post.tags.map((tag) => (
               <span key={tag} className="text-[11px] bg-[#398AB9]/10 text-[#398AB9] px-2 py-0.5 rounded-full">
                 #{tag}
