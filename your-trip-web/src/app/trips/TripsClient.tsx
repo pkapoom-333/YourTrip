@@ -2,8 +2,8 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { Plus, MapPin, Calendar, Users, ChevronRight, Map, Plane, Trash2, X, ChevronDown } from "lucide-react";
-import { deleteTrip, updateTripStatus } from "@/server/actions/trips";
+import { Plus, MapPin, Calendar, Users, ChevronRight, Map, Plane, Trash2, X, ChevronDown, Copy, Check } from "lucide-react";
+import { deleteTrip, updateTripStatus, duplicateTrip } from "@/server/actions/trips";
 
 export interface TripSummary {
   id: string;
@@ -31,6 +31,8 @@ export default function TripsClient({ initialTrips }: { initialTrips: TripSummar
   const [trips, setTrips] = useState<TripSummary[]>(initialTrips.length > 0 ? initialTrips : MOCK_TRIPS);
   const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
   const [deleting, setDeleting] = useState(false);
+  const [duplicatingId, setDuplicatingId] = useState<string | null>(null);
+  const [duplicatedId, setDuplicatedId] = useState<string | null>(null);
 
   const filtered = tab === "all" ? trips : trips.filter((t) => t.status === tab);
 
@@ -46,6 +48,24 @@ export default function TripsClient({ initialTrips }: { initialTrips: TripSummar
   const DB_STATUS: Record<TripSummary["status"], "PLANNING" | "CONFIRMED" | "COMPLETED" | "CANCELLED"> = {
     planning: "PLANNING", upcoming: "CONFIRMED", completed: "COMPLETED", cancelled: "CANCELLED",
   };
+
+  async function handleDuplicate(tripId: string) {
+    if (duplicatingId) return;
+    setDuplicatingId(tripId);
+    const { data, error } = await duplicateTrip(tripId);
+    setDuplicatingId(null);
+    if (data) {
+      const original = trips.find((t) => t.id === tripId);
+      if (original) {
+        const cloned: TripSummary = { ...original, id: data.id, title: data.title, status: "planning" };
+        setTrips((prev) => [cloned, ...prev]);
+        setDuplicatedId(data.id);
+        setTimeout(() => setDuplicatedId(null), 3000);
+      }
+    } else {
+      console.error(error?.message);
+    }
+  }
 
   async function cycleStatus(tripId: string, current: TripSummary["status"]) {
     const idx = STATUS_CYCLE.indexOf(current);
@@ -132,13 +152,26 @@ export default function TripsClient({ initialTrips }: { initialTrips: TripSummar
                     <ChevronDown className="w-3 h-3 opacity-60" />
                   </button>
                 </div>
-                {/* Delete button */}
-                <button
-                  onClick={() => setConfirmDeleteId(isConfirming ? null : trip.id)}
-                  className="absolute top-3 right-3 w-7 h-7 flex items-center justify-center rounded-full bg-black/40 backdrop-blur-sm text-white hover:bg-red-500/80 transition"
-                  title="ลบทริป">
-                  {isConfirming ? <X className="w-3.5 h-3.5" /> : <Trash2 className="w-3.5 h-3.5" />}
-                </button>
+                {/* Action buttons */}
+                <div className="absolute top-3 right-3 flex items-center gap-1.5">
+                  {/* Duplicate */}
+                  <button
+                    onClick={() => handleDuplicate(trip.id)}
+                    disabled={duplicatingId === trip.id}
+                    className="w-7 h-7 flex items-center justify-center rounded-full bg-black/40 backdrop-blur-sm text-white hover:bg-[#398AB9]/80 transition disabled:opacity-50"
+                    title="คัดลอกทริป">
+                    {duplicatedId === trip.id ? <Check className="w-3.5 h-3.5 text-emerald-300" /> :
+                      duplicatingId === trip.id ? <Copy className="w-3.5 h-3.5 animate-pulse" /> :
+                      <Copy className="w-3.5 h-3.5" />}
+                  </button>
+                  {/* Delete */}
+                  <button
+                    onClick={() => setConfirmDeleteId(isConfirming ? null : trip.id)}
+                    className="w-7 h-7 flex items-center justify-center rounded-full bg-black/40 backdrop-blur-sm text-white hover:bg-red-500/80 transition"
+                    title="ลบทริป">
+                    {isConfirming ? <X className="w-3.5 h-3.5" /> : <Trash2 className="w-3.5 h-3.5" />}
+                  </button>
+                </div>
                 <div className="absolute bottom-3 left-3 right-3">
                   <p className="text-white font-bold text-base">{trip.title}</p>
                   <p className="text-white/80 text-xs mt-0.5">{trip.startDate} – {trip.endDate}</p>

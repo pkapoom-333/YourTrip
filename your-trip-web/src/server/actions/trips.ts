@@ -231,3 +231,63 @@ export async function deleteTrip(tripId: string) {
     return { data: { success: true } };
   }
 }
+
+// ─── duplicateTrip ────────────────────────────────────────────────────────────
+export async function duplicateTrip(tripId: string): Promise<{ data?: { id: string; title: string }; error?: { message: string } }> {
+  try {
+    const supabase = await createServerClient();
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return { error: { message: "กรุณาเข้าสู่ระบบ" } };
+
+    // Fetch original trip with all days + items
+    const original = await prisma.trip.findUnique({
+      where: { id: tripId, userId: user.id },
+      include: {
+        days: {
+          orderBy: { day: "asc" },
+          include: { items: { orderBy: { order: "asc" } } },
+        },
+      },
+    });
+
+    if (!original) return { error: { message: "ไม่พบทริป" } };
+
+    const newTitle = `${original.title} (สำเนา)`;
+
+    const cloned = await prisma.trip.create({
+      data: {
+        userId: user.id,
+        title: newTitle,
+        destination: original.destination,
+        startDate: original.startDate,
+        endDate: original.endDate,
+        budget: original.budget,
+        description: original.description,
+        isPublic: false, // clone is private by default
+        coverImage: original.coverImage,
+        days: {
+          create: original.days.map((d) => ({
+            day: d.day,
+            date: d.date,
+            note: d.note,
+            items: {
+              create: d.items.map((item) => ({
+                placeId: item.placeId,
+                name: item.name,
+                note: item.note,
+                time: item.time,
+                duration: item.duration,
+                cost: item.cost,
+                order: item.order,
+              })),
+            },
+          })),
+        },
+      },
+    });
+
+    return { data: { id: cloned.id, title: newTitle } };
+  } catch {
+    return { error: { message: "ไม่สามารถคัดลอกทริปได้" } };
+  }
+}

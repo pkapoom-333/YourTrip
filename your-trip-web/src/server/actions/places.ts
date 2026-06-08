@@ -79,16 +79,21 @@ export async function getPlaces(params?: {
   const { category = "all", region = "all", q = "", featured, take = 20 } = params ?? {};
 
   try {
+    // Build where clause — extended search covers name, nameEn, province, description
     const where = {
       isPublished: true,
       ...(category !== "all" && { category }),
       ...(region !== "all" && { region }),
       ...(featured !== undefined && { isFeatured: featured }),
+      // Full-text style search: OR across all relevant text fields (ILIKE)
+      // TODO: upgrade to Postgres to_tsvector GIN index when data grows > 10K rows
       ...(q.trim() && {
         OR: [
           { name: { contains: q, mode: "insensitive" as const } },
           { nameEn: { contains: q, mode: "insensitive" as const } },
           { province: { contains: q, mode: "insensitive" as const } },
+          { description: { contains: q, mode: "insensitive" as const } },
+          { address: { contains: q, mode: "insensitive" as const } },
         ],
       }),
     };
