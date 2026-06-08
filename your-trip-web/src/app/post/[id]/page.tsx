@@ -6,13 +6,15 @@ import AppShell from "@/components/AppShell";
 import Link from "next/link";
 import {
   ChevronLeft, Heart, Bookmark, Send, MapPin, MoreHorizontal,
+  Pencil, Trash2, X, Check,
 } from "lucide-react";
 import {
-  getPostById, toggleLike, toggleSave,
+  getPostById, toggleLike, toggleSave, editPost, deletePost,
   type PostDetail,
 } from "@/server/actions/posts";
 import { CommentSection } from "@/components/features/CommentSection";
 import { Avatar } from "@/components/shared/Avatar";
+import { useUser } from "@/hooks/useUser";
 
 const AVATAR_COLORS = [
   "bg-[#398AB9]", "bg-emerald-500", "bg-violet-500",
@@ -32,6 +34,7 @@ function fmtDate(d: Date) {
 export default function PostDetailPage() {
   const { id } = useParams<{ id: string }>();
   const router = useRouter();
+  const { user: me } = useUser();
 
   const [post, setPost] = useState<PostDetail | null>(null);
   const [loading, setLoading] = useState(true);
@@ -40,6 +43,11 @@ export default function PostDetailPage() {
   const [saved, setSaved] = useState(false);
   const [likeCount, setLikeCount] = useState(0);
   const [imgIndex, setImgIndex] = useState(0);
+  const [menuOpen, setMenuOpen] = useState(false);
+  const [editMode, setEditMode] = useState(false);
+  const [editContent, setEditContent] = useState("");
+  const [editSaving, setEditSaving] = useState(false);
+  const [confirmDelete, setConfirmDelete] = useState(false);
 
   useEffect(() => {
     if (!id) return;
@@ -74,6 +82,25 @@ export default function PostDetailPage() {
       await navigator.clipboard.writeText(location.href);
     }
   }
+
+  async function handleEditSave() {
+    if (!editContent.trim() || !post) return;
+    setEditSaving(true);
+    const { error } = await editPost(post.id, editContent);
+    setEditSaving(false);
+    if (!error) {
+      setPost((p) => p ? { ...p, content: editContent.trim() } : p);
+      setEditMode(false);
+    }
+  }
+
+  async function handleDelete() {
+    if (!post) return;
+    const { error } = await deletePost(post.id);
+    if (!error) router.replace("/feed");
+  }
+
+  const isOwner = !!me && !!post && me.id === post.user.id;
 
   const avatarColor = AVATAR_COLORS[(post?.user?.name?.charCodeAt(0) ?? 0) % AVATAR_COLORS.length];
   const initials = (post?.user?.name ?? "U").charAt(0).toUpperCase();
@@ -115,10 +142,43 @@ export default function PostDetailPage() {
           <ChevronLeft className="w-5 h-5" />
         </button>
         <span className="text-sm font-semibold text-gray-900 flex-1">โพสต์</span>
-        <button className="text-gray-400 hover:text-gray-600 transition">
-          <MoreHorizontal className="w-5 h-5" />
-        </button>
+        {isOwner && (
+          <div className="relative">
+            <button onClick={() => setMenuOpen((o) => !o)} className="text-gray-400 hover:text-gray-600 transition">
+              <MoreHorizontal className="w-5 h-5" />
+            </button>
+            {menuOpen && (
+              <div className="absolute right-0 top-8 w-40 bg-white border border-gray-100 rounded-xl shadow-lg z-50 overflow-hidden">
+                <button
+                  onClick={() => { setEditContent(post!.content); setEditMode(true); setMenuOpen(false); }}
+                  className="flex items-center gap-2 w-full px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 transition">
+                  <Pencil className="w-4 h-4 text-[#398AB9]" /> แก้ไข
+                </button>
+                <button
+                  onClick={() => { setConfirmDelete(true); setMenuOpen(false); }}
+                  className="flex items-center gap-2 w-full px-4 py-2.5 text-sm text-red-500 hover:bg-red-50 transition">
+                  <Trash2 className="w-4 h-4" /> ลบโพสต์
+                </button>
+              </div>
+            )}
+          </div>
+        )}
       </header>
+      {/* Delete confirm dialog */}
+      {confirmDelete && (
+        <div className="fixed inset-0 bg-black/40 z-50 flex items-end md:items-center justify-center p-4">
+          <div className="bg-white rounded-2xl p-5 w-full max-w-sm shadow-xl">
+            <p className="text-base font-semibold text-gray-900 mb-1">ลบโพสต์นี้?</p>
+            <p className="text-sm text-gray-500 mb-4">การลบโพสต์จะไม่สามารถกู้คืนได้</p>
+            <div className="flex gap-3">
+              <button onClick={() => setConfirmDelete(false)}
+                className="flex-1 py-2.5 border border-gray-200 rounded-xl text-sm text-gray-600 hover:bg-gray-50 transition">ยกเลิก</button>
+              <button onClick={handleDelete}
+                className="flex-1 py-2.5 bg-red-500 rounded-xl text-sm text-white font-medium hover:bg-red-600 transition">ลบ</button>
+            </div>
+          </div>
+        </div>
+      )}
 
       <div className="max-w-2xl mx-auto">
         {/* User info */}
@@ -226,15 +286,37 @@ export default function PostDetailPage() {
           </button>
         </div>
 
-        {/* Caption */}
+        {/* Caption / Edit mode */}
         <div className="px-4 pb-3 bg-white">
-          <p className="text-sm text-gray-800 leading-relaxed">
-            <Link href={`/profile/${post.user.id}`}
-              className="font-semibold mr-1.5 hover:text-[#398AB9] transition">
-              {post.user.name}
-            </Link>
-            {post.content}
-          </p>
+          {editMode ? (
+            <div className="space-y-2">
+              <textarea
+                value={editContent}
+                onChange={(e) => setEditContent(e.target.value)}
+                rows={3}
+                className="w-full text-sm text-gray-800 border border-[#398AB9]/40 rounded-xl px-3 py-2 focus:outline-none focus:ring-2 focus:ring-[#398AB9]/20 resize-none"
+                autoFocus
+              />
+              <div className="flex gap-2">
+                <button onClick={() => setEditMode(false)}
+                  className="flex items-center gap-1 px-3 py-1.5 border border-gray-200 rounded-lg text-xs text-gray-500 hover:bg-gray-50 transition">
+                  <X className="w-3.5 h-3.5" /> ยกเลิก
+                </button>
+                <button onClick={handleEditSave} disabled={editSaving}
+                  className="flex items-center gap-1 px-3 py-1.5 bg-[#398AB9] text-white rounded-lg text-xs font-medium hover:bg-[#1C658C] transition disabled:opacity-60">
+                  <Check className="w-3.5 h-3.5" /> {editSaving ? "กำลังบันทึก..." : "บันทึก"}
+                </button>
+              </div>
+            </div>
+          ) : (
+            <p className="text-sm text-gray-800 leading-relaxed">
+              <Link href={`/profile/${post.user.id}`}
+                className="font-semibold mr-1.5 hover:text-[#398AB9] transition">
+                {post.user.name}
+              </Link>
+              {post.content}
+            </p>
+          )}
         </div>
 
         {/* Comment section */}

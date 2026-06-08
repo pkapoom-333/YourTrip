@@ -264,6 +264,39 @@ export interface PostDetail {
   place: { id: string; slug: string; name: string } | null;
 }
 
+export async function editPost(postId: string, content: string): Promise<{ data?: { id: string }; error?: { message: string } }> {
+  try {
+    const supabase = await createServerClient();
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return { error: { message: "กรุณาเข้าสู่ระบบ" } };
+
+    const trimmed = content.trim();
+    if (!trimmed) return { error: { message: "กรุณาใส่เนื้อหา" } };
+
+    await prisma.post.update({
+      where: { id: postId, userId: user.id },
+      data: { content: trimmed },
+    });
+    return { data: { id: postId } };
+  } catch {
+    return { error: { message: "ไม่สามารถแก้ไขโพสต์ได้" } };
+  }
+}
+
+export async function deletePost(postId: string): Promise<{ data?: { success: boolean }; error?: { message: string } }> {
+  try {
+    const supabase = await createServerClient();
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return { error: { message: "กรุณาเข้าสู่ระบบ" } };
+
+    // Soft delete — mark isPublic = false (or hard delete for simplicity)
+    await prisma.post.delete({ where: { id: postId, userId: user.id } });
+    return { data: { success: true } };
+  } catch {
+    return { error: { message: "ไม่สามารถลบโพสต์ได้" } };
+  }
+}
+
 export async function getPostById(postId: string): Promise<{ data: PostDetail | null }> {
   try {
     const supabase = await createServerClient();
