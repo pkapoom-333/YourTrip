@@ -20,11 +20,11 @@ PROGRESS ████████████████░░░░ 78%  (Day 
 | # | Quest | XP | Status |
 |---|-------|----|--------|
 | 1 | **Full-text search** `/explore` — เพิ่ม multi-field ILIKE search (name, nameEn, province, description) | 300 | ✅ |
-| 2 | **Seed demo posts** — เพิ่ม seed script สร้าง demo posts + users (ไม่ใช้ OAuth UUID จริง) | 250 | ⬜ |
+| 2 | **Seed demo posts** — เพิ่ม seed script สร้าง demo posts + users (ไม่ใช้ OAuth UUID จริง) | 250 | ✅ |
 | 3 | **Place reviews** — wire `createReview` action ให้ submit จาก `/place/[slug]` star picker form | 250 | ✅ |
 | 4 | **Feed: likedByMe optimistic** — ตอนนี้ `liked` state เริ่มที่ `false` เสมอ แม้ DB บอก likedByMe=true | 200 | ✅ |
 | 5 | **Post share button** — เพิ่ม share icon ใน PostCard → Web Share API + clipboard fallback | 150 | ✅ |
-| 6 | **Explore: sort by "ใกล้ฉัน"** — Geolocation API → sort by distance จาก lat/lng | 200 | ⬜ |
+| 6 | **Explore: sort by "ใกล้ฉัน"** — Geolocation API → sort by distance จาก lat/lng | 200 | ✅ |
 | 7 | **Place detail: save to wishlist** — ปุ่ม Bookmark บน `/place/[slug]` hero section | 150 | ✅ |
 | 8 | **Loading skeletons** ใน /explore, /notifications, /buddy | 100 | ✅ |
 | 9 | **Image lazy loading** — ใช้ `loading="lazy"` บนทุก `<img>` tag ที่ยังไม่มี | 100 | ✅ |
@@ -126,8 +126,9 @@ PROGRESS ████████████████░░░░ 78%  (Day 
 
 ## 📊 XP TRACKER
 ```
-Total earned: ~6,750 XP (Day 1–12 session 2)
-This sprint: S7✅+S1✅+S10✅+S9✅+A11✅+A12✅+A13✅+A14✅+A15✅ = +2,550 XP
+Total earned: ~8,050 XP (Day 1–12 complete)
+This session: S7✅+S1✅+S2✅+S6✅+S8✅+S9✅+S10✅+A11✅+A12✅+A13✅+A14✅+A15✅ = +2,550 XP
+All Tier S and A quests CLEARED! 🎉
 ```
 
 ---
