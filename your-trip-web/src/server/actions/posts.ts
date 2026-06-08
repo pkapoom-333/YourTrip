@@ -22,6 +22,7 @@ export async function createPost(input: CreatePostInput) {
         location: parsed.data.location,
         tags: parsed.data.tags ?? [],
         userId: user.id,
+        placeId: parsed.data.placeId ?? null,
       },
     });
 
