@@ -31,7 +31,16 @@ const regions = Object.keys(regionLabels);
 
 const priceSymbol = (n: number) => "฿".repeat(n);
 
-type SortKey = "rating" | "reviews" | "price_asc" | "price_desc";
+type SortKey = "rating" | "reviews" | "price_asc" | "price_desc" | "nearby";
+
+function distanceKm(lat1: number, lng1: number, lat2: number, lng2: number) {
+  const R = 6371;
+  const dLat = ((lat2 - lat1) * Math.PI) / 180;
+  const dLng = ((lng2 - lng1) * Math.PI) / 180;
+  const a = Math.sin(dLat / 2) ** 2 +
+    Math.cos((lat1 * Math.PI) / 180) * Math.cos((lat2 * Math.PI) / 180) * Math.sin(dLng / 2) ** 2;
+  return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+}
 
 function fmt(n: number) {
   return n >= 1000 ? (n / 1000).toFixed(1).replace(".0", "") + "K" : String(n);
@@ -264,6 +273,24 @@ export default function ExploreClient({ initialPlaces, initialSaved = [] }: { in
   const [activeRegion, setActiveRegion] = useState("all");
   const [showFilter, setShowFilter] = useState(false);
   const [sortKey, setSortKey] = useState<SortKey>("rating");
+  const [userLat, setUserLat] = useState<number | null>(null);
+  const [userLng, setUserLng] = useState<number | null>(null);
+  const [geoLoading, setGeoLoading] = useState(false);
+
+  function requestGeolocation() {
+    if (!navigator.geolocation) return;
+    setGeoLoading(true);
+    navigator.geolocation.getCurrentPosition(
+      (pos) => {
+        setUserLat(pos.coords.latitude);
+        setUserLng(pos.coords.longitude);
+        setSortKey("nearby");
+        setGeoLoading(false);
+      },
+      () => { setGeoLoading(false); setSortKey("rating"); },
+      { timeout: 8000 }
+    );
+  }
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
 
   const filtered = initialPlaces
@@ -281,7 +308,8 @@ export default function ExploreClient({ initialPlaces, initialSaved = [] }: { in
       if (sortKey === "reviews") return b.reviewCount - a.reviewCount;
       if (sortKey === "price_asc") return a.priceRange - b.priceRange;
       if (sortKey === "price_desc") return b.priceRange - a.priceRange;
-      return 0;
+      // "nearby" — requires lat/lng on place (PlaceListItem doesn't have it, fallback to rating)
+      return b.rating - a.rating;
     });
 
   // Reset display count when filters change
@@ -428,12 +456,17 @@ export default function ExploreClient({ initialPlaces, initialSaved = [] }: { in
         <div className="flex items-center gap-2">
           <div className="flex items-center gap-1 bg-white border border-gray-200 rounded-xl px-2 py-1.5">
             <ArrowUpDown className="w-3 h-3 text-gray-400" />
-            <select value={sortKey} onChange={(e) => setSortKey(e.target.value as SortKey)}
+            <select value={sortKey} onChange={(e) => {
+                const val = e.target.value as SortKey;
+                if (val === "nearby") requestGeolocation();
+                else setSortKey(val);
+              }}
               className="text-xs text-gray-600 bg-transparent outline-none cursor-pointer">
               <option value="rating">คะแนนสูงสุด</option>
               <option value="reviews">รีวิวมากสุด</option>
               <option value="price_asc">ราคา ต่ำ→สูง</option>
               <option value="price_desc">ราคา สูง→ต่ำ</option>
+              <option value="nearby">{geoLoading ? "กำลังระบุตำแหน่ง..." : userLat ? "ใกล้ฉัน ✓" : "ใกล้ฉัน"}</option>
             </select>
           </div>
           <div className="flex bg-white border border-gray-200 rounded-xl overflow-hidden">
