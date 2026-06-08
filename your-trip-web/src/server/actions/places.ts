@@ -23,6 +23,8 @@ export interface PlaceListItem {
   coverImage: string | null;
   rating: number;
   reviewCount: number;
+  lat: number | null;
+  lng: number | null;
 }
 
 export interface PlaceDetail {
@@ -132,6 +134,8 @@ export async function getPlaces(params?: {
         coverImage: p.images[0]?.url ?? null,
         rating: Math.round(avgRating * 10) / 10,
         reviewCount: p._count.reviews,
+        lat: p.lat,
+        lng: p.lng,
       };
     });
 

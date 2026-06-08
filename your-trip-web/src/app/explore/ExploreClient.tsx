@@ -308,7 +308,12 @@ export default function ExploreClient({ initialPlaces, initialSaved = [] }: { in
       if (sortKey === "reviews") return b.reviewCount - a.reviewCount;
       if (sortKey === "price_asc") return a.priceRange - b.priceRange;
       if (sortKey === "price_desc") return b.priceRange - a.priceRange;
-      // "nearby" — requires lat/lng on place (PlaceListItem doesn't have it, fallback to rating)
+      // "nearby" — sort by Haversine distance from user's location
+      if (sortKey === "nearby" && userLat !== null && userLng !== null) {
+        const dA = (a.lat && a.lng) ? distanceKm(userLat, userLng, a.lat, a.lng) : Infinity;
+        const dB = (b.lat && b.lng) ? distanceKm(userLat, userLng, b.lat, b.lng) : Infinity;
+        return dA - dB;
+      }
       return b.rating - a.rating;
     });
 

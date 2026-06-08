@@ -11,7 +11,8 @@ import type { PlaceListItem } from "@/server/actions/places";
 import { getSavedPlaceIds } from "@/server/actions/savedPlaces";
 
 // Mock data fallback (shown when DB not configured yet)
-const MOCK_PLACES: PlaceListItem[] = [
+// lat/lng are null for mock — geolocation sort falls back to rating
+const MOCK_PLACES: PlaceListItem[] = ([
   { id: "1", slug: "doi-ang-khang", name: "ดอยอ่างขาง", nameEn: "Doi Ang Khang", category: "attraction", region: "north", province: "เชียงใหม่", country: "TH", priceRange: 1, hasWifi: false, hasParking: true, isAccessible: false, isFeatured: true, coverImage: "https://images.unsplash.com/photo-1476514525405-8d4b4c284c1e?auto=format&fit=crop&w=600&q=80", rating: 4.8, reviewCount: 2840 },
   { id: "2", slug: "bali-ubud-terraces", name: "นาขั้นบันไดบาหลี", nameEn: "Tegallalang Rice Terraces", category: "attraction", region: "international", province: "บาหลี", country: "ID", priceRange: 2, hasWifi: false, hasParking: true, isAccessible: false, isFeatured: true, coverImage: "https://images.unsplash.com/photo-1537996194471-e657df975ab4?auto=format&fit=crop&w=600&q=80", rating: 4.9, reviewCount: 5120 },
   { id: "3", slug: "swiss-alps", name: "Swiss Alps", nameEn: "Swiss Alps", category: "attraction", region: "international", province: "สวิตเซอร์แลนด์", country: "CH", priceRange: 4, hasWifi: false, hasParking: true, isAccessible: false, isFeatured: true, coverImage: "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?auto=format&fit=crop&w=600&q=80", rating: 4.9, reviewCount: 8760 },
@@ -29,7 +30,7 @@ const MOCK_PLACES: PlaceListItem[] = [
   { id: "15", slug: "mekong-sunset", name: "ชมพระอาทิตย์ตกแม่น้ำโขง", nameEn: "Mekong Sunset", category: "attraction", region: "central", province: "หนองคาย", country: "TH", priceRange: 1, hasWifi: false, hasParking: true, isAccessible: false, isFeatured: false, coverImage: "https://images.unsplash.com/photo-1501854140801-50d01698950b?auto=format&fit=crop&w=600&q=80", rating: 4.6, reviewCount: 1200 },
   { id: "16", slug: "samui-chaweng", name: "หาดเฉวง เกาะสมุย", nameEn: "Chaweng Beach Samui", category: "attraction", region: "south", province: "สุราษฎร์ธานี", country: "TH", priceRange: 2, hasWifi: false, hasParking: true, isAccessible: false, isFeatured: false, coverImage: "https://images.unsplash.com/photo-1583417319070-4a69db38a482?auto=format&fit=crop&w=600&q=80", rating: 4.5, reviewCount: 2100 },
   { id: "17", slug: "ayutthaya", name: "อยุธยา", nameEn: "Ayutthaya", category: "attraction", region: "central", province: "พระนครศรีอยุธยา", country: "TH", priceRange: 2, hasWifi: false, hasParking: true, isAccessible: false, isFeatured: false, coverImage: "https://images.unsplash.com/photo-1555400038-63f5ba517a47?auto=format&fit=crop&w=600&q=80", rating: 4.7, reviewCount: 8200 },
-];
+] as Omit<PlaceListItem, "lat" | "lng">[]).map((p) => ({ ...p, lat: null, lng: null }));
 
 export default async function ExplorePage() {
   const [{ data: dbPlaces }, savedIds] = await Promise.all([
