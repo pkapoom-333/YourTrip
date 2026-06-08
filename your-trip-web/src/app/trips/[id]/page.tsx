@@ -339,6 +339,7 @@ export default function TripDetailPage({ params }: { params: Promise<{ id: strin
   const { id } = use(params);
   const [trip, setTrip] = useState(MOCK_TRIP);
   const [activeDay, setActiveDay] = useState(1);
+  const [shareCopied, setShareCopied] = useState(false);
   const [showAddModal, setShowAddModal] = useState(false);
   const [showMap, setShowMap] = useState(false);
   const [routeSegments, setRouteSegments] = useState<Array<{ distanceKm: number; durationMin: number }>>([]);
@@ -516,8 +517,25 @@ export default function TripDetailPage({ params }: { params: Promise<{ id: strin
             </Link>
           </div>
           <div className="absolute top-4 right-4 flex gap-2">
-            <button className="w-8 h-8 bg-black/30 backdrop-blur-sm rounded-full flex items-center justify-center text-white hover:bg-black/50 transition">
+            <button
+              onClick={async () => {
+                const url = window.location.href;
+                if (navigator.share) {
+                  try { await navigator.share({ title: trip.title, url }); } catch { /* cancelled */ }
+                } else {
+                  await navigator.clipboard.writeText(url).catch(() => {});
+                  setShareCopied(true);
+                  setTimeout(() => setShareCopied(false), 2000);
+                }
+              }}
+              className="relative w-8 h-8 bg-black/30 backdrop-blur-sm rounded-full flex items-center justify-center text-white hover:bg-black/50 transition"
+              title={shareCopied ? "คัดลอกแล้ว!" : "แชร์ทริป"}>
               <Share2 className="w-4 h-4" />
+              {shareCopied && (
+                <span className="absolute -bottom-8 right-0 whitespace-nowrap text-[10px] font-medium bg-gray-900 text-white px-2 py-1 rounded-lg">
+                  คัดลอกแล้ว!
+                </span>
+              )}
             </button>
             <button className="w-8 h-8 bg-black/30 backdrop-blur-sm rounded-full flex items-center justify-center text-white hover:bg-black/50 transition">
               <Edit3 className="w-4 h-4" />
