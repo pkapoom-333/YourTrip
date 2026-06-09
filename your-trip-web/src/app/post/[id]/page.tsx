@@ -109,11 +109,11 @@ export default function PostDetailPage() {
     return (
       <AppShell>
         <div className="max-w-2xl mx-auto animate-pulse">
-          <div className="h-14 bg-gray-100 mb-4" />
-          <div className="aspect-square bg-gray-200 mb-4" />
+          <div className="h-14 bg-gray-100 dark:bg-slate-700 mb-4" />
+          <div className="aspect-square bg-gray-200 dark:bg-slate-700 mb-4" />
           <div className="px-4 space-y-3">
-            <div className="h-4 bg-gray-200 rounded w-3/4" />
-            <div className="h-3 bg-gray-100 rounded w-1/2" />
+            <div className="h-4 bg-gray-200 dark:bg-slate-700 rounded w-3/4" />
+            <div className="h-3 bg-gray-100 dark:bg-slate-700/60 rounded w-1/2" />
           </div>
         </div>
       </AppShell>
@@ -124,7 +124,7 @@ export default function PostDetailPage() {
     return (
       <AppShell>
         <div className="flex flex-col items-center justify-center py-24 text-center px-4">
-          <p className="text-gray-500 font-medium">ไม่พบโพสต์นี้</p>
+          <p className="text-gray-500 dark:text-slate-400 font-medium">ไม่พบโพสต์นี้</p>
           <button onClick={() => router.back()}
             className="mt-4 text-sm text-[#398AB9] font-medium hover:underline">
             กลับ
@@ -137,26 +137,26 @@ export default function PostDetailPage() {
   return (
     <AppShell>
       {/* Header */}
-      <header className="sticky top-0 z-40 bg-white border-b border-gray-100 px-4 py-3 flex items-center gap-3">
-        <button onClick={() => router.back()} className="text-gray-500 hover:text-gray-700 transition">
+      <header className="sticky top-0 z-40 bg-white dark:bg-slate-800 border-b border-gray-100 dark:border-slate-700 px-4 py-3 flex items-center gap-3">
+        <button onClick={() => router.back()} className="text-gray-500 dark:text-slate-400 hover:text-gray-700 dark:hover:text-slate-200 transition">
           <ChevronLeft className="w-5 h-5" />
         </button>
-        <span className="text-sm font-semibold text-gray-900 flex-1">โพสต์</span>
+        <span className="text-sm font-semibold text-gray-900 dark:text-slate-100 flex-1">โพสต์</span>
         {isOwner && (
           <div className="relative">
-            <button onClick={() => setMenuOpen((o) => !o)} className="text-gray-400 hover:text-gray-600 transition">
+            <button onClick={() => setMenuOpen((o) => !o)} className="text-gray-400 dark:text-slate-500 hover:text-gray-600 dark:hover:text-slate-300 transition">
               <MoreHorizontal className="w-5 h-5" />
             </button>
             {menuOpen && (
-              <div className="absolute right-0 top-8 w-40 bg-white border border-gray-100 rounded-xl shadow-lg z-50 overflow-hidden">
+              <div className="absolute right-0 top-8 w-40 bg-white dark:bg-slate-800 border border-gray-100 dark:border-slate-700 rounded-xl shadow-lg z-50 overflow-hidden">
                 <button
                   onClick={() => { setEditContent(post!.content); setEditMode(true); setMenuOpen(false); }}
-                  className="flex items-center gap-2 w-full px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 transition">
+                  className="flex items-center gap-2 w-full px-4 py-2.5 text-sm text-gray-700 dark:text-slate-300 hover:bg-gray-50 dark:hover:bg-slate-700 transition">
                   <Pencil className="w-4 h-4 text-[#398AB9]" /> แก้ไข
                 </button>
                 <button
                   onClick={() => { setConfirmDelete(true); setMenuOpen(false); }}
-                  className="flex items-center gap-2 w-full px-4 py-2.5 text-sm text-red-500 hover:bg-red-50 transition">
+                  className="flex items-center gap-2 w-full px-4 py-2.5 text-sm text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 transition">
                   <Trash2 className="w-4 h-4" /> ลบโพสต์
                 </button>
               </div>
@@ -167,12 +167,12 @@ export default function PostDetailPage() {
       {/* Delete confirm dialog */}
       {confirmDelete && (
         <div className="fixed inset-0 bg-black/40 z-50 flex items-end md:items-center justify-center p-4">
-          <div className="bg-white rounded-2xl p-5 w-full max-w-sm shadow-xl">
-            <p className="text-base font-semibold text-gray-900 mb-1">ลบโพสต์นี้?</p>
-            <p className="text-sm text-gray-500 mb-4">การลบโพสต์จะไม่สามารถกู้คืนได้</p>
+          <div className="bg-white dark:bg-slate-800 rounded-2xl p-5 w-full max-w-sm shadow-xl">
+            <p className="text-base font-semibold text-gray-900 dark:text-slate-100 mb-1">ลบโพสต์นี้?</p>
+            <p className="text-sm text-gray-500 dark:text-slate-400 mb-4">การลบโพสต์จะไม่สามารถกู้คืนได้</p>
             <div className="flex gap-3">
               <button onClick={() => setConfirmDelete(false)}
-                className="flex-1 py-2.5 border border-gray-200 rounded-xl text-sm text-gray-600 hover:bg-gray-50 transition">ยกเลิก</button>
+                className="flex-1 py-2.5 border border-gray-200 dark:border-slate-600 rounded-xl text-sm text-gray-600 dark:text-slate-400 hover:bg-gray-50 dark:hover:bg-slate-700 transition">ยกเลิก</button>
               <button onClick={handleDelete}
                 className="flex-1 py-2.5 bg-red-500 rounded-xl text-sm text-white font-medium hover:bg-red-600 transition">ลบ</button>
             </div>
@@ -182,20 +182,20 @@ export default function PostDetailPage() {
 
       <div className="max-w-2xl mx-auto">
         {/* User info */}
-        <div className="flex items-center gap-3 px-4 py-3 bg-white border-b border-gray-50">
+        <div className="flex items-center gap-3 px-4 py-3 bg-white dark:bg-slate-800 border-b border-gray-50 dark:border-slate-700">
           <Link href={`/profile/${post.user.id}`}>
             <Avatar src={post.user.avatarUrl} name={post.user.name ?? "U"} />
           </Link>
           <div className="flex-1 min-w-0">
             <Link href={`/profile/${post.user.id}`}
-              className="text-sm font-semibold text-gray-900 hover:text-[#398AB9] transition">
+              className="text-sm font-semibold text-gray-900 dark:text-slate-100 hover:text-[#398AB9] transition">
               {post.user.name}
             </Link>
             {post.user.username && (
-              <p className="text-[11px] text-gray-400">@{post.user.username}</p>
+              <p className="text-[11px] text-gray-400 dark:text-slate-500">@{post.user.username}</p>
             )}
           </div>
-          <span className="text-[11px] text-gray-400">{fmtDate(post.createdAt)}</span>
+          <span className="text-[11px] text-gray-400 dark:text-slate-500">{fmtDate(post.createdAt)}</span>
         </div>
 
         {/* Image carousel */}
@@ -236,7 +236,7 @@ export default function PostDetailPage() {
 
         {/* Location + tags */}
         {(post.place || post.location || post.tags.length > 0) && (
-          <div className="px-4 py-2 bg-white flex flex-wrap items-center gap-2 border-b border-gray-50">
+          <div className="px-4 py-2 bg-white dark:bg-slate-800 flex flex-wrap items-center gap-2 border-b border-gray-50 dark:border-slate-700">
             {post.place ? (
               <Link href={`/place/${post.place.slug}`}
                 className="flex items-center gap-1 text-xs text-[#398AB9] hover:underline font-medium">
@@ -244,7 +244,7 @@ export default function PostDetailPage() {
                 {post.place.name}
               </Link>
             ) : post.location ? (
-              <div className="flex items-center gap-1 text-xs text-gray-500">
+              <div className="flex items-center gap-1 text-xs text-gray-500 dark:text-slate-400">
                 <MapPin className="w-3 h-3 text-[#398AB9]" />
                 {post.location}
               </div>
@@ -258,7 +258,7 @@ export default function PostDetailPage() {
         )}
 
         {/* Action bar */}
-        <div className="flex items-center gap-1 px-3 pt-3 pb-1 bg-white">
+        <div className="flex items-center gap-1 px-3 pt-3 pb-1 bg-white dark:bg-slate-800">
           <button
             onClick={handleLike}
             className={`flex items-center gap-1.5 px-3 py-2 rounded-xl transition-all ${
@@ -287,19 +287,19 @@ export default function PostDetailPage() {
         </div>
 
         {/* Caption / Edit mode */}
-        <div className="px-4 pb-3 bg-white">
+        <div className="px-4 pb-3 bg-white dark:bg-slate-800">
           {editMode ? (
             <div className="space-y-2">
               <textarea
                 value={editContent}
                 onChange={(e) => setEditContent(e.target.value)}
                 rows={3}
-                className="w-full text-sm text-gray-800 border border-[#398AB9]/40 rounded-xl px-3 py-2 focus:outline-none focus:ring-2 focus:ring-[#398AB9]/20 resize-none"
+                className="w-full text-sm text-gray-800 dark:text-slate-200 bg-white dark:bg-slate-700/50 border border-[#398AB9]/40 rounded-xl px-3 py-2 focus:outline-none focus:ring-2 focus:ring-[#398AB9]/20 resize-none"
                 autoFocus
               />
               <div className="flex gap-2">
                 <button onClick={() => setEditMode(false)}
-                  className="flex items-center gap-1 px-3 py-1.5 border border-gray-200 rounded-lg text-xs text-gray-500 hover:bg-gray-50 transition">
+                  className="flex items-center gap-1 px-3 py-1.5 border border-gray-200 dark:border-slate-600 rounded-lg text-xs text-gray-500 dark:text-slate-400 hover:bg-gray-50 dark:hover:bg-slate-700 transition">
                   <X className="w-3.5 h-3.5" /> ยกเลิก
                 </button>
                 <button onClick={handleEditSave} disabled={editSaving}
@@ -309,9 +309,9 @@ export default function PostDetailPage() {
               </div>
             </div>
           ) : (
-            <p className="text-sm text-gray-800 leading-relaxed">
+            <p className="text-sm text-gray-800 dark:text-slate-200 leading-relaxed">
               <Link href={`/profile/${post.user.id}`}
-                className="font-semibold mr-1.5 hover:text-[#398AB9] transition">
+                className="font-semibold mr-1.5 hover:text-[#398AB9] dark:text-slate-100 transition">
                 {post.user.name}
               </Link>
               {post.content}
@@ -320,7 +320,7 @@ export default function PostDetailPage() {
         </div>
 
         {/* Comment section */}
-        <div className="bg-white border-t border-gray-100">
+        <div className="bg-white dark:bg-slate-800 border-t border-gray-100 dark:border-slate-700">
           <CommentSection postId={post.id} initialCount={post.commentsCount} />
         </div>
       </div>

@@ -260,28 +260,28 @@ function ItemCard({
   }
 
   return (
-    <div className="bg-white rounded-2xl border border-gray-100 p-3.5 hover:shadow-sm transition-shadow">
+    <div className="bg-white dark:bg-slate-800 rounded-2xl border border-gray-100 dark:border-slate-700 p-3.5 hover:shadow-sm transition-shadow">
       <div className="flex items-start gap-3">
-        <GripVertical className="w-4 h-4 text-gray-300 mt-0.5 flex-shrink-0 cursor-grab" />
+        <GripVertical className="w-4 h-4 text-gray-300 dark:text-slate-600 mt-0.5 flex-shrink-0 cursor-grab" />
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2 flex-wrap">
             <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-full ${typeColors[item.type]}`}>
               {typeLabels[item.type]}
             </span>
             {item.time && (
-              <span className="flex items-center gap-1 text-xs text-gray-400">
+              <span className="flex items-center gap-1 text-xs text-gray-400 dark:text-slate-500">
                 <Clock className="w-3 h-3" />
                 {item.time}
               </span>
             )}
             {item.cost !== undefined && (
-              <span className="flex items-center gap-1 text-xs text-gray-400">
+              <span className="flex items-center gap-1 text-xs text-gray-400 dark:text-slate-500">
                 <Wallet className="w-3 h-3" />
                 ฿{item.cost.toLocaleString()}
               </span>
             )}
           </div>
-          <p className="text-sm font-semibold text-gray-800 mt-1">{item.name}</p>
+          <p className="text-sm font-semibold text-gray-800 dark:text-slate-200 mt-1">{item.name}</p>
 
           {/* Duration — กดแก้ได้ */}
           <div className="mt-1.5">
@@ -317,16 +317,16 @@ function ItemCard({
           </div>
 
           {item.note && (
-            <p className={`text-xs text-gray-400 mt-1 ${!expanded ? "line-clamp-1" : ""}`}>{item.note}</p>
+            <p className={`text-xs text-gray-400 dark:text-slate-500 mt-1 ${!expanded ? "line-clamp-1" : ""}`}>{item.note}</p>
           )}
         </div>
         <div className="flex items-center gap-1 flex-shrink-0">
           {item.note && (
-            <button onClick={() => setExpanded(!expanded)} className="text-gray-300 hover:text-gray-500 p-1">
+            <button onClick={() => setExpanded(!expanded)} className="text-gray-300 dark:text-slate-600 hover:text-gray-500 dark:hover:text-slate-400 p-1">
               {expanded ? <ChevronUp className="w-3.5 h-3.5" /> : <ChevronDown className="w-3.5 h-3.5" />}
             </button>
           )}
-          <button onClick={() => onDelete(item.id)} className="text-gray-300 hover:text-red-400 transition p-1">
+          <button onClick={() => onDelete(item.id)} className="text-gray-300 dark:text-slate-600 hover:text-red-400 transition p-1">
             <Trash2 className="w-3.5 h-3.5" />
           </button>
         </div>
@@ -555,18 +555,18 @@ export default function TripDetailPage({ params }: { params: Promise<{ id: strin
         </div>
 
         {/* Budget strip */}
-        <div className="bg-white border-b border-gray-100 px-4 py-3">
+        <div className="bg-white dark:bg-slate-800 border-b border-gray-100 dark:border-slate-700 px-4 py-3">
           <div className="flex items-center justify-between mb-1.5">
-            <div className="flex items-center gap-1.5 text-sm text-gray-600">
+            <div className="flex items-center gap-1.5 text-sm text-gray-600 dark:text-slate-300">
               <Wallet className="w-4 h-4 text-[#398AB9]" />
               <span className="font-medium">งบประมาณ</span>
             </div>
             <div className="text-right">
-              <span className="text-sm font-bold text-gray-800">฿{totalCost.toLocaleString()}</span>
-              <span className="text-xs text-gray-400"> / ฿{trip.budget?.toLocaleString()}</span>
+              <span className="text-sm font-bold text-gray-800 dark:text-slate-200">฿{totalCost.toLocaleString()}</span>
+              <span className="text-xs text-gray-400 dark:text-slate-500"> / ฿{trip.budget?.toLocaleString()}</span>
             </div>
           </div>
-          <div className="w-full h-2 bg-gray-100 rounded-full overflow-hidden">
+          <div className="w-full h-2 bg-gray-100 dark:bg-slate-700 rounded-full overflow-hidden">
             <div
               className={`h-full rounded-full transition-all ${
                 budgetPercent > 90 ? "bg-red-400" : budgetPercent > 70 ? "bg-amber-400" : "bg-[#398AB9]"
@@ -577,14 +577,14 @@ export default function TripDetailPage({ params }: { params: Promise<{ id: strin
         </div>
 
         {/* Day tabs */}
-        <div className="bg-white border-b border-gray-100">
+        <div className="bg-white dark:bg-slate-800 border-b border-gray-100 dark:border-slate-700">
           <div className="flex overflow-x-auto scrollbar-none px-4 py-2 gap-2">
             {trip.days.map((d) => (
               <button key={d.day} onClick={() => setActiveDay(d.day)}
                 className={`flex-shrink-0 flex flex-col items-center px-4 py-2 rounded-xl text-sm transition-all ${
                   activeDay === d.day
                     ? "bg-[#398AB9] text-white shadow-md shadow-[#398AB9]/30"
-                    : "bg-gray-50 text-gray-500 hover:bg-gray-100"
+                    : "bg-gray-50 dark:bg-slate-700 text-gray-500 dark:text-slate-400 hover:bg-gray-100 dark:hover:bg-slate-600"
                 }`}>
                 <span className="text-[10px] font-medium opacity-80">วันที่</span>
                 <span className="text-lg font-bold leading-none">{d.day}</span>
@@ -599,11 +599,11 @@ export default function TripDetailPage({ params }: { params: Promise<{ id: strin
           <div className="px-4 py-4">
             <div className="flex items-center justify-between mb-3">
               <div>
-                <h2 className="text-base font-bold text-gray-800">วันที่ {currentDay.day}</h2>
-                <p className="text-xs text-gray-400 mt-0.5">{currentDay.date}</p>
+                <h2 className="text-base font-bold text-gray-800 dark:text-slate-200">วันที่ {currentDay.day}</h2>
+                <p className="text-xs text-gray-400 dark:text-slate-500 mt-0.5">{currentDay.date}</p>
               </div>
               <div className="flex items-center gap-2">
-                <div className="flex items-center gap-1 text-xs text-gray-500">
+                <div className="flex items-center gap-1 text-xs text-gray-500 dark:text-slate-400">
                   <Wallet className="w-3.5 h-3.5" />
                   ฿{currentDay.items.reduce((s, i) => s + (i.cost ?? 0), 0).toLocaleString()}
                 </div>
@@ -654,7 +654,7 @@ export default function TripDetailPage({ params }: { params: Promise<{ id: strin
             {/* Item list with travel connectors */}
             <div className="mb-4">
               {currentDay.items.length === 0 ? (
-                <div className="text-center py-12 text-gray-400">
+                <div className="text-center py-12 text-gray-400 dark:text-slate-500">
                   <Flag className="w-8 h-8 mx-auto mb-2 opacity-40" />
                   <p className="text-sm">ยังไม่มีแผน — เพิ่มสถานที่เลย!</p>
                 </div>
@@ -693,15 +693,15 @@ export default function TripDetailPage({ params }: { params: Promise<{ id: strin
         {showAddModal && (
           <div className="fixed inset-0 z-50 flex items-end md:items-center justify-center">
             <div className="absolute inset-0 bg-black/40" onClick={() => setShowAddModal(false)} />
-            <div className="relative z-10 w-full max-w-lg bg-white rounded-t-3xl md:rounded-3xl p-6 shadow-2xl">
-              <h3 className="text-base font-bold text-gray-900 mb-4">เพิ่มในวันที่ {activeDay}</h3>
+            <div className="relative z-10 w-full max-w-lg bg-white dark:bg-slate-800 rounded-t-3xl md:rounded-3xl p-6 shadow-2xl">
+              <h3 className="text-base font-bold text-gray-900 dark:text-slate-100 mb-4">เพิ่มในวันที่ {activeDay}</h3>
 
               <div className="flex gap-2 mb-4 flex-wrap">
                 {(["place", "food", "hotel", "transport", "activity"] as const).map((t) => (
                   <button key={t}
                     onClick={() => setNewItem((p) => ({ ...p, type: t }))}
                     className={`px-3 py-1.5 rounded-full text-xs font-medium transition-all ${
-                      newItem.type === t ? typeColors[t] + " ring-1 ring-current" : "bg-gray-100 text-gray-500"
+                      newItem.type === t ? typeColors[t] + " ring-1 ring-current" : "bg-gray-100 dark:bg-slate-700 text-gray-500 dark:text-slate-400"
                     }`}>
                     {typeLabels[t]}
                   </button>
@@ -744,7 +744,7 @@ export default function TripDetailPage({ params }: { params: Promise<{ id: strin
                     value={newItem.name}
                     onChange={(e) => setNewItem((p) => ({ ...p, name: e.target.value }))}
                     placeholder="หรือพิมพ์ชื่อเอง..."
-                    className="w-full px-4 py-3 border border-gray-200 rounded-xl text-sm focus:outline-none focus:border-[#398AB9]"
+                    className="w-full px-4 py-3 border border-gray-200 dark:border-slate-600 dark:bg-slate-700/50 dark:text-slate-200 dark:placeholder:text-slate-500 rounded-xl text-sm focus:outline-none focus:border-[#398AB9]"
                   />
                 )}
                 <div className="flex gap-2">
@@ -791,7 +791,7 @@ export default function TripDetailPage({ params }: { params: Promise<{ id: strin
 
               <div className="flex gap-2 mt-5">
                 <button onClick={() => setShowAddModal(false)}
-                  className="flex-1 py-3 rounded-xl border border-gray-200 text-gray-600 text-sm font-medium hover:bg-gray-50 transition">
+                  className="flex-1 py-3 rounded-xl border border-gray-200 dark:border-slate-600 text-gray-600 dark:text-slate-400 text-sm font-medium hover:bg-gray-50 dark:hover:bg-slate-700 transition">
                   ยกเลิก
                 </button>
                 <button onClick={addItem} disabled={!newItem.name.trim()}

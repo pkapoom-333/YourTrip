@@ -45,7 +45,7 @@ export default async function TripsPage() {
 
   return (
     <AppShell>
-      <header className="md:hidden sticky top-0 z-40 bg-white border-b border-gray-100 px-4 py-3">
+      <header className="md:hidden sticky top-0 z-40 bg-white dark:bg-slate-800 border-b border-gray-100 dark:border-slate-700 px-4 py-3">
         <span className="text-lg font-bold text-[#398AB9]">ทริปของฉัน</span>
       </header>
       <TripsClient initialTrips={trips} />
