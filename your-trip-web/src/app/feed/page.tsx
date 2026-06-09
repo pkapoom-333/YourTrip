@@ -108,15 +108,15 @@ export default async function FeedPage() {
   return (
     <AppShell>
       {/* ─── TOP BAR (mobile only) ─── */}
-      <header className="md:hidden sticky top-0 z-40 bg-white border-b border-gray-100">
+      <header className="md:hidden sticky top-0 z-40 bg-white dark:bg-slate-800 border-b border-gray-100 dark:border-slate-700">
         <div className="flex items-center justify-between px-4 py-3">
           <span className="text-lg font-bold text-[#398AB9]">Your Trip</span>
           <div className="flex items-center gap-2">
-            <button className="w-9 h-9 flex items-center justify-center rounded-full hover:bg-gray-50">
-              <Search className="w-5 h-5 text-gray-500" />
+            <button className="w-9 h-9 flex items-center justify-center rounded-full hover:bg-gray-50 dark:hover:bg-slate-700">
+              <Search className="w-5 h-5 text-gray-500 dark:text-slate-400" />
             </button>
-            <button className="w-9 h-9 flex items-center justify-center rounded-full hover:bg-gray-50 relative">
-              <Bell className="w-5 h-5 text-gray-500" />
+            <button className="w-9 h-9 flex items-center justify-center rounded-full hover:bg-gray-50 dark:hover:bg-slate-700 relative">
+              <Bell className="w-5 h-5 text-gray-500 dark:text-slate-400" />
               <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-[#FF4F4F] rounded-full" />
             </button>
           </div>
@@ -130,28 +130,28 @@ export default async function FeedPage() {
 
             {/* Desktop page title */}
             <div className="hidden md:flex items-center justify-between mb-6">
-              <h1 className="text-xl font-bold text-gray-900">หน้าหลัก</h1>
-              <button className="flex items-center gap-2 text-sm text-gray-500 hover:text-[#398AB9] transition">
+              <h1 className="text-xl font-bold text-gray-900 dark:text-slate-100">หน้าหลัก</h1>
+              <button className="flex items-center gap-2 text-sm text-gray-500 dark:text-slate-400 hover:text-[#398AB9] transition">
                 <Bell className="w-4 h-4" />
                 การแจ้งเตือน
               </button>
             </div>
 
             {/* Stories */}
-            <div className="bg-white md:rounded-2xl border border-gray-100 px-4 py-4 mb-3">
+            <div className="bg-white dark:bg-slate-800 md:rounded-2xl border border-gray-100 dark:border-slate-700 px-4 py-4 mb-3">
               <div className="flex gap-4 overflow-x-auto scrollbar-none">
                 {stories.map((s) => (
                   <button key={s.id} className="flex flex-col items-center gap-1.5 flex-shrink-0">
                     <div className={s.isAdd ? "" : "p-[2px] rounded-full bg-gradient-to-tr from-[#398AB9] to-[#1C658C]"}>
-                      <div className={`w-14 h-14 rounded-full flex items-center justify-center border-2 border-white ${
-                        s.isAdd ? "bg-gray-100 border-dashed border-2 border-gray-300" : s.bg
+                      <div className={`w-14 h-14 rounded-full flex items-center justify-center border-2 border-white dark:border-slate-800 ${
+                        s.isAdd ? "bg-gray-100 dark:bg-slate-700 border-dashed border-2 border-gray-300 dark:border-slate-600" : s.bg
                       }`}>
-                        <span className={`font-bold text-sm ${s.isAdd ? "text-gray-400" : "text-white"}`}>
+                        <span className={`font-bold text-sm ${s.isAdd ? "text-gray-400 dark:text-slate-500" : "text-white"}`}>
                           {s.initials}
                         </span>
                       </div>
                     </div>
-                    <span className="text-[10px] text-gray-500 w-14 text-center truncate">{s.name}</span>
+                    <span className="text-[10px] text-gray-500 dark:text-slate-400 w-14 text-center truncate">{s.name}</span>
                   </button>
                 ))}
               </div>
@@ -168,19 +168,19 @@ export default async function FeedPage() {
           {/* ─── RIGHT PANEL (desktop only) ─── */}
           <aside className="hidden lg:block w-72 flex-shrink-0">
             {/* Trending */}
-            <div className="bg-white rounded-2xl border border-gray-100 p-5 mb-4">
+            <div className="bg-white dark:bg-slate-800 rounded-2xl border border-gray-100 dark:border-slate-700 p-5 mb-4">
               <div className="flex items-center gap-2 mb-4">
                 <TrendingUp className="w-4 h-4 text-[#398AB9]" />
-                <h3 className="text-sm font-semibold text-gray-900">กำลังฮิต</h3>
+                <h3 className="text-sm font-semibold text-gray-900 dark:text-slate-100">กำลังฮิต</h3>
               </div>
               <div className="space-y-3">
                 {trending.map((t, i) => (
                   <div key={t.label} className="flex items-center justify-between">
                     <div className="flex items-center gap-3">
-                      <span className="text-xs text-gray-400 w-4">{i + 1}</span>
-                      <span className="text-sm font-medium text-gray-800">#{t.label}</span>
+                      <span className="text-xs text-gray-400 dark:text-slate-500 w-4">{i + 1}</span>
+                      <span className="text-sm font-medium text-gray-800 dark:text-slate-200">#{t.label}</span>
                     </div>
-                    <span className="text-[11px] text-gray-400">{t.count}</span>
+                    <span className="text-[11px] text-gray-400 dark:text-slate-500">{t.count}</span>
                   </div>
                 ))}
               </div>
@@ -193,12 +193,12 @@ export default async function FeedPage() {
 
             {/* Suggested places — from DB */}
             {featuredPlaces.length > 0 && (
-              <div className="bg-white rounded-2xl border border-gray-100 p-5">
-                <h3 className="text-sm font-semibold text-gray-900 mb-4">สถานที่แนะนำ</h3>
+              <div className="bg-white dark:bg-slate-800 rounded-2xl border border-gray-100 dark:border-slate-700 p-5">
+                <h3 className="text-sm font-semibold text-gray-900 dark:text-slate-100 mb-4">สถานที่แนะนำ</h3>
                 <div className="space-y-3">
                   {featuredPlaces.map((p) => (
                     <Link key={p.id} href={`/place/${p.slug}`}
-                      className="flex items-center gap-3 hover:bg-gray-50 -mx-2 px-2 py-1.5 rounded-xl transition">
+                      className="flex items-center gap-3 hover:bg-gray-50 dark:hover:bg-slate-700 -mx-2 px-2 py-1.5 rounded-xl transition">
                       {p.coverImage ? (
                         <img src={p.coverImage} alt={p.name}
                           className="w-10 h-10 rounded-lg object-cover flex-shrink-0"
@@ -209,8 +209,8 @@ export default async function FeedPage() {
                         </div>
                       )}
                       <div className="min-w-0">
-                        <p className="text-sm font-medium text-gray-800 truncate">{p.name}</p>
-                        <p className="text-[11px] text-gray-400 capitalize">
+                        <p className="text-sm font-medium text-gray-800 dark:text-slate-200 truncate">{p.name}</p>
+                        <p className="text-[11px] text-gray-400 dark:text-slate-500 capitalize">
                           {p.category === "attraction" ? "สถานที่เที่ยว"
                             : p.category === "cafe" ? "คาเฟ่"
                             : p.category === "restaurant" ? "ร้านอาหาร"

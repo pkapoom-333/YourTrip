@@ -182,7 +182,7 @@ export default function TripsClient({ initialTrips }: { initialTrips: TripSummar
               </div>
 
               <div className="px-4 py-3">
-                <div className="flex items-center gap-4 text-xs text-gray-500 mb-3">
+                <div className="flex items-center gap-4 text-xs text-gray-500 dark:text-slate-400 mb-3">
                   <span className="flex items-center gap-1">
                     <Users className="w-3.5 h-3.5" /> {trip.members} คน
                   </span>
@@ -194,10 +194,10 @@ export default function TripsClient({ initialTrips }: { initialTrips: TripSummar
                 {trip.destinations.length > 0 && (
                   <div className="flex flex-wrap gap-1.5 mb-3">
                     {trip.destinations.slice(0, 3).map((d) => (
-                      <span key={d} className="text-[10px] bg-gray-100 text-gray-500 px-2 py-0.5 rounded-full">{d}</span>
+                      <span key={d} className="text-[10px] bg-gray-100 dark:bg-slate-700 text-gray-500 dark:text-slate-400 px-2 py-0.5 rounded-full">{d}</span>
                     ))}
                     {trip.destinations.length > 3 && (
-                      <span className="text-[10px] bg-gray-100 text-gray-400 px-2 py-0.5 rounded-full">+{trip.destinations.length - 3}</span>
+                      <span className="text-[10px] bg-gray-100 dark:bg-slate-700 text-gray-400 dark:text-slate-500 px-2 py-0.5 rounded-full">+{trip.destinations.length - 3}</span>
                     )}
                   </div>
                 )}
@@ -214,7 +214,7 @@ export default function TripsClient({ initialTrips }: { initialTrips: TripSummar
                     <div className="flex gap-2">
                       <button
                         onClick={() => setConfirmDeleteId(null)}
-                        className="text-xs text-gray-500 border border-gray-200 px-3 py-1.5 rounded-lg hover:bg-gray-50 transition">
+                        className="text-xs text-gray-500 dark:text-slate-300 border border-gray-200 dark:border-slate-600 px-3 py-1.5 rounded-lg hover:bg-gray-50 dark:hover:bg-slate-700 transition">
                         ยกเลิก
                       </button>
                       <button
