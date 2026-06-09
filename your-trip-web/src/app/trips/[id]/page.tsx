@@ -7,7 +7,7 @@ import {
   ChevronLeft, Plus, MapPin, Clock, Wallet,
   Trash2, GripVertical, Calendar, Share2,
   Edit3, ChevronDown, ChevronUp, Flag, Car, Map,
-  Navigation, Search, Loader2, X, ExternalLink,
+  Navigation, Search, Loader2, X, ExternalLink, Printer,
 } from "lucide-react";
 import Link from "next/link";
 import dynamic from "next/dynamic";
@@ -718,9 +718,18 @@ export default function TripDetailPage({ params }: { params: Promise<{ id: strin
                 </span>
               )}
             </button>
-            <button className="w-8 h-8 bg-black/30 backdrop-blur-sm rounded-full flex items-center justify-center text-white hover:bg-black/50 transition">
-              <Edit3 className="w-4 h-4" />
-            </button>
+            <Link
+              href={`/trips/${trip.id}/print`}
+              className="w-8 h-8 bg-black/30 backdrop-blur-sm rounded-full flex items-center justify-center text-white hover:bg-black/50 transition"
+              title="พิมพ์ / บันทึก PDF"
+            >
+              <Printer className="w-4 h-4" />
+            </Link>
+            {isOwner && (
+              <button className="w-8 h-8 bg-black/30 backdrop-blur-sm rounded-full flex items-center justify-center text-white hover:bg-black/50 transition">
+                <Edit3 className="w-4 h-4" />
+              </button>
+            )}
           </div>
           <div className="absolute bottom-4 left-4 right-4">
             <h1 className="text-xl font-bold text-white">{trip.title}</h1>

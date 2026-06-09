@@ -6,7 +6,7 @@ import AppShell from "@/components/AppShell";
 import Link from "next/link";
 import {
   ChevronLeft, MapPin, Grid3X3, Star,
-  Heart, UserPlus, UserCheck, MessageCircle,
+  Heart, UserPlus, UserCheck, MessageCircle, Map,
 } from "lucide-react";
 import {
   getProfile,
@@ -16,6 +16,7 @@ import {
   checkIsFollowing,
   type PostGridItem,
 } from "@/server/actions/profile";
+import { getUserPublicTrips, type PublicTripItem } from "@/server/actions/trips";
 import { Avatar } from "@/components/shared/Avatar";
 import { useUser } from "@/hooks/useUser";
 import { useToast } from "@/components/shared/Toast";
@@ -43,7 +44,8 @@ export default function UserProfilePage() {
 
   const [profile, setProfile] = useState<ProfileState | null>(null);
   const [posts, setPosts] = useState<PostGridItem[]>([]);
-  const [tab, setTab] = useState<"posts" | "reviews">("posts");
+  const [publicTrips, setPublicTrips] = useState<PublicTripItem[]>([]);
+  const [tab, setTab] = useState<"posts" | "trips" | "reviews">("posts");
   const [isFollowing, setIsFollowing] = useState(false);
   const [followerCount, setFollowerCount] = useState(0);
   const [loading, setLoading] = useState(true);
@@ -59,7 +61,8 @@ export default function UserProfilePage() {
       getProfile(userId),
       getUserPosts(userId),
       checkIsFollowing(userId),
-    ]).then(([profileRes, postsRes, followRes]) => {
+      getUserPublicTrips(userId),
+    ]).then(([profileRes, postsRes, followRes, tripsRes]) => {
       if (profileRes.data) {
         setProfile({
           id: profileRes.data.id ?? userId,
@@ -76,6 +79,7 @@ export default function UserProfilePage() {
       }
       if (postsRes.data.length > 0) setPosts(postsRes.data);
       setIsFollowing(followRes.following);
+      setPublicTrips(tripsRes.data);
       setLoading(false);
     }).catch(() => setLoading(false));
   }, [userId]);
@@ -246,6 +250,7 @@ export default function UserProfilePage() {
         <div className="flex bg-white dark:bg-slate-800 border-b border-gray-100 dark:border-slate-700">
           {[
             { key: "posts",   icon: Grid3X3, label: "โพสต์" },
+            { key: "trips",   icon: Map,     label: `ทริป${publicTrips.length > 0 ? ` (${publicTrips.length})` : ""}` },
             { key: "reviews", icon: Star,    label: "รีวิว" },
           ].map(({ key, icon: Icon, label }) => (
             <button
@@ -294,6 +299,51 @@ export default function UserProfilePage() {
                   </div>
                 </div>
               ))
+            )}
+          </div>
+        )}
+
+        {tab === "trips" && (
+          <div className="p-4 bg-white dark:bg-slate-800">
+            {publicTrips.length === 0 ? (
+              <div className="flex flex-col items-center justify-center py-16 text-center px-8">
+                <Map className="w-12 h-12 text-gray-200 dark:text-slate-600 mb-4" />
+                <p className="text-gray-500 dark:text-slate-400 font-medium">ยังไม่มีทริปสาธารณะ</p>
+                <p className="text-xs text-gray-400 dark:text-slate-500 mt-1">ทริปที่ตั้งเป็น Public จะปรากฏที่นี่</p>
+              </div>
+            ) : (
+              <div className="grid grid-cols-2 gap-3">
+                {publicTrips.map((t) => (
+                  <Link
+                    key={t.id}
+                    href={`/trips/${t.id}`}
+                    className="group rounded-2xl border border-gray-100 dark:border-slate-700 overflow-hidden hover:shadow-md transition-shadow"
+                  >
+                    <div className="aspect-[4/3] overflow-hidden bg-gray-100 dark:bg-slate-700 relative">
+                      <img
+                        src={t.coverImage ?? `https://images.unsplash.com/photo-1476514525405-8d4b4c284c1e?auto=format&fit=crop&w=400&q=80&sig=${t.id}`}
+                        alt={t.title}
+                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                        loading="lazy"
+                        referrerPolicy="no-referrer"
+                        onError={(e) => { (e.target as HTMLImageElement).src = "https://images.unsplash.com/photo-1476514525405-8d4b4c284c1e?auto=format&fit=crop&w=400&q=80"; }}
+                      />
+                      {t.itemCount > 0 && (
+                        <span className="absolute bottom-2 right-2 bg-black/50 text-white text-[10px] px-1.5 py-0.5 rounded-full">
+                          {t.itemCount} จุด
+                        </span>
+                      )}
+                    </div>
+                    <div className="p-2.5">
+                      <p className="text-xs font-bold text-gray-800 dark:text-slate-200 line-clamp-1">{t.title}</p>
+                      <div className="flex items-center gap-1 mt-0.5 text-[10px] text-gray-400 dark:text-slate-500">
+                        <MapPin className="w-2.5 h-2.5 flex-shrink-0" />
+                        <span className="truncate">{t.destination}</span>
+                      </div>
+                    </div>
+                  </Link>
+                ))}
+              </div>
             )}
           </div>
         )}

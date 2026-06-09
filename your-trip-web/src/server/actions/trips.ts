@@ -94,6 +94,34 @@ export interface PublicTripItem {
   owner: { name: string | null; avatarUrl: string | null };
 }
 
+export async function getUserPublicTrips(userId: string): Promise<{ data: PublicTripItem[] }> {
+  try {
+    const trips = await prisma.trip.findMany({
+      where: { userId, isPublic: true },
+      orderBy: { updatedAt: "desc" },
+      take: 20,
+      include: {
+        user: { select: { name: true, avatarUrl: true } },
+        days: { include: { _count: { select: { items: true } } } },
+      },
+    });
+    return {
+      data: trips.map((t) => ({
+        id: t.id,
+        title: t.title,
+        destination: t.destination,
+        coverImage: t.coverImage,
+        startDate: t.startDate,
+        endDate: t.endDate,
+        itemCount: t.days.reduce((sum, d) => sum + d._count.items, 0),
+        owner: { name: t.user.name, avatarUrl: t.user.avatarUrl },
+      })),
+    };
+  } catch {
+    return { data: [] };
+  }
+}
+
 export async function getPublicTrips(limit = 12): Promise<{ data: PublicTripItem[] }> {
   try {
     const supabase = await createServerClient();
