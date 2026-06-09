@@ -1,7 +1,7 @@
 import AppShell from "@/components/AppShell";
 
 function Skeleton({ className }: { className?: string }) {
-  return <div className={`animate-pulse bg-gray-100 rounded-lg ${className}`} />;
+  return <div className={`animate-pulse bg-gray-100 dark:bg-slate-700 rounded-lg ${className}`} />;
 }
 
 export default function PlaceLoading() {
@@ -37,9 +37,9 @@ export default function PlaceLoading() {
           {/* Hours */}
           <div className="space-y-2">
             <Skeleton className="h-4 w-24" />
-            <div className="bg-white rounded-xl border border-gray-100 overflow-hidden">
+            <div className="bg-white dark:bg-slate-800 rounded-xl border border-gray-100 dark:border-slate-700 overflow-hidden">
               {[...Array(2)].map((_, i) => (
-                <div key={i} className="flex justify-between px-4 py-2.5 border-b border-gray-50">
+                <div key={i} className="flex justify-between px-4 py-2.5 border-b border-gray-50 dark:border-slate-700">
                   <Skeleton className="h-3 w-24" />
                   <Skeleton className="h-3 w-24" />
                 </div>

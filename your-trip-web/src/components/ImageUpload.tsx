@@ -100,7 +100,7 @@ export function ImageUpload({
       {value.length > 0 && (
         <div className={`grid gap-2 ${value.length === 1 ? "grid-cols-1" : value.length === 2 ? "grid-cols-2" : "grid-cols-3"}`}>
           {value.map((img, i) => (
-            <div key={img.publicId} className="relative aspect-square rounded-2xl overflow-hidden bg-gray-100">
+            <div key={img.publicId} className="relative aspect-square rounded-2xl overflow-hidden bg-gray-100 dark:bg-slate-700">
               <img src={img.preview || img.url} alt="" className="w-full h-full object-cover" />
               <button
                 type="button"
@@ -123,7 +123,7 @@ export function ImageUpload({
             <button
               type="button"
               onClick={() => inputRef.current?.click()}
-              className="aspect-square rounded-2xl border-2 border-dashed border-gray-200 flex flex-col items-center justify-center gap-1.5 text-gray-400 hover:border-[#398AB9] hover:text-[#398AB9] transition"
+              className="aspect-square rounded-2xl border-2 border-dashed border-gray-200 dark:border-slate-600 flex flex-col items-center justify-center gap-1.5 text-gray-400 dark:text-slate-500 hover:border-[#398AB9] hover:text-[#398AB9] transition"
             >
               <Camera className="w-5 h-5" />
               <span className="text-[10px] font-medium">เพิ่ม</span>
@@ -146,7 +146,7 @@ export function ImageUpload({
           onDrop={handleDrop}
           onDragOver={handleDragOver}
           onClick={() => inputRef.current?.click()}
-          className="border-2 border-dashed border-gray-200 rounded-2xl p-8 flex flex-col items-center justify-center gap-2 cursor-pointer hover:border-[#398AB9] hover:bg-[#398AB9]/5 transition group"
+          className="border-2 border-dashed border-gray-200 dark:border-slate-600 rounded-2xl p-8 flex flex-col items-center justify-center gap-2 cursor-pointer hover:border-[#398AB9] hover:bg-[#398AB9]/5 transition group"
         >
           {uploading > 0 ? (
             <>
@@ -155,11 +155,11 @@ export function ImageUpload({
             </>
           ) : (
             <>
-              <div className="w-12 h-12 bg-gray-100 group-hover:bg-[#398AB9]/10 rounded-2xl flex items-center justify-center transition">
-                <ImageIcon className="w-6 h-6 text-gray-400 group-hover:text-[#398AB9] transition" />
+              <div className="w-12 h-12 bg-gray-100 dark:bg-slate-700 group-hover:bg-[#398AB9]/10 rounded-2xl flex items-center justify-center transition">
+                <ImageIcon className="w-6 h-6 text-gray-400 dark:text-slate-500 group-hover:text-[#398AB9] transition" />
               </div>
-              <p className="text-sm font-medium text-gray-600">เพิ่มรูปภาพ</p>
-              <p className="text-xs text-gray-400">ลากวางหรือแตะเพื่อเลือก (สูงสุด {maxImages} รูป, 10 MB/รูป)</p>
+              <p className="text-sm font-medium text-gray-600 dark:text-slate-400">เพิ่มรูปภาพ</p>
+              <p className="text-xs text-gray-400 dark:text-slate-500">ลากวางหรือแตะเพื่อเลือก (สูงสุด {maxImages} รูป, 10 MB/รูป)</p>
             </>
           )}
         </div>

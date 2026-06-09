@@ -1,7 +1,7 @@
 import AppShell from "@/components/AppShell";
 
 function Skeleton({ className }: { className?: string }) {
-  return <div className={`animate-pulse bg-gray-100 rounded-lg ${className}`} />;
+  return <div className={`animate-pulse bg-gray-100 dark:bg-slate-700 rounded-lg ${className}`} />;
 }
 
 export default function ExploreLoading() {
@@ -17,7 +17,7 @@ export default function ExploreLoading() {
         <Skeleton className="h-4 w-24 mb-4" />
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 md:gap-4">
           {[...Array(8)].map((_, i) => (
-            <div key={i} className="bg-white rounded-2xl border border-gray-100 overflow-hidden">
+            <div key={i} className="bg-white dark:bg-slate-800 rounded-2xl border border-gray-100 dark:border-slate-700 overflow-hidden">
               <Skeleton className="aspect-[4/3] rounded-none" />
               <div className="p-3 space-y-1.5">
                 <Skeleton className="h-3 w-3/4" />

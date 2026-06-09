@@ -73,10 +73,10 @@ export function PWAInstallPrompt() {
 
   return (
     <div className="fixed bottom-24 md:bottom-6 left-4 right-4 md:left-auto md:right-6 md:w-80 z-50 animate-in slide-in-from-bottom-4 duration-300">
-      <div className="bg-white rounded-2xl shadow-xl border border-gray-100 p-4">
+      <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-xl border border-gray-100 dark:border-slate-700 p-4">
         <button
           onClick={handleDismiss}
-          className="absolute top-3 right-3 w-6 h-6 flex items-center justify-center text-gray-400 hover:text-gray-600 transition"
+          className="absolute top-3 right-3 w-6 h-6 flex items-center justify-center text-gray-400 dark:text-slate-500 hover:text-gray-600 dark:hover:text-slate-300 transition"
         >
           <X className="w-4 h-4" />
         </button>
@@ -86,14 +86,14 @@ export function PWAInstallPrompt() {
             <Smartphone className="w-5 h-5 text-white" />
           </div>
           <div>
-            <p className="text-sm font-bold text-gray-900">ติดตั้ง Your Trip</p>
-            <p className="text-xs text-gray-500 mt-0.5">เข้าถึงได้ทุกที่ แม้ออฟไลน์</p>
+            <p className="text-sm font-bold text-gray-900 dark:text-slate-100">ติดตั้ง Your Trip</p>
+            <p className="text-xs text-gray-500 dark:text-slate-400 mt-0.5">เข้าถึงได้ทุกที่ แม้ออฟไลน์</p>
           </div>
         </div>
 
         {isIOS ? (
-          <div className="text-xs text-gray-600 space-y-1.5">
-            <p className="font-medium text-gray-800">วิธีติดตั้งบน iPhone/iPad:</p>
+          <div className="text-xs text-gray-600 dark:text-slate-400 space-y-1.5">
+            <p className="font-medium text-gray-800 dark:text-slate-200">วิธีติดตั้งบน iPhone/iPad:</p>
             <p>1. แตะปุ่ม <span className="font-semibold">แชร์</span> (□↑) ที่แถบด้านล่าง</p>
             <p>2. เลื่อนลงและแตะ <span className="font-semibold">&quot;Add to Home Screen&quot;</span></p>
             <p>3. แตะ <span className="font-semibold">Add</span></p>

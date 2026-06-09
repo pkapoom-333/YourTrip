@@ -1,12 +1,12 @@
 import AppShell from "@/components/AppShell";
 
 function Skeleton({ className }: { className?: string }) {
-  return <div className={`animate-pulse bg-gray-100 rounded-lg ${className}`} />;
+  return <div className={`animate-pulse bg-gray-100 dark:bg-slate-700 rounded-lg ${className}`} />;
 }
 
 function PostSkeleton() {
   return (
-    <div className="bg-white md:rounded-2xl border border-gray-100 overflow-hidden">
+    <div className="bg-white dark:bg-slate-800 md:rounded-2xl border border-gray-100 dark:border-slate-700 overflow-hidden">
       <div className="flex items-center gap-3 px-4 pt-4 pb-2">
         <Skeleton className="w-10 h-10 rounded-full flex-shrink-0" />
         <div className="flex-1 space-y-1.5">
@@ -43,7 +43,7 @@ export default function FeedLoading() {
         <div className="flex gap-6">
           <div className="flex-1 min-w-0 space-y-3">
             {/* Stories skeleton */}
-            <div className="bg-white md:rounded-2xl border border-gray-100 px-4 py-4">
+            <div className="bg-white dark:bg-slate-800 md:rounded-2xl border border-gray-100 dark:border-slate-700 px-4 py-4">
               <div className="flex gap-4">
                 {[...Array(6)].map((_, i) => (
                   <div key={i} className="flex flex-col items-center gap-1.5 flex-shrink-0">
@@ -58,7 +58,7 @@ export default function FeedLoading() {
           </div>
           {/* Right panel skeleton */}
           <div className="hidden lg:block w-72 flex-shrink-0 space-y-4">
-            <div className="bg-white rounded-2xl border border-gray-100 p-5">
+            <div className="bg-white dark:bg-slate-800 rounded-2xl border border-gray-100 dark:border-slate-700 p-5">
               <Skeleton className="h-4 w-24 mb-4" />
               {[...Array(4)].map((_, i) => (
                 <div key={i} className="flex justify-between items-center mb-3">

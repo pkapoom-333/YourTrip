@@ -40,7 +40,7 @@ export default function UserListRow({ user, selfId }: Props) {
   }
 
   return (
-    <div className="flex items-center gap-3 px-4 py-3 hover:bg-gray-50 transition">
+    <div className="flex items-center gap-3 px-4 py-3 hover:bg-gray-50 dark:hover:bg-slate-700/50 transition">
       <Link href={`/profile/${user.id}`} className="flex items-center gap-3 flex-1 min-w-0">
         {user.avatarUrl ? (
           <img
@@ -54,14 +54,14 @@ export default function UserListRow({ user, selfId }: Props) {
           </div>
         )}
         <div className="min-w-0 flex-1">
-          <p className="text-sm font-semibold text-gray-900 truncate">
+          <p className="text-sm font-semibold text-gray-900 dark:text-slate-100 truncate">
             {user.name ?? "ผู้ใช้"}
           </p>
           {user.username && (
-            <p className="text-[11px] text-gray-400 truncate">@{user.username}</p>
+            <p className="text-[11px] text-gray-400 dark:text-slate-500 truncate">@{user.username}</p>
           )}
           {user.bio && (
-            <p className="text-xs text-gray-500 truncate mt-0.5">{user.bio}</p>
+            <p className="text-xs text-gray-500 dark:text-slate-400 truncate mt-0.5">{user.bio}</p>
           )}
         </div>
       </Link>
@@ -72,7 +72,7 @@ export default function UserListRow({ user, selfId }: Props) {
           disabled={busy}
           className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold transition flex-shrink-0 disabled:opacity-60 ${
             following
-              ? "border border-gray-200 text-gray-600 hover:bg-gray-50"
+              ? "border border-gray-200 dark:border-slate-600 text-gray-600 dark:text-slate-400 hover:bg-gray-50 dark:hover:bg-slate-700"
               : "bg-[#398AB9] text-white hover:bg-[#1C658C]"
           }`}
         >

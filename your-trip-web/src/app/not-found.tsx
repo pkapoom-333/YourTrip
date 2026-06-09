@@ -5,7 +5,7 @@ import { MapPin, Home, Search, ArrowLeft } from "lucide-react";
 
 export default function NotFound() {
   return (
-    <div className="min-h-screen bg-[#F8FAFC] flex items-center justify-center px-4">
+    <div className="min-h-screen bg-[#F8FAFC] dark:bg-slate-900 flex items-center justify-center px-4">
       <div className="text-center max-w-md">
         {/* Illustration */}
         <div className="relative inline-block mb-8">
@@ -19,8 +19,8 @@ export default function NotFound() {
 
         {/* Text */}
         <h1 className="text-6xl font-black text-[#398AB9] mb-3">404</h1>
-        <h2 className="text-xl font-bold text-gray-900 mb-3">ไม่พบหน้าที่คุณค้นหา</h2>
-        <p className="text-gray-400 text-sm leading-relaxed mb-8">
+        <h2 className="text-xl font-bold text-gray-900 dark:text-slate-100 mb-3">ไม่พบหน้าที่คุณค้นหา</h2>
+        <p className="text-gray-400 dark:text-slate-500 text-sm leading-relaxed mb-8">
           ดูเหมือนคุณหลงทาง 🧭<br />
           หน้านี้อาจถูกลบ ย้าย หรือไม่เคยมีอยู่ก็ได้
         </p>
@@ -36,7 +36,7 @@ export default function NotFound() {
           </Link>
           <Link
             href="/explore"
-            className="flex items-center justify-center gap-2 px-6 py-3 border border-gray-200 bg-white text-gray-700 rounded-2xl font-medium hover:bg-gray-50 transition-colors"
+            className="flex items-center justify-center gap-2 px-6 py-3 border border-gray-200 dark:border-slate-600 bg-white dark:bg-slate-800 text-gray-700 dark:text-slate-300 rounded-2xl font-medium hover:bg-gray-50 dark:hover:bg-slate-700 transition-colors"
           >
             <Search className="w-4 h-4" />
             สำรวจสถานที่
@@ -46,7 +46,7 @@ export default function NotFound() {
         {/* Back button */}
         <button
           onClick={() => history.back()}
-          className="mt-4 flex items-center gap-1.5 text-sm text-gray-400 hover:text-gray-600 transition mx-auto"
+          className="mt-4 flex items-center gap-1.5 text-sm text-gray-400 dark:text-slate-500 hover:text-gray-600 dark:hover:text-slate-300 transition mx-auto"
         >
           <ArrowLeft className="w-3.5 h-3.5" />
           ย้อนกลับ

@@ -46,19 +46,19 @@ export default function ResetPasswordClient() {
           <p className="text-white/65 text-sm mt-1">สังคมแห่งการท่องเที่ยว</p>
         </div>
 
-        <div className="bg-white rounded-3xl p-8 shadow-2xl">
+        <div className="bg-white dark:bg-slate-800 rounded-3xl p-8 shadow-2xl">
           {done ? (
             <div className="text-center">
-              <div className="w-16 h-16 bg-emerald-100 rounded-full flex items-center justify-center mx-auto mb-4">
+              <div className="w-16 h-16 bg-emerald-100 dark:bg-emerald-900/30 rounded-full flex items-center justify-center mx-auto mb-4">
                 <CheckCircle className="w-8 h-8 text-emerald-500" />
               </div>
-              <h2 className="text-xl font-bold text-gray-900 mb-2">เปลี่ยนรหัสผ่านสำเร็จ!</h2>
-              <p className="text-sm text-gray-500">กำลังพาคุณไปยังหน้าหลัก...</p>
+              <h2 className="text-xl font-bold text-gray-900 dark:text-slate-100 mb-2">เปลี่ยนรหัสผ่านสำเร็จ!</h2>
+              <p className="text-sm text-gray-500 dark:text-slate-400">กำลังพาคุณไปยังหน้าหลัก...</p>
             </div>
           ) : (
             <>
               <h2 className="text-2xl font-bold text-[#398AB9] mb-2">ตั้งรหัสผ่านใหม่</h2>
-              <p className="text-sm text-gray-400 mb-6">รหัสผ่านต้องมีอย่างน้อย 8 ตัวอักษร</p>
+              <p className="text-sm text-gray-400 dark:text-slate-500 mb-6">รหัสผ่านต้องมีอย่างน้อย 8 ตัวอักษร</p>
 
               {error && (
                 <div className="bg-red-50 border border-red-200 text-red-600 text-sm rounded-xl px-4 py-3 mb-4">
@@ -75,7 +75,7 @@ export default function ResetPasswordClient() {
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     required
-                    className="w-full pl-10 pr-10 py-3.5 border border-gray-200 rounded-xl focus:outline-none focus:border-[#398AB9] focus:ring-2 focus:ring-[#398AB9]/10 text-sm bg-[#F8FBFE]"
+                    className="w-full pl-10 pr-10 py-3.5 border border-gray-200 dark:border-slate-600 rounded-xl focus:outline-none focus:border-[#398AB9] focus:ring-2 focus:ring-[#398AB9]/10 text-sm bg-[#F8FBFE] dark:bg-slate-700/50 dark:text-slate-200"
                   />
                   <button type="button" onClick={() => setShowPw(!showPw)}
                     className="absolute right-3.5 top-1/2 -translate-y-1/2 text-gray-400">
@@ -90,7 +90,7 @@ export default function ResetPasswordClient() {
                     value={confirm}
                     onChange={(e) => setConfirm(e.target.value)}
                     required
-                    className="w-full pl-10 pr-4 py-3.5 border border-gray-200 rounded-xl focus:outline-none focus:border-[#398AB9] focus:ring-2 focus:ring-[#398AB9]/10 text-sm bg-[#F8FBFE]"
+                    className="w-full pl-10 pr-4 py-3.5 border border-gray-200 dark:border-slate-600 rounded-xl focus:outline-none focus:border-[#398AB9] focus:ring-2 focus:ring-[#398AB9]/10 text-sm bg-[#F8FBFE] dark:bg-slate-700/50 dark:text-slate-200"
                   />
                 </div>
                 <button

@@ -47,27 +47,27 @@ export default function SuggestedUsers() {
   }
 
   return (
-    <div className="bg-white rounded-2xl border border-gray-100 p-5">
+    <div className="bg-white dark:bg-slate-800 rounded-2xl border border-gray-100 dark:border-slate-700 p-5">
       <div className="flex items-center gap-2 mb-4">
         <Users className="w-4 h-4 text-[#398AB9]" />
-        <h3 className="text-sm font-semibold text-gray-900">แนะนำให้ติดตาม</h3>
+        <h3 className="text-sm font-semibold text-gray-900 dark:text-slate-100">แนะนำให้ติดตาม</h3>
       </div>
 
       {loading ? (
         <div className="space-y-3">
           {[1, 2, 3].map((i) => (
             <div key={i} className="flex items-center gap-3 animate-pulse">
-              <div className="w-9 h-9 bg-gray-100 rounded-full" />
+              <div className="w-9 h-9 bg-gray-100 dark:bg-slate-700 rounded-full" />
               <div className="flex-1 space-y-1.5">
-                <div className="h-3 bg-gray-100 rounded w-24" />
-                <div className="h-2 bg-gray-50 rounded w-32" />
+                <div className="h-3 bg-gray-100 dark:bg-slate-700 rounded w-24" />
+                <div className="h-2 bg-gray-50 dark:bg-slate-700/60 rounded w-32" />
               </div>
-              <div className="w-16 h-6 bg-gray-100 rounded-lg" />
+              <div className="w-16 h-6 bg-gray-100 dark:bg-slate-700 rounded-lg" />
             </div>
           ))}
         </div>
       ) : users.length === 0 ? (
-        <p className="text-xs text-gray-400 text-center py-3">ไม่มีคำแนะนำในตอนนี้</p>
+        <p className="text-xs text-gray-400 dark:text-slate-500 text-center py-3">ไม่มีคำแนะนำในตอนนี้</p>
       ) : (
         <div className="space-y-3">
           {users.map((u, idx) => {
@@ -89,11 +89,11 @@ export default function SuggestedUsers() {
                     </div>
                   )}
                   <div className="min-w-0">
-                    <p className="text-sm font-semibold text-gray-800 truncate">
+                    <p className="text-sm font-semibold text-gray-800 dark:text-slate-200 truncate">
                       {u.name ?? "ผู้ใช้"}
                     </p>
                     {u.username && (
-                      <p className="text-[11px] text-gray-400 truncate">@{u.username}</p>
+                      <p className="text-[11px] text-gray-400 dark:text-slate-500 truncate">@{u.username}</p>
                     )}
                   </div>
                 </Link>
@@ -101,7 +101,7 @@ export default function SuggestedUsers() {
                   onClick={() => toggle(idx)}
                   className={`flex items-center gap-1 px-2.5 py-1 rounded-lg text-[11px] font-semibold transition flex-shrink-0 ${
                     u.isFollowing
-                      ? "border border-gray-200 text-gray-500 hover:bg-gray-50"
+                      ? "border border-gray-200 dark:border-slate-600 text-gray-500 dark:text-slate-400 hover:bg-gray-50 dark:hover:bg-slate-700"
                       : "bg-[#398AB9] text-white hover:bg-[#1C658C]"
                   }`}
                 >

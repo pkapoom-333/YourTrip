@@ -53,7 +53,7 @@ function FeedEmptyState() {
         <Plane className="w-9 h-9 text-[#398AB9]" />
       </div>
       <h3 className="text-base font-bold text-gray-900 dark:text-slate-100 mb-2">ยังไม่มีโพสต์ในฟีด</h3>
-      <p className="text-sm text-gray-400 mb-6 max-w-xs">
+      <p className="text-sm text-gray-400 dark:text-slate-500 mb-6 max-w-xs">
         เป็นคนแรกที่แชร์ประสบการณ์การท่องเที่ยว หรือติดตามนักเดินทางคนอื่น
       </p>
       <div className="flex gap-3">
@@ -62,7 +62,7 @@ function FeedEmptyState() {
           สร้างโพสต์แรก
         </Link>
         <Link href="/explore"
-          className="border border-gray-200 text-gray-600 text-sm font-medium px-5 py-2.5 rounded-xl hover:border-[#398AB9] hover:text-[#398AB9] transition">
+          className="border border-gray-200 dark:border-slate-600 text-gray-600 dark:text-slate-400 text-sm font-medium px-5 py-2.5 rounded-xl hover:border-[#398AB9] hover:text-[#398AB9] transition">
           สำรวจสถานที่
         </Link>
       </div>
@@ -222,7 +222,7 @@ export function FeedPostsClient({ initialPosts, initialCursor, initialHasMore = 
           <div className={`w-8 h-8 rounded-full border-2 flex items-center justify-center transition-all ${
             refreshing || pullProgress >= 1
               ? "border-[#398AB9] bg-[#398AB9]/10"
-              : "border-gray-200 bg-white"
+              : "border-gray-200 dark:border-slate-600 bg-white dark:bg-slate-800"
           }`}
             style={{ transform: `scale(${0.5 + pullProgress * 0.5})` }}>
             <Loader2 className={`w-4 h-4 text-[#398AB9] ${refreshing ? "animate-spin" : ""}`}
@@ -272,7 +272,7 @@ export function FeedPostsClient({ initialPosts, initialCursor, initialHasMore = 
 
       {/* End of feed */}
       {!hasMore && posts.length > 0 && (
-        <p className="text-center text-xs text-gray-400 py-4">
+        <p className="text-center text-xs text-gray-400 dark:text-slate-500 py-4">
           คุณดูโพสต์ทั้งหมดแล้ว 🎉
         </p>
       )}

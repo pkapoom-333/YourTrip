@@ -1,14 +1,14 @@
 import AppShell from "@/components/AppShell";
 
 function Skeleton({ className }: { className?: string }) {
-  return <div className={`animate-pulse bg-gray-100 rounded-lg ${className}`} />;
+  return <div className={`animate-pulse bg-gray-100 dark:bg-slate-700 rounded-lg ${className}`} />;
 }
 
 export default function BuddyLoading() {
   return (
     <AppShell>
       <div className="max-w-2xl mx-auto">
-        <div className="border-b border-gray-100 px-4 py-4">
+        <div className="border-b border-gray-100 dark:border-slate-700 px-4 py-4">
           <Skeleton className="h-7 w-40 mb-1" />
           <Skeleton className="h-3 w-48 mb-3" />
           <div className="flex gap-2">
@@ -19,7 +19,7 @@ export default function BuddyLoading() {
         </div>
         <div className="px-4 py-4 space-y-4">
           {[...Array(2)].map((_, i) => (
-            <div key={i} className="bg-white rounded-3xl border border-gray-100 overflow-hidden">
+            <div key={i} className="bg-white dark:bg-slate-800 rounded-3xl border border-gray-100 dark:border-slate-700 overflow-hidden">
               <div className="grid grid-cols-2">
                 <Skeleton className="aspect-square rounded-none" />
                 <Skeleton className="aspect-square rounded-none" />
