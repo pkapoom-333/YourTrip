@@ -199,10 +199,10 @@ export default function NotificationsPage() {
     <AppShell>
       <div className="max-w-2xl mx-auto">
         {/* Header */}
-        <div className="sticky top-0 z-20 bg-white border-b border-gray-100 px-4 md:px-6 py-4">
+        <div className="sticky top-0 z-20 bg-white dark:bg-slate-800 border-b border-gray-100 dark:border-slate-700 px-4 md:px-6 py-4">
           <div className="flex items-center justify-between mb-3">
             <div className="flex items-center gap-2">
-              <h1 className="text-xl font-bold text-gray-900">การแจ้งเตือน</h1>
+              <h1 className="text-xl font-bold text-gray-900 dark:text-slate-100">การแจ้งเตือน</h1>
               {unreadCount > 0 && (
                 <span className="text-xs font-bold bg-[#398AB9] text-white px-2 py-0.5 rounded-full">
                   {unreadCount}
@@ -229,7 +229,7 @@ export default function NotificationsPage() {
                 className={`px-4 py-1.5 rounded-full text-sm font-medium transition-all ${
                   filter === f
                     ? "bg-[#398AB9] text-white"
-                    : "bg-gray-100 text-gray-500 hover:bg-gray-200"
+                    : "bg-gray-100 dark:bg-slate-700 text-gray-500 dark:text-slate-400 hover:bg-gray-200 dark:hover:bg-slate-600"
                 }`}
               >
                 {f === "all" ? "ทั้งหมด" : `ยังไม่ได้อ่าน${unreadCount > 0 ? ` (${unreadCount})` : ""}`}
@@ -265,8 +265,8 @@ export default function NotificationsPage() {
           <div>
             {groups.map((group) => (
               <div key={group.label}>
-                <div className="px-4 md:px-6 py-2 bg-gray-50 border-b border-gray-100">
-                  <span className="text-xs font-semibold text-gray-400 uppercase tracking-wide">
+                <div className="px-4 md:px-6 py-2 bg-gray-50 dark:bg-slate-700/50 border-b border-gray-100 dark:border-slate-700">
+                  <span className="text-xs font-semibold text-gray-400 dark:text-slate-500 uppercase tracking-wide">
                     {group.label}
                   </span>
                 </div>
@@ -277,8 +277,8 @@ export default function NotificationsPage() {
                     <div
                       key={notif.id}
                       onClick={() => markRead(notif.id)}
-                      className={`flex items-start gap-3 px-4 md:px-6 py-4 border-b border-gray-50 cursor-pointer transition-colors hover:bg-gray-50 ${
-                        !notif.isRead ? "bg-[#398AB9]/5" : ""
+                      className={`flex items-start gap-3 px-4 md:px-6 py-4 border-b border-gray-50 dark:border-slate-700/50 cursor-pointer transition-colors hover:bg-gray-50 dark:hover:bg-slate-700/50 ${
+                        !notif.isRead ? "bg-[#398AB9]/5 dark:bg-[#398AB9]/10" : ""
                       }`}
                     >
                       {/* Avatar + Icon badge */}
@@ -288,21 +288,21 @@ export default function NotificationsPage() {
                         }`}>
                           {notif.actorAvatar}
                         </div>
-                        <div className={`absolute -bottom-1 -right-1 w-5 h-5 rounded-full ${color} flex items-center justify-center border-2 border-white`}>
+                        <div className={`absolute -bottom-1 -right-1 w-5 h-5 rounded-full ${color} flex items-center justify-center border-2 border-white dark:border-slate-800`}>
                           <Icon className="w-2.5 h-2.5 text-white" />
                         </div>
                       </div>
 
                       {/* Text */}
                       <div className="flex-1 min-w-0">
-                        <p className="text-sm text-gray-800 leading-snug">
+                        <p className="text-sm text-gray-800 dark:text-slate-200 leading-snug">
                           <span className="font-semibold">{notif.actor}</span>
                           {" "}{notif.text}
                         </p>
                         {notif.subtext && (
-                          <p className="text-xs text-gray-400 mt-0.5 line-clamp-1">{notif.subtext}</p>
+                          <p className="text-xs text-gray-400 dark:text-slate-500 mt-0.5 line-clamp-1">{notif.subtext}</p>
                         )}
-                        <p className="text-[11px] text-gray-400 mt-1">{notif.time}</p>
+                        <p className="text-[11px] text-gray-400 dark:text-slate-500 mt-1">{notif.time}</p>
                       </div>
 
                       {/* Image preview or unread dot */}

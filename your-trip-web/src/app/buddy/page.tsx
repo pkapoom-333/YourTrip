@@ -199,15 +199,15 @@ export default function BuddyPage() {
     <AppShell>
       <div className="max-w-2xl mx-auto">
         {/* Header */}
-        <div className="sticky top-0 z-20 bg-white border-b border-gray-100 px-4 py-4">
+        <div className="sticky top-0 z-20 bg-white dark:bg-slate-800 border-b border-gray-100 dark:border-slate-700 px-4 py-4">
           <div className="flex items-center justify-between mb-3">
             <div>
-              <h1 className="text-xl font-bold text-gray-900">Travel Buddy</h1>
-              <p className="text-xs text-gray-400 mt-0.5">ค้นหาเพื่อนร่วมทริปในฝัน</p>
+              <h1 className="text-xl font-bold text-gray-900 dark:text-slate-100">Travel Buddy</h1>
+              <p className="text-xs text-gray-400 dark:text-slate-500 mt-0.5">ค้นหาเพื่อนร่วมทริปในฝัน</p>
             </div>
             <button
               onClick={() => setShowFilter(!showFilter)}
-              className="flex items-center gap-1.5 px-3 py-2 bg-gray-100 rounded-xl text-xs font-medium text-gray-600 hover:bg-gray-200 transition"
+              className="flex items-center gap-1.5 px-3 py-2 bg-gray-100 dark:bg-slate-700 rounded-xl text-xs font-medium text-gray-600 dark:text-slate-300 hover:bg-gray-200 dark:hover:bg-slate-600 transition"
             >
               <Filter className="w-3.5 h-3.5" />
               กรอง
@@ -227,7 +227,7 @@ export default function BuddyPage() {
                 className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium transition-all ${
                   activeTab === key
                     ? "bg-[#398AB9] text-white"
-                    : "bg-gray-100 text-gray-500 hover:bg-gray-200"
+                    : "bg-gray-100 dark:bg-slate-700 text-gray-500 dark:text-slate-400 hover:bg-gray-200 dark:hover:bg-slate-600"
                 }`}
               >
                 <Icon className="w-3.5 h-3.5" />
@@ -239,7 +239,7 @@ export default function BuddyPage() {
 
         {/* Filter panel */}
         {showFilter && (
-          <div className="bg-white border-b border-gray-100 px-4 py-4">
+          <div className="bg-white dark:bg-slate-800 border-b border-gray-100 dark:border-slate-700 px-4 py-4">
             {/* Search */}
             <div className="relative mb-3">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
@@ -422,7 +422,7 @@ function BuddyCard({
   const [expanded, setExpanded] = useState(false);
 
   return (
-    <div className="bg-white rounded-3xl border border-gray-100 overflow-hidden shadow-sm hover:shadow-md transition-shadow">
+    <div className="bg-white dark:bg-slate-800 rounded-3xl border border-gray-100 dark:border-slate-700 overflow-hidden shadow-sm hover:shadow-md transition-shadow">
       {/* Photo grid */}
       {buddy.photos.length > 0 && (
         <div className={`grid gap-0.5 ${buddy.photos.length >= 2 ? "grid-cols-2" : "grid-cols-1"}`}>
@@ -442,8 +442,8 @@ function BuddyCard({
           <Avatar src={buddy.avatarUrl} name={buddy.name} className="w-12 h-12" />
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-1.5">
-              <p className="font-bold text-gray-900">{buddy.name}</p>
-              <span className="text-gray-400 text-sm">• {buddy.age}</span>
+              <p className="font-bold text-gray-900 dark:text-slate-100">{buddy.name}</p>
+              <span className="text-gray-400 dark:text-slate-500 text-sm">• {buddy.age}</span>
               {buddy.isVerified && (
                 <span className="text-[10px] bg-[#398AB9]/10 text-[#398AB9] px-1.5 py-0.5 rounded-full font-medium">
                   ✓ ยืนยัน
@@ -464,7 +464,7 @@ function BuddyCard({
         </div>
 
         {/* Bio */}
-        <p className={`text-sm text-gray-600 leading-relaxed mb-3 ${!expanded ? "line-clamp-2" : ""}`}>
+        <p className={`text-sm text-gray-600 dark:text-slate-400 leading-relaxed mb-3 ${!expanded ? "line-clamp-2" : ""}`}>
           {buddy.bio}
         </p>
 
@@ -484,7 +484,7 @@ function BuddyCard({
         {/* Style tags */}
         <div className="flex flex-wrap gap-1.5 mb-4">
           {buddy.travelStyle.map((s) => (
-            <span key={s} className="text-[11px] bg-gray-100 text-gray-500 px-2.5 py-1 rounded-full">
+            <span key={s} className="text-[11px] bg-gray-100 dark:bg-slate-700 text-gray-500 dark:text-slate-400 px-2.5 py-1 rounded-full">
               {s}
             </span>
           ))}
