@@ -22,7 +22,7 @@ const statusConfig: Record<TripSummary["status"], { label: string; color: string
   upcoming:  { label: "กำลังจะไป",    color: "bg-[#398AB9]/10 text-[#398AB9]" },
   planning:  { label: "กำลังวางแผน", color: "bg-amber-50 text-amber-600" },
   completed: { label: "เสร็จแล้ว",   color: "bg-emerald-50 text-emerald-600" },
-  cancelled: { label: "ยกเลิก",       color: "bg-gray-100 text-gray-400" },
+  cancelled: { label: "ยกเลิก",       color: "bg-gray-100 dark:bg-slate-700 text-gray-400 dark:text-slate-500" },
 };
 
 const PLACEHOLDER_IMG = "https://images.unsplash.com/photo-1476514525405-8d4b4c284c1e?auto=format&fit=crop&w=800&q=80";
@@ -127,7 +127,7 @@ export default function TripsClient({ initialTrips }: { initialTrips: TripSummar
       {/* Trip cards */}
       <div className="space-y-3">
         {filtered.length === 0 && (
-          <div className="text-center py-16 text-gray-400">
+          <div className="text-center py-16 text-gray-400 dark:text-slate-500">
             <Plane className="w-10 h-10 mx-auto mb-3 opacity-30" />
             <p className="text-sm">ยังไม่มีทริปในหมวดนี้</p>
             <Link href="/trips/new"

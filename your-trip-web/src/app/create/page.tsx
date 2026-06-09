@@ -141,7 +141,7 @@ export default function CreatePage() {
           <div className="flex items-start gap-3">
             <Avatar src={avatarUrl} name={displayName} />
             <div className="flex-1">
-              <p className="text-sm font-semibold text-gray-900 mb-0.5">{displayName}</p>
+              <p className="text-sm font-semibold text-gray-900 dark:text-slate-100 mb-0.5">{displayName}</p>
               {location && (
                 <div className="flex items-center gap-1 text-[11px] text-[#398AB9]">
                   <MapPin className="w-3 h-3" />
@@ -161,7 +161,7 @@ export default function CreatePage() {
               className="w-full text-sm text-gray-800 dark:text-slate-200 placeholder:text-gray-400 dark:placeholder:text-slate-500 resize-none outline-none leading-relaxed bg-transparent"
               autoFocus
             />
-            <div className={`text-right text-xs mt-1 ${remaining < 50 ? "text-[#FF4F4F]" : "text-gray-300"}`}>
+            <div className={`text-right text-xs mt-1 ${remaining < 50 ? "text-[#FF4F4F]" : "text-gray-300 dark:text-slate-600"}`}>
               {remaining}
             </div>
           </div>
@@ -196,8 +196,8 @@ export default function CreatePage() {
                   className="flex-1 text-sm text-gray-700 dark:text-slate-300 placeholder:text-gray-400 dark:placeholder:text-slate-500 bg-transparent outline-none"
                 />
                 {placeSearching
-                  ? <Loader2 className="w-3.5 h-3.5 text-gray-400 animate-spin" />
-                  : placeSearchQ && <button onClick={clearPlace}><X className="w-3.5 h-3.5 text-gray-400" /></button>
+                  ? <Loader2 className="w-3.5 h-3.5 text-gray-400 dark:text-slate-500 animate-spin" />
+                  : placeSearchQ && <button onClick={clearPlace}><X className="w-3.5 h-3.5 text-gray-400 dark:text-slate-500" /></button>
                 }
               </div>
             )}
@@ -233,7 +233,7 @@ export default function CreatePage() {
                   }
                 }}
                 placeholder="เพิ่ม #แท็ก แล้วกด Enter"
-                className="flex-1 text-sm text-gray-700 placeholder:text-gray-400 outline-none bg-transparent"
+                className="flex-1 text-sm text-gray-700 dark:text-slate-300 placeholder:text-gray-400 dark:placeholder:text-slate-500 outline-none bg-transparent"
               />
             </div>
 
@@ -265,12 +265,12 @@ export default function CreatePage() {
         {/* Bottom toolbar */}
         <div className="sticky bottom-20 md:bottom-4 bg-white dark:bg-slate-800 border-t border-gray-100 dark:border-slate-700 px-4 py-3">
           <div className="flex items-center gap-4">
-            <button className="text-sm text-gray-500 hover:text-[#398AB9] transition">
+            <button className="text-sm text-gray-500 dark:text-slate-400 hover:text-[#398AB9] transition">
               <Smile className="w-5 h-5" />
             </button>
             <div className="ml-auto flex items-center gap-1.5">
               <div className={`w-1.5 h-1.5 rounded-full ${remaining < 50 ? "bg-[#FF4F4F]" : remaining < 150 ? "bg-amber-400" : "bg-emerald-400"}`} />
-              <span className={`text-xs font-medium ${remaining < 50 ? "text-[#FF4F4F]" : "text-gray-400"}`}>
+              <span className={`text-xs font-medium ${remaining < 50 ? "text-[#FF4F4F]" : "text-gray-400 dark:text-slate-500"}`}>
                 {remaining}
               </span>
             </div>
