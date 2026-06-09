@@ -25,6 +25,7 @@ export interface PlaceListItem {
   reviewCount: number;
   lat: number | null;
   lng: number | null;
+  tags: string[];
 }
 
 export interface PlaceDetail {
@@ -71,14 +72,27 @@ export interface PlaceDetail {
 
 // ─── getPlaces ────────────────────────────────────────────────────────────────
 
+/** Derive searchable tags from a place's facility/feature flags */
+function deriveTags(p: { hasWifi: boolean; hasParking: boolean; isAccessible: boolean; isVegetarian: boolean; hasAC: boolean; isFeatured: boolean }): string[] {
+  const t: string[] = [];
+  if (p.hasWifi)       t.push("WiFi");
+  if (p.hasParking)    t.push("ที่จอดรถ");
+  if (p.isAccessible)  t.push("ผู้พิการ");
+  if (p.isVegetarian)  t.push("มังสวิรัติ");
+  if (p.hasAC)         t.push("แอร์");
+  if (p.isFeatured)    t.push("แนะนำ");
+  return t;
+}
+
 export async function getPlaces(params?: {
   category?: PlaceCategory;
   region?: PlaceRegion;
   q?: string;
   featured?: boolean;
+  tags?: string[];
   take?: number;
 }): Promise<{ data: PlaceListItem[] }> {
-  const { category = "all", region = "all", q = "", featured, take = 20 } = params ?? {};
+  const { category = "all", region = "all", q = "", featured, tags, take = 20 } = params ?? {};
 
   try {
     // Build where clause — extended search covers name, nameEn, province, description
@@ -111,7 +125,7 @@ export async function getPlaces(params?: {
       },
     });
 
-    const data: PlaceListItem[] = places.map((p) => {
+    let data: PlaceListItem[] = places.map((p) => {
       const avgRating =
         p.reviews.length > 0
           ? p.reviews.reduce((sum, r) => sum + r.rating, 0) / p.reviews.length
@@ -136,8 +150,14 @@ export async function getPlaces(params?: {
         reviewCount: p._count.reviews,
         lat: p.lat,
         lng: p.lng,
+        tags: deriveTags(p),
       };
     });
+
+    // Tag filter (client-compatible post-processing — no DB column needed)
+    if (tags && tags.length > 0) {
+      data = data.filter((p) => tags.some((t) => p.tags.includes(t)));
+    }
 
     return { data };
   } catch {

@@ -276,6 +276,7 @@ export default function ExploreClient({ initialPlaces, initialSaved = [] }: { in
   }
   const [activeCategory, setActiveCategory] = useState("all");
   const [activeRegion, setActiveRegion] = useState("all");
+  const [activeTags, setActiveTags] = useState<string[]>([]);
   const [showFilter, setShowFilter] = useState(false);
   const [sortKey, setSortKey] = useState<SortKey>("rating");
   const [userLat, setUserLat] = useState<number | null>(null);
@@ -306,7 +307,8 @@ export default function ExploreClient({ initialPlaces, initialSaved = [] }: { in
         p.name.toLowerCase().includes(query.toLowerCase()) ||
         (p.nameEn ?? "").toLowerCase().includes(query.toLowerCase()) ||
         (p.province ?? "").toLowerCase().includes(query.toLowerCase());
-      return matchCat && matchReg && matchQ;
+      const matchTags = activeTags.length === 0 || activeTags.every((t) => p.tags.includes(t));
+      return matchCat && matchReg && matchQ && matchTags;
     })
     .sort((a, b) => {
       if (sortKey === "rating") return b.rating - a.rating;
@@ -323,7 +325,7 @@ export default function ExploreClient({ initialPlaces, initialSaved = [] }: { in
     });
 
   // Reset display count when filters change
-  const filterKey = `${query}|${activeCategory}|${activeRegion}|${sortKey}`;
+  const filterKey = `${query}|${activeCategory}|${activeRegion}|${sortKey}|${activeTags.join(",")}`;
   const [prevFilterKey, setPrevFilterKey] = useState(filterKey);
   if (filterKey !== prevFilterKey) {
     setPrevFilterKey(filterKey);
@@ -332,7 +334,7 @@ export default function ExploreClient({ initialPlaces, initialSaved = [] }: { in
 
   const displayedPlaces = filtered.slice(0, displayCount);
   const hasMore = filtered.length > displayCount;
-  const hasFilter = query || activeCategory !== "all" || activeRegion !== "all";
+  const hasFilter = query || activeCategory !== "all" || activeRegion !== "all" || activeTags.length > 0;
 
   const sentinelRef = useRef<HTMLDivElement>(null);
   const hasMoreRef = useRef(hasMore);
@@ -439,21 +441,43 @@ export default function ExploreClient({ initialPlaces, initialSaved = [] }: { in
       {/* People tab content */}
       {searchMode === "people" && <PeopleTab query={query} />}
 
-      {/* Region filter — places only */}
+      {/* Region + tag filter — places only */}
       {showFilter && searchMode === "places" && (
-        <div className="mb-4 bg-white dark:bg-slate-800 border border-gray-100 dark:border-slate-700 rounded-xl p-3">
-          <p className="text-xs font-semibold text-gray-500 dark:text-slate-400 mb-2 uppercase tracking-wide">ภูมิภาค</p>
-          <div className="flex flex-wrap gap-2">
-            {regions.map((r) => (
-              <button key={r} onClick={() => setActiveRegion(r)}
-                className={`text-xs px-3 py-1.5 rounded-full font-medium transition ${
-                  activeRegion === r
-                    ? "bg-[#398AB9] text-white"
-                    : "bg-gray-100 dark:bg-slate-700 text-gray-500 dark:text-slate-400 hover:bg-gray-200 dark:hover:bg-slate-600"
-                }`}>
-                {regionLabels[r]}
-              </button>
-            ))}
+        <div className="mb-4 bg-white dark:bg-slate-800 border border-gray-100 dark:border-slate-700 rounded-xl p-3 space-y-3">
+          <div>
+            <p className="text-xs font-semibold text-gray-500 dark:text-slate-400 mb-2 uppercase tracking-wide">ภูมิภาค</p>
+            <div className="flex flex-wrap gap-2">
+              {regions.map((r) => (
+                <button key={r} onClick={() => setActiveRegion(r)}
+                  className={`text-xs px-3 py-1.5 rounded-full font-medium transition ${
+                    activeRegion === r
+                      ? "bg-[#398AB9] text-white"
+                      : "bg-gray-100 dark:bg-slate-700 text-gray-500 dark:text-slate-400 hover:bg-gray-200 dark:hover:bg-slate-600"
+                  }`}>
+                  {regionLabels[r]}
+                </button>
+              ))}
+            </div>
+          </div>
+          <div>
+            <p className="text-xs font-semibold text-gray-500 dark:text-slate-400 mb-2 uppercase tracking-wide">สิ่งอำนวยความสะดวก</p>
+            <div className="flex flex-wrap gap-2">
+              {["WiFi", "ที่จอดรถ", "แอร์", "มังสวิรัติ", "ผู้พิการ", "แนะนำ"].map((tag) => {
+                const active = activeTags.includes(tag);
+                return (
+                  <button key={tag} onClick={() =>
+                    setActiveTags((prev) => active ? prev.filter((t) => t !== tag) : [...prev, tag])
+                  }
+                    className={`text-xs px-3 py-1.5 rounded-full font-medium transition ${
+                      active
+                        ? "bg-[#398AB9] text-white"
+                        : "bg-gray-100 dark:bg-slate-700 text-gray-500 dark:text-slate-400 hover:bg-gray-200 dark:hover:bg-slate-600"
+                    }`}>
+                    {tag}
+                  </button>
+                );
+              })}
+            </div>
           </div>
         </div>
       )}
@@ -509,7 +533,7 @@ export default function ExploreClient({ initialPlaces, initialSaved = [] }: { in
             </button>
           </div>
           {hasFilter && (
-            <button onClick={() => { setQuery(""); setActiveCategory("all"); setActiveRegion("all"); }}
+            <button onClick={() => { setQuery(""); setActiveCategory("all"); setActiveRegion("all"); setActiveTags([]); }}
               className="text-xs text-[#398AB9] hover:underline flex items-center gap-1">
               <X className="w-3 h-3" /> ล้าง
             </button>
