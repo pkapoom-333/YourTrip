@@ -1,10 +1,11 @@
 # PROGRESS.md
 # Travel Community App — Dev Log
 
-## Status: Phase 2 | Day 12 (cont.) | 2026-06-09
+## Status: Phase 2 | Day 13 (cont.) | 2026-06-09
 
 ## Current sprint task
-→ **DONE Day 13**: B16 dark mode (ThemeProvider + anti-FOUC + AppShell + Settings + Feed + PostCard + Explore + Toast + Trips), B18 PWA SVG icon (icon.svg + manifest)
+→ **DONE Day 13 sess 1**: B16 dark mode (ThemeProvider + anti-FOUC + AppShell + Settings + Feed + PostCard + Explore + Toast + Trips), B18 PWA SVG icon
+→ **DONE Day 13 sess 2**: Sprint S6 ALL TIER S cleared + Tier A + Tier B + Extras (see session log)
 → **NEXT**: Deploy to Vercel (push to remote); B17 Capacitor wrap (needs iOS/Android env); B19 custom domain (user action)
 
 ---
@@ -141,3 +142,4 @@
 | 2026-06-09 | Day 11: Post detail place badge; clickable post tags→filter feed; Feed right panel suggested places from DB; Place detail SEO generateMetadata (og:image); Landing page real featured places from DB; Explore load-more pagination (12/page); SEO metadata /feed /explore /trips; sitemap+robots.ts URL fix | ~70% | Deploy → E2E test |
 | 2026-06-09 | Day 13: Dark mode B16 (ThemeProvider + anti-FOUC script + CSS vars + AppShell + Settings + Feed + PostCard + Explore + Toast + Trips + FeedPostsClient); PWA SVG icon B18 (icon.svg + manifest sizes=any) | ~60% | Deploy → Capacitor (B17) |
 | 2026-06-09 | Day 13 cont: Sprint S6 ALL TIER S cleared — Explore infinite scroll (IntersectionObserver), next/image hero (Landing+PlaceDetail+Cloudinary patterns), profile follow fix (own-profile guard+rollback+toast), feed pull-to-refresh (touch swipe gesture), tag-based search in Explore (facility chips multi-select filter) | ~40% | git push → Vercel deploy |
+| 2026-06-09 | Day 13 sess 2: Sprint S6 Tier A — JSON-LD (place TouristAttraction/Restaurant/Cafe, landing WebSite+SearchAction), security headers (next.config.ts), PWA offline page (/offline + sw.js), canonical tags (/feed /explore /trips /place/[slug] /), preconnect hints. Tier B — RouteError dark mode + smart error categorisation, Explore clear-filters empty state, Notifications rich empty state, Buddy improved empty states (x3), sitemap expansion (+/feed/trips/forgot-password). Extras — env validator (lib/env.ts), dark mode Notifications+Buddy pages, LCP image priority on landing, robots.ts updates. 0 TS errors throughout. | ~70% | git push → Vercel deploy |

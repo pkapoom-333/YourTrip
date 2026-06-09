@@ -30,6 +30,31 @@ PROGRESS ██████████████████░░ 88%  (Day 
 | S6-9 | **Post tags in explore** — เพิ่ม tag-based search ใน getPlaces (filter by tags array) | 200 | ✅ |
 | S6-10 | **Dark mode** — toggle + CSS variables swap ใน Settings | 200 | ✅ |
 
+### 🛡️ TIER A — SEO + PWA + Security
+
+| # | Quest | XP | Status |
+|---|-------|----|--------|
+| A1 | **JSON-LD place pages** — Schema.org TouristAttraction/Restaurant/Cafe per category | 300 | ✅ |
+| A2 | **Security headers** — X-Frame-Options, X-Content-Type-Options, Referrer-Policy ใน next.config.ts | 200 | ✅ |
+| A3 | **PWA offline page** — /offline page + sw.js service worker + SW registration ใน layout | 250 | ✅ |
+| A4 | **Canonical tags** — alternates.canonical ใน /feed /explore /trips /place/[slug] / | 150 | ✅ |
+| A5 | **Preconnect hints** — link rel=preconnect Cloudinary + Unsplash + dns-prefetch Supabase | 100 | ✅ |
+
+### 🏹 TIER B — Polish + UX
+
+| # | Quest | XP | Status |
+|---|-------|----|--------|
+| B1 | **RouteError UX** — dark mode + smart error categorisation (network/auth/server) | 200 | ✅ |
+| B2 | **Explore empty state** — clear-filters button เมื่อ search ไม่เจอผลลัพธ์ | 150 | ✅ |
+| B3 | **Notifications empty state** — rich state แยก unread/all + กด "ดูทั้งหมด" | 150 | ✅ |
+| B4 | **Buddy empty states** — ปรับ 3 tabs (discover/requests/matched) | 150 | ✅ |
+| B5 | **WebSite JSON-LD** — Schema.org WebSite + SearchAction บน landing page | 200 | ✅ |
+| B6 | **Sitemap expansion** — เพิ่ม /feed /trips /forgot-password | 100 | ✅ |
+| B7 | **Env validator** — lib/env.ts ตรวจ env vars ตอน server start พร้อม hint | 150 | ✅ |
+| B8 | **Dark mode Notifications + Buddy** — header, tabs, rows, cards | 200 | ✅ |
+| B9 | **LCP image priority** — priority=true บน first destination image ใน landing | 100 | ✅ |
+| B10 | **robots.ts** — เพิ่ม /post/, /offline, /auth/ disallow rules | 50 | ✅ |
+
 ---
 
 ## 🔥 QUEST BOARD — Sprint S5 COMPLETED
@@ -148,8 +173,9 @@ PROGRESS ██████████████████░░ 88%  (Day 
 Total earned: ~8,400 XP (Day 1–13 sess 1 complete)
 Session 2: S6-2(200)+S6-4(150)+S6-7(150)+S6-8(100)+S6-9(200) = +800 XP (S6-1/3/5/6/10 already done)
 Sprint S6 TIER S: ALL 10 QUESTS CLEARED! 🎉
-Grand total: ~9,200 XP
-Tier B remaining: B17 (Capacitor, needs iOS env), B19 (custom domain, user action)
+Session 3: Tier A (300+200+250+150+100=1,000) + Tier B (200+150+150+150+200+100+150+200+100+50=1,450) = +2,450 XP
+Grand total: ~12,050 XP 🏆
+Remaining (blocked): B17 Capacitor (needs iOS env), B19 custom domain (user action), B3 git push (user confirm)
 ```
 
 ---
