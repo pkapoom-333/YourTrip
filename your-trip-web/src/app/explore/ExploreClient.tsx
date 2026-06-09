@@ -7,6 +7,7 @@ import { toggleSavePlace } from "@/server/actions/savedPlaces";
 import type { PlaceListItem } from "@/server/actions/places";
 import { searchUsers, followUser, unfollowUser, type UserCard } from "@/server/actions/profile";
 import { Avatar } from "@/components/shared/Avatar";
+import { useToast } from "@/components/shared/Toast";
 
 /* ── static data ── */
 const categories = [
@@ -55,7 +56,7 @@ function PlaceCard({ place, saved, onToggleSave }: {
     "https://images.unsplash.com/photo-1476514525405-8d4b4c284c1e?auto=format&fit=crop&w=600&q=80";
 
   return (
-    <div className="group bg-white rounded-2xl border border-gray-100 overflow-hidden hover:shadow-lg hover:shadow-gray-200/80 transition-all duration-300">
+    <div className="group bg-white dark:bg-slate-800 rounded-2xl border border-gray-100 dark:border-slate-700 overflow-hidden hover:shadow-lg hover:shadow-gray-200/80 dark:hover:shadow-slate-900/80 transition-all duration-300">
       <Link href={`/place/${place.slug}`}>
       <div className="relative aspect-[4/3] overflow-hidden">
         <img src={img} alt={place.name}
@@ -88,10 +89,10 @@ function PlaceCard({ place, saved, onToggleSave }: {
       <div className="p-3">
         <div className="flex items-start justify-between gap-2">
           <Link href={`/place/${place.slug}`} className="flex-1 min-w-0">
-            <p className="font-semibold text-gray-900 text-sm truncate">{place.name}</p>
+            <p className="font-semibold text-gray-900 dark:text-slate-100 text-sm truncate">{place.name}</p>
             <div className="flex items-center gap-1 mt-0.5">
               <MapPin className="w-3 h-3 text-[#398AB9] flex-shrink-0" />
-              <span className="text-[11px] text-gray-400 truncate">
+              <span className="text-[11px] text-gray-400 dark:text-slate-500 truncate">
                 {place.province ?? place.country}
               </span>
             </div>
@@ -112,7 +113,7 @@ function PlaceCard({ place, saved, onToggleSave }: {
             {regionLabels[place.region] ?? place.region}
           </span>
           {place.hasWifi && (
-            <span className="text-[10px] bg-gray-100 text-gray-500 px-2 py-0.5 rounded-full">WiFi</span>
+            <span className="text-[10px] bg-gray-100 dark:bg-slate-700 text-gray-500 dark:text-slate-400 px-2 py-0.5 rounded-full">WiFi</span>
           )}
         </div>
       </div>
@@ -166,11 +167,11 @@ function PeopleTab({ query }: { query: string }) {
     return (
       <div className="space-y-3">
         {[1, 2, 3].map((i) => (
-          <div key={i} className="flex items-center gap-3 bg-white rounded-2xl border border-gray-100 p-4 animate-pulse">
-            <div className="w-12 h-12 bg-gray-200 rounded-full flex-shrink-0" />
+          <div key={i} className="flex items-center gap-3 bg-white dark:bg-slate-800 rounded-2xl border border-gray-100 dark:border-slate-700 p-4 animate-pulse">
+            <div className="w-12 h-12 bg-gray-200 dark:bg-slate-700 rounded-full flex-shrink-0" />
             <div className="flex-1 space-y-2">
-              <div className="h-4 bg-gray-200 rounded w-32" />
-              <div className="h-3 bg-gray-100 rounded w-48" />
+              <div className="h-4 bg-gray-200 dark:bg-slate-700 rounded w-32" />
+              <div className="h-3 bg-gray-100 dark:bg-slate-700 rounded w-48" />
             </div>
           </div>
         ))}
@@ -194,23 +195,23 @@ function PeopleTab({ query }: { query: string }) {
         const initials = (u.name ?? "U").charAt(0).toUpperCase();
         const isFollowing = following[u.id] ?? u.isFollowing;
         return (
-          <div key={u.id} className="flex items-center gap-3 bg-white rounded-2xl border border-gray-100 p-4">
+          <div key={u.id} className="flex items-center gap-3 bg-white dark:bg-slate-800 rounded-2xl border border-gray-100 dark:border-slate-700 p-4">
             <Link href={`/profile/${u.id}`}>
               <Avatar src={u.avatarUrl} name={u.name ?? "U"} className="w-12 h-12" />
             </Link>
             <div className="flex-1 min-w-0">
               <Link href={`/profile/${u.id}`}
-                className="text-sm font-semibold text-gray-900 hover:text-[#398AB9] transition">
+                className="text-sm font-semibold text-gray-900 dark:text-slate-100 hover:text-[#398AB9] transition">
                 {u.name}
               </Link>
-              {u.username && <p className="text-xs text-gray-400">@{u.username}</p>}
-              {u.bio && <p className="text-xs text-gray-500 mt-0.5 truncate">{u.bio}</p>}
+              {u.username && <p className="text-xs text-gray-400 dark:text-slate-500">@{u.username}</p>}
+              {u.bio && <p className="text-xs text-gray-500 dark:text-slate-400 mt-0.5 truncate">{u.bio}</p>}
             </div>
             <button
               onClick={() => toggleFollow(u.id)}
               className={`flex-shrink-0 flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold transition ${
                 isFollowing
-                  ? "border border-gray-200 text-gray-600 hover:bg-gray-50"
+                  ? "border border-gray-200 dark:border-slate-600 text-gray-600 dark:text-slate-300 hover:bg-gray-50 dark:hover:bg-slate-700"
                   : "bg-[#398AB9] text-white hover:bg-[#1C658C]"
               }`}>
               {isFollowing
@@ -249,25 +250,29 @@ export default function ExploreClient({ initialPlaces, initialSaved = [] }: { in
   const [recentSearches, setRecentSearches] = useState<string[]>([]);
   const [savedIds, setSavedIds] = useState<Set<string>>(new Set(initialSaved));
   const [displayCount, setDisplayCount] = useState(PAGE_SIZE);
+  const { success, error: toastError } = useToast();
 
   // Load recent searches from localStorage on mount
   useEffect(() => { setRecentSearches(loadRecent()); }, []);
 
   async function toggleSave(id: string) {
-    // Optimistic update
+    const wasSaved = savedIds.has(id);
     setSavedIds((prev) => {
       const next = new Set(prev);
       if (next.has(id)) next.delete(id); else next.add(id);
       return next;
     });
-    // Sync to DB (silently ignore error — optimistic stays)
-    toggleSavePlace(id).catch(() => {
+    try {
+      await toggleSavePlace(id);
+      if (!wasSaved) success("บันทึกสถานที่แล้ว ✓");
+    } catch {
       setSavedIds((prev) => {
         const next = new Set(prev);
         if (next.has(id)) next.delete(id); else next.add(id);
         return next;
       });
-    });
+      toastError("ไม่สามารถบันทึกได้ กรุณาลองใหม่");
+    }
   }
   const [activeCategory, setActiveCategory] = useState("all");
   const [activeRegion, setActiveRegion] = useState("all");
@@ -353,7 +358,7 @@ export default function ExploreClient({ initialPlaces, initialSaved = [] }: { in
               }
             }}
             placeholder={searchMode === "places" ? "ค้นหาสถานที่, ร้านอาหาร, คาเฟ่..." : "ค้นหาชื่อ หรือ @username..."}
-            className="w-full pl-9 pr-10 py-2.5 bg-white border border-gray-200 rounded-xl text-sm text-gray-700 placeholder:text-gray-400 focus:outline-none focus:border-[#398AB9] focus:ring-2 focus:ring-[#398AB9]/10 transition"
+            className="w-full pl-9 pr-10 py-2.5 bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-600 rounded-xl text-sm text-gray-700 dark:text-slate-200 placeholder:text-gray-400 dark:placeholder:text-slate-500 focus:outline-none focus:border-[#398AB9] focus:ring-2 focus:ring-[#398AB9]/10 transition"
           />
           {query && (
             <button onClick={() => setQuery("")}
@@ -363,15 +368,15 @@ export default function ExploreClient({ initialPlaces, initialSaved = [] }: { in
           )}
           {/* Recent searches dropdown */}
           {searchFocused && !query && recentSearches.length > 0 && (
-            <div className="absolute top-full left-0 right-0 mt-1.5 bg-white border border-gray-100 rounded-xl shadow-lg z-50 overflow-hidden">
-              <div className="flex items-center justify-between px-3 py-2 border-b border-gray-50">
-                <span className="text-[11px] text-gray-400 font-medium">ค้นหาล่าสุด</span>
+            <div className="absolute top-full left-0 right-0 mt-1.5 bg-white dark:bg-slate-800 border border-gray-100 dark:border-slate-700 rounded-xl shadow-lg z-50 overflow-hidden">
+              <div className="flex items-center justify-between px-3 py-2 border-b border-gray-50 dark:border-slate-700">
+                <span className="text-[11px] text-gray-400 dark:text-slate-500 font-medium">ค้นหาล่าสุด</span>
                 <button onClick={() => { localStorage.removeItem(RECENT_KEY); setRecentSearches([]); }}
                   className="text-[11px] text-[#398AB9] hover:underline">ล้าง</button>
               </div>
               {recentSearches.map((s) => (
                 <button key={s} onClick={() => { setQuery(s); setSearchFocused(false); }}
-                  className="w-full text-left flex items-center gap-2 px-3 py-2 text-sm text-gray-700 hover:bg-gray-50 transition">
+                  className="w-full text-left flex items-center gap-2 px-3 py-2 text-sm text-gray-700 dark:text-slate-300 hover:bg-gray-50 dark:hover:bg-slate-700 transition">
                   <Search className="w-3.5 h-3.5 text-gray-300" />
                   {s}
                 </button>
@@ -385,7 +390,7 @@ export default function ExploreClient({ initialPlaces, initialSaved = [] }: { in
             className={`w-10 h-10 flex items-center justify-center rounded-xl border transition ${
               showFilter || activeRegion !== "all"
                 ? "bg-[#398AB9] border-[#398AB9] text-white"
-                : "bg-white border-gray-200 text-gray-500 hover:border-[#398AB9]"
+                : "bg-white dark:bg-slate-800 border-gray-200 dark:border-slate-600 text-gray-500 dark:text-slate-400 hover:border-[#398AB9]"
             }`}>
             <SlidersHorizontal className="w-4 h-4" />
           </button>
@@ -393,7 +398,7 @@ export default function ExploreClient({ initialPlaces, initialSaved = [] }: { in
       </div>
 
       {/* Search mode toggle */}
-      <div className="flex bg-gray-100 rounded-xl p-1 mb-4">
+      <div className="flex bg-gray-100 dark:bg-slate-700 rounded-xl p-1 mb-4">
         {([
           { key: "places", label: "สถานที่", emoji: "🗺️" },
           { key: "people", label: "ผู้ใช้",  emoji: "👥" },
@@ -403,8 +408,8 @@ export default function ExploreClient({ initialPlaces, initialSaved = [] }: { in
             onClick={() => setSearchMode(key)}
             className={`flex-1 flex items-center justify-center gap-1.5 py-2 rounded-lg text-sm font-medium transition-all ${
               searchMode === key
-                ? "bg-white text-[#398AB9] shadow-sm"
-                : "text-gray-500 hover:text-gray-700"
+                ? "bg-white dark:bg-slate-600 text-[#398AB9] shadow-sm"
+                : "text-gray-500 dark:text-slate-400 hover:text-gray-700 dark:hover:text-slate-200"
             }`}>
             <span>{emoji}</span>
             {label}
@@ -417,15 +422,15 @@ export default function ExploreClient({ initialPlaces, initialSaved = [] }: { in
 
       {/* Region filter — places only */}
       {showFilter && searchMode === "places" && (
-        <div className="mb-4 bg-white border border-gray-100 rounded-xl p-3">
-          <p className="text-xs font-semibold text-gray-500 mb-2 uppercase tracking-wide">ภูมิภาค</p>
+        <div className="mb-4 bg-white dark:bg-slate-800 border border-gray-100 dark:border-slate-700 rounded-xl p-3">
+          <p className="text-xs font-semibold text-gray-500 dark:text-slate-400 mb-2 uppercase tracking-wide">ภูมิภาค</p>
           <div className="flex flex-wrap gap-2">
             {regions.map((r) => (
               <button key={r} onClick={() => setActiveRegion(r)}
                 className={`text-xs px-3 py-1.5 rounded-full font-medium transition ${
                   activeRegion === r
                     ? "bg-[#398AB9] text-white"
-                    : "bg-gray-100 text-gray-500 hover:bg-gray-200"
+                    : "bg-gray-100 dark:bg-slate-700 text-gray-500 dark:text-slate-400 hover:bg-gray-200 dark:hover:bg-slate-600"
                 }`}>
                 {regionLabels[r]}
               </button>
@@ -444,7 +449,7 @@ export default function ExploreClient({ initialPlaces, initialSaved = [] }: { in
             className={`flex items-center gap-1.5 px-3.5 py-2 rounded-full text-sm font-medium flex-shrink-0 transition ${
               activeCategory === c.id
                 ? "bg-[#398AB9] text-white shadow-sm shadow-[#398AB9]/30"
-                : "bg-white text-gray-500 border border-gray-200 hover:border-[#398AB9] hover:text-[#398AB9]"
+                : "bg-white dark:bg-slate-800 text-gray-500 dark:text-slate-400 border border-gray-200 dark:border-slate-600 hover:border-[#398AB9] hover:text-[#398AB9]"
             }`}>
             <span>{c.emoji}</span>
             {c.label}
@@ -454,19 +459,19 @@ export default function ExploreClient({ initialPlaces, initialSaved = [] }: { in
 
       {/* Results + controls */}
       <div className="flex items-center justify-between mb-4 gap-2 flex-wrap">
-        <p className="text-sm text-gray-500">
-          พบ <span className="font-semibold text-gray-900">{filtered.length}</span> สถานที่
+        <p className="text-sm text-gray-500 dark:text-slate-400">
+          พบ <span className="font-semibold text-gray-900 dark:text-slate-100">{filtered.length}</span> สถานที่
           {activeRegion !== "all" && <span className="text-[#398AB9]"> ใน{regionLabels[activeRegion]}</span>}
         </p>
         <div className="flex items-center gap-2">
-          <div className="flex items-center gap-1 bg-white border border-gray-200 rounded-xl px-2 py-1.5">
-            <ArrowUpDown className="w-3 h-3 text-gray-400" />
+          <div className="flex items-center gap-1 bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-600 rounded-xl px-2 py-1.5">
+            <ArrowUpDown className="w-3 h-3 text-gray-400 dark:text-slate-500" />
             <select value={sortKey} onChange={(e) => {
                 const val = e.target.value as SortKey;
                 if (val === "nearby") requestGeolocation();
                 else setSortKey(val);
               }}
-              className="text-xs text-gray-600 bg-transparent outline-none cursor-pointer">
+              className="text-xs text-gray-600 dark:text-slate-300 bg-transparent dark:bg-transparent outline-none cursor-pointer">
               <option value="rating">คะแนนสูงสุด</option>
               <option value="reviews">รีวิวมากสุด</option>
               <option value="price_asc">ราคา ต่ำ→สูง</option>
@@ -474,13 +479,13 @@ export default function ExploreClient({ initialPlaces, initialSaved = [] }: { in
               <option value="nearby">{geoLoading ? "กำลังระบุตำแหน่ง..." : userLat ? "ใกล้ฉัน ✓" : "ใกล้ฉัน"}</option>
             </select>
           </div>
-          <div className="flex bg-white border border-gray-200 rounded-xl overflow-hidden">
+          <div className="flex bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-600 rounded-xl overflow-hidden">
             <button onClick={() => setViewMode("grid")}
-              className={`p-1.5 ${viewMode === "grid" ? "bg-[#398AB9] text-white" : "text-gray-400 hover:bg-gray-50"}`}>
+              className={`p-1.5 ${viewMode === "grid" ? "bg-[#398AB9] text-white" : "text-gray-400 dark:text-slate-500 hover:bg-gray-50 dark:hover:bg-slate-700"}`}>
               <LayoutGrid className="w-3.5 h-3.5" />
             </button>
             <button onClick={() => setViewMode("list")}
-              className={`p-1.5 ${viewMode === "list" ? "bg-[#398AB9] text-white" : "text-gray-400 hover:bg-gray-50"}`}>
+              className={`p-1.5 ${viewMode === "list" ? "bg-[#398AB9] text-white" : "text-gray-400 dark:text-slate-500 hover:bg-gray-50 dark:hover:bg-slate-700"}`}>
               <List className="w-3.5 h-3.5" />
             </button>
           </div>

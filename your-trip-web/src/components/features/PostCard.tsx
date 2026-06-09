@@ -6,6 +6,7 @@ import { Heart, MessageCircle, Send, Bookmark, MapPin, MoreHorizontal } from "lu
 import { toggleLike, toggleSave } from "@/server/actions/posts";
 import { CommentSection } from "./CommentSection";
 import { Avatar } from "@/components/shared/Avatar";
+import { useToast } from "@/components/shared/Toast";
 
 export interface PostCardData {
   id: number | string;
@@ -40,30 +41,33 @@ export function PostCard({ post, onTagClick }: { post: PostCardData; onTagClick?
   const [saved, setSaved] = useState(post.saved);
   const [likeCount, setLikeCount] = useState(post.likes);
   const [isLiking, setIsLiking] = useState(false);
+  const { success, error, info } = useToast();
 
   async function handleLike() {
     if (isLiking) return;
-    // Optimistic update
     setLiked(!liked);
     setLikeCount((c) => liked ? c - 1 : c + 1);
     setIsLiking(true);
     try {
       await toggleLike(String(post.id));
     } catch {
-      // Revert on error
       setLiked(liked);
       setLikeCount((c) => liked ? c + 1 : c - 1);
+      error("ไม่สามารถกดถูกใจได้ กรุณาลองใหม่");
     } finally {
       setIsLiking(false);
     }
   }
 
   async function handleSave() {
-    setSaved(!saved);
+    const next = !saved;
+    setSaved(next);
     try {
       await toggleSave(String(post.id));
+      if (next) success("บันทึกโพสต์แล้ว ✓");
     } catch {
       setSaved(saved);
+      error("ไม่สามารถบันทึกได้ กรุณาลองใหม่");
     }
   }
 
@@ -74,11 +78,12 @@ export function PostCard({ post, onTagClick }: { post: PostCardData; onTagClick?
       try { await navigator.share({ title: post.user.name, text, url }); } catch { /* cancelled */ }
     } else {
       await navigator.clipboard.writeText(url).catch(() => {});
+      info("คัดลอกลิงก์แล้ว ✓");
     }
   }
 
   return (
-    <article className="bg-white border border-gray-100 rounded-2xl overflow-hidden">
+    <article className="bg-white dark:bg-slate-800 border border-gray-100 dark:border-slate-700 rounded-2xl overflow-hidden">
       {/* Post header */}
       <div className="flex items-center gap-3 p-3.5">
         {post.user.id ? (
@@ -90,11 +95,11 @@ export function PostCard({ post, onTagClick }: { post: PostCardData; onTagClick?
         )}
         <div className="flex-1 min-w-0">
           {post.user.id ? (
-            <Link href={`/profile/${post.user.id}`} className="text-sm font-semibold text-gray-900 hover:text-[#398AB9] transition">
+            <Link href={`/profile/${post.user.id}`} className="text-sm font-semibold text-gray-900 dark:text-slate-100 hover:text-[#398AB9] transition">
               {post.user.name}
             </Link>
           ) : (
-            <p className="text-sm font-semibold text-gray-900">{post.user.name}</p>
+            <p className="text-sm font-semibold text-gray-900 dark:text-slate-100">{post.user.name}</p>
           )}
           {/* Place badge (linked to DB place) — takes priority over free-text location */}
           {post.place ? (
@@ -104,15 +109,15 @@ export function PostCard({ post, onTagClick }: { post: PostCardData; onTagClick?
               {post.place.name}
             </Link>
           ) : post.user.location ? (
-            <div className="flex items-center gap-1 text-[11px] text-gray-400">
+            <div className="flex items-center gap-1 text-[11px] text-gray-400 dark:text-slate-500">
               <MapPin className="w-2.5 h-2.5" />
               <span className="truncate">{post.user.location}</span>
             </div>
           ) : null}
         </div>
         <div className="flex items-center gap-2">
-          <span className="text-[10px] text-gray-400">{post.time}</span>
-          <button className="text-gray-400 hover:text-gray-600 transition">
+          <span className="text-[10px] text-gray-400 dark:text-slate-500">{post.time}</span>
+          <button className="text-gray-400 dark:text-slate-500 hover:text-gray-600 dark:hover:text-slate-300 transition">
             <MoreHorizontal className="w-4 h-4" />
           </button>
         </div>
@@ -121,7 +126,7 @@ export function PostCard({ post, onTagClick }: { post: PostCardData; onTagClick?
       {/* Post image */}
       {post.img && (
       <Link href={`/post/${post.id}`} className="block">
-      <div className="relative aspect-[4/3] overflow-hidden bg-gray-100">
+      <div className="relative aspect-[4/3] overflow-hidden bg-gray-100 dark:bg-slate-700">
         <img
           src={post.img}
           alt={post.title ?? ""}
@@ -152,20 +157,20 @@ export function PostCard({ post, onTagClick }: { post: PostCardData; onTagClick?
         <button
           onClick={handleLike}
           className={`flex items-center gap-1.5 px-2 py-1.5 rounded-xl transition-all ${
-            liked ? "text-[#FF4F4F] bg-red-50" : "text-gray-400 hover:text-[#FF4F4F] hover:bg-red-50"
+            liked ? "text-[#FF4F4F] bg-red-50 dark:bg-red-500/10" : "text-gray-400 dark:text-slate-500 hover:text-[#FF4F4F] hover:bg-red-50 dark:hover:bg-red-500/10"
           }`}
         >
           <Heart className={`w-5 h-5 transition-transform ${liked ? "scale-110 fill-current" : ""}`} />
           <span className="text-xs font-medium">{fmt(likeCount)}</span>
         </button>
         <Link href={`/post/${post.id}`}
-          className="flex items-center gap-1.5 px-2 py-1.5 rounded-xl text-gray-400 hover:text-[#398AB9] hover:bg-[#398AB9]/5 transition">
+          className="flex items-center gap-1.5 px-2 py-1.5 rounded-xl text-gray-400 dark:text-slate-500 hover:text-[#398AB9] hover:bg-[#398AB9]/5 transition">
           <MessageCircle className="w-5 h-5" />
           <span className="text-xs font-medium">{fmt(post.comments)}</span>
         </Link>
         <button
           onClick={handleShare}
-          className="flex items-center gap-1.5 px-2 py-1.5 rounded-xl text-gray-400 hover:text-[#398AB9] hover:bg-[#398AB9]/5 transition"
+          className="flex items-center gap-1.5 px-2 py-1.5 rounded-xl text-gray-400 dark:text-slate-500 hover:text-[#398AB9] hover:bg-[#398AB9]/5 transition"
         >
           <Send className="w-5 h-5" />
           {post.shares !== undefined && (
@@ -176,7 +181,7 @@ export function PostCard({ post, onTagClick }: { post: PostCardData; onTagClick?
         <button
           onClick={handleSave}
           className={`p-1.5 rounded-xl transition-all ${
-            saved ? "text-[#398AB9] bg-[#398AB9]/10" : "text-gray-400 hover:text-[#398AB9] hover:bg-[#398AB9]/5"
+            saved ? "text-[#398AB9] bg-[#398AB9]/10" : "text-gray-400 dark:text-slate-500 hover:text-[#398AB9] hover:bg-[#398AB9]/5"
           }`}
         >
           <Bookmark className={`w-5 h-5 ${saved ? "fill-current" : ""}`} />
@@ -185,7 +190,7 @@ export function PostCard({ post, onTagClick }: { post: PostCardData; onTagClick?
 
       {/* Caption */}
       <div className="px-4 pb-2">
-        <p className="text-sm text-gray-800 leading-relaxed">
+        <p className="text-sm text-gray-800 dark:text-slate-200 leading-relaxed">
           <span className="font-semibold mr-1">{post.user.name}</span>
           {post.caption}
         </p>
