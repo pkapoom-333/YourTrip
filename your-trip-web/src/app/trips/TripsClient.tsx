@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { Plus, MapPin, Calendar, Users, ChevronRight, Map, Plane, Trash2, X, ChevronDown, Copy, Check, Globe } from "lucide-react";
+import { Plus, MapPin, Calendar, Users, ChevronRight, Map, Plane, Trash2, X, ChevronDown, Copy, Check, Globe, Search } from "lucide-react";
 import { deleteTrip, updateTripStatus, duplicateTrip, type PublicTripItem } from "@/server/actions/trips";
 import { useToast } from "@/components/shared/Toast";
 import { Avatar } from "@/components/shared/Avatar";
@@ -37,7 +37,10 @@ export default function TripsClient({ initialTrips, communityTrips = [] }: { ini
   const [duplicatedId, setDuplicatedId] = useState<string | null>(null);
   const { success, error: toastError } = useToast();
 
-  const filtered = tab === "all" ? trips : trips.filter((t) => t.status === tab);
+  const [search, setSearch] = useState("");
+  const filtered = trips
+    .filter((t) => tab === "all" || t.status === tab)
+    .filter((t) => !search.trim() || t.title.toLowerCase().includes(search.toLowerCase()) || t.destinations.join(" ").toLowerCase().includes(search.toLowerCase()));
 
   async function handleDelete(tripId: string) {
     setDeleting(true);
@@ -112,6 +115,24 @@ export default function TripsClient({ initialTrips, communityTrips = [] }: { ini
           </div>
         ))}
       </div>
+
+      {/* Search */}
+      {trips.length > 3 && (
+        <div className="relative mb-3">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 dark:text-slate-500 pointer-events-none" />
+          <input
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            placeholder="ค้นหาทริป..."
+            className="w-full pl-9 pr-4 py-2.5 bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-600 rounded-xl text-sm text-gray-700 dark:text-slate-200 placeholder:text-gray-400 dark:placeholder:text-slate-500 focus:outline-none focus:border-[#398AB9] transition"
+          />
+          {search && (
+            <button onClick={() => setSearch("")} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 dark:text-slate-500 dark:hover:text-slate-300">
+              <X className="w-4 h-4" />
+            </button>
+          )}
+        </div>
+      )}
 
       {/* Tabs */}
       <div className="flex gap-2 mb-4 overflow-x-auto scrollbar-none">
