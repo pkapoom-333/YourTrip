@@ -10,9 +10,11 @@ import {
   Car, Bike, Bus, Navigation, AlertTriangle,
   ParkingSquare, Wifi, Wind, Leaf, Accessibility,
   MessageCircle, MoreHorizontal, ThumbsUp, ChevronDown, PenLine,
+  Plus, X, CalendarDays,
 } from "lucide-react";
 import { createReview } from "@/server/actions/places";
 import { toggleSavePlace } from "@/server/actions/savedPlaces";
+import { getUserTrips, addItineraryItem } from "@/server/actions/trips";
 import { Avatar } from "@/components/shared/Avatar";
 import { useToast } from "@/components/shared/Toast";
 
@@ -97,6 +99,46 @@ export default function PlaceDetailClient({ place, slug, initialSaved = false }:
   const [reviewSubmitting, setReviewSubmitting] = useState(false);
   const [reviewDone, setReviewDone] = useState(false);
   const [shareCopied, setShareCopied] = useState(false);
+  const [addTripOpen, setAddTripOpen] = useState(false);
+  const [tripsList, setTripsList] = useState<Array<{ id: string; title: string; destination: string; days: number }>>([]);
+  const [selectedTripId, setSelectedTripId] = useState("");
+  const [selectedDay, setSelectedDay] = useState(1);
+  const [tripsLoading, setTripsLoading] = useState(false);
+  const [addingItem, setAddingItem] = useState(false);
+
+  async function openAddToTrip() {
+    setAddTripOpen(true);
+    if (tripsList.length > 0) return;
+    setTripsLoading(true);
+    const { data } = await getUserTrips();
+    const mapped = data.map((t) => ({
+      id: t.id,
+      title: t.title,
+      destination: t.destination,
+      days: t.days.length,
+    }));
+    setTripsList(mapped);
+    if (mapped.length > 0) setSelectedTripId(mapped[0].id);
+    setTripsLoading(false);
+  }
+
+  async function handleAddToTrip() {
+    if (!selectedTripId || !place.name) return;
+    setAddingItem(true);
+    const result = await addItineraryItem(selectedTripId, {
+      day: selectedDay,
+      title: place.name,
+      location: place.location,
+      placeId: place.id && !place.id.startsWith("mock") ? place.id : undefined,
+    });
+    setAddingItem(false);
+    if (result.data) {
+      success(`เพิ่ม "${place.name}" ในทริปแล้ว ✓`);
+      setAddTripOpen(false);
+    } else {
+      toastError("ไม่สามารถเพิ่มได้ กรุณาลองใหม่");
+    }
+  }
 
   async function handleShare() {
     const url = typeof window !== "undefined" ? window.location.href : "";
@@ -540,6 +582,98 @@ export default function PlaceDetailClient({ place, slug, initialSaved = false }:
 
         </div>
       </div>
+
+      {/* ── Add to Trip FAB ── */}
+      <div className="fixed bottom-20 md:bottom-6 right-4 z-30">
+        <button
+          onClick={openAddToTrip}
+          className="flex items-center gap-2 bg-[#398AB9] hover:bg-[#1C658C] text-white text-sm font-bold px-4 py-3 rounded-2xl shadow-lg shadow-[#398AB9]/40 transition-all active:scale-95"
+        >
+          <Plus className="w-4 h-4" />
+          เพิ่มในทริป
+        </button>
+      </div>
+
+      {/* ── Add to Trip Modal ── */}
+      {addTripOpen && (
+        <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center">
+          <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={() => setAddTripOpen(false)} />
+          <div className="relative bg-white dark:bg-slate-800 rounded-t-3xl sm:rounded-3xl w-full sm:max-w-sm mx-0 sm:mx-4 p-6 shadow-2xl">
+            <div className="flex items-center justify-between mb-5">
+              <h3 className="text-base font-bold text-gray-900 dark:text-slate-100">เพิ่มในทริป</h3>
+              <button onClick={() => setAddTripOpen(false)} className="text-gray-400 dark:text-slate-500 hover:text-gray-600 dark:hover:text-slate-300">
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <p className="text-sm text-gray-500 dark:text-slate-400 mb-4 truncate">📍 {place.name}</p>
+
+            {tripsLoading ? (
+              <div className="flex items-center justify-center py-8">
+                <div className="w-8 h-8 border-2 border-[#398AB9] border-t-transparent rounded-full animate-spin" />
+              </div>
+            ) : tripsList.length === 0 ? (
+              <div className="text-center py-8">
+                <p className="text-sm text-gray-400 dark:text-slate-500 mb-4">ยังไม่มีทริป</p>
+                <a href="/trips/new" className="text-sm text-[#398AB9] font-medium hover:underline">
+                  สร้างทริปใหม่ →
+                </a>
+              </div>
+            ) : (
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-xs font-semibold text-gray-500 dark:text-slate-400 mb-1.5">เลือกทริป</label>
+                  <select
+                    value={selectedTripId}
+                    onChange={(e) => {
+                      setSelectedTripId(e.target.value);
+                      setSelectedDay(1);
+                    }}
+                    className="w-full px-3 py-2.5 rounded-xl border border-gray-200 dark:border-slate-600 bg-white dark:bg-slate-700 text-sm text-gray-900 dark:text-slate-100 focus:outline-none focus:border-[#398AB9]"
+                  >
+                    {tripsList.map((t) => (
+                      <option key={t.id} value={t.id}>{t.title} — {t.destination}</option>
+                    ))}
+                  </select>
+                </div>
+
+                {(() => {
+                  const trip = tripsList.find((t) => t.id === selectedTripId);
+                  const numDays = trip?.days ?? 1;
+                  return (
+                    <div>
+                      <label className="block text-xs font-semibold text-gray-500 dark:text-slate-400 mb-1.5">
+                        <CalendarDays className="w-3.5 h-3.5 inline mr-1" />
+                        วันที่
+                      </label>
+                      <div className="flex flex-wrap gap-2">
+                        {Array.from({ length: Math.min(numDays, 14) }, (_, i) => i + 1).map((d) => (
+                          <button key={d} type="button" onClick={() => setSelectedDay(d)}
+                            className={`w-9 h-9 rounded-xl text-sm font-semibold transition-all ${
+                              selectedDay === d
+                                ? "bg-[#398AB9] text-white"
+                                : "bg-gray-100 dark:bg-slate-700 text-gray-600 dark:text-slate-300 hover:bg-gray-200 dark:hover:bg-slate-600"
+                            }`}>
+                            {d}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  );
+                })()}
+
+                <button
+                  onClick={handleAddToTrip}
+                  disabled={addingItem}
+                  className="w-full py-3.5 rounded-2xl bg-[#398AB9] hover:bg-[#1C658C] text-white font-bold text-sm transition disabled:opacity-50 shadow-md shadow-[#398AB9]/30"
+                >
+                  {addingItem ? "กำลังเพิ่ม..." : "เพิ่มในทริป ✓"}
+                </button>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
     </AppShell>
   );
 }
