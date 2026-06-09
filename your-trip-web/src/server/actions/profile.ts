@@ -464,3 +464,22 @@ export async function getSuggestedUsers(take = 5): Promise<{ data: UserCard[] }>
     return { data: [] };
   }
 }
+
+
+// TODO Phase 2: create GuideApplication model to store full application + file uploads + admin review
+export async function applyAsGuide(): Promise<{ data?: { success: boolean }; error?: { message: string } }> {
+  try {
+    const supabase = await createServerClient();
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return { error: { message: "กรุณาเข้าสู่ระบบ" } };
+
+    await prisma.user.update({
+      where: { id: user.id },
+      data: { isGuide: true },
+    });
+
+    return { data: { success: true } };
+  } catch {
+    return { error: { message: "เกิดข้อผิดพลาด กรุณาลองใหม่" } };
+  }
+}

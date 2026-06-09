@@ -170,6 +170,7 @@ export default function SettingsPage() {
           <RowLink icon={User} iconBg="bg-[#398AB9]" label="แก้ไขโปรไฟล์" description="ชื่อ, Bio, ลิงก์" href="/profile/edit" />
           <RowLink icon={Lock} iconBg="bg-slate-500" label="เปลี่ยนรหัสผ่าน" />
           <RowLink icon={Globe} iconBg="bg-emerald-500" label="ภาษา" description="ภาษาไทย" />
+          <RowLink icon={Shield} iconBg="bg-amber-500" label="สมัครเป็นมัคคุเทศก์" description="รับ badge 🏅 และเพิ่มรายได้จากการท่องเที่ยว" href="/guide/apply" />
         </Section>
 
         {/* Privacy */}
