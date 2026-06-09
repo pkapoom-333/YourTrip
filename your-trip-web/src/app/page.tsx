@@ -74,7 +74,7 @@ export default async function LandingPage() {
     : null;
 
   return (
-    <div className="min-h-screen bg-white">
+    <div className="min-h-screen bg-white dark:bg-slate-900">
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(websiteJsonLd) }}
@@ -153,13 +153,13 @@ export default async function LandingPage() {
       </section>
 
       {/* ─── DESTINATIONS ─── */}
-      <section className="px-6 py-20 bg-white">
+      <section className="px-6 py-20 bg-white dark:bg-slate-900">
         <div className="max-w-5xl mx-auto">
           <div className="flex items-center gap-2 mb-2">
             <MapPin className="w-4 h-4 text-[#398AB9]" />
             <span className="text-[#398AB9] text-xs font-semibold uppercase tracking-widest">Trending Now</span>
           </div>
-          <h2 className="text-3xl md:text-4xl font-bold text-[#1F1F1F] mb-10">จุดหมายยอดนิยม</h2>
+          <h2 className="text-3xl md:text-4xl font-bold text-[#1F1F1F] dark:text-white mb-10">จุดหมายยอดนิยม</h2>
 
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             {displayDestinations
@@ -205,26 +205,26 @@ export default async function LandingPage() {
       </section>
 
       {/* ─── FEATURES ─── */}
-      <section className="bg-[#F1F7FB] px-6 py-20">
+      <section className="bg-[#F1F7FB] dark:bg-slate-800 px-6 py-20">
         <div className="max-w-5xl mx-auto text-center">
           <div className="flex items-center justify-center gap-2 mb-2">
             <Users className="w-4 h-4 text-[#398AB9]" />
             <span className="text-[#398AB9] text-xs font-semibold uppercase tracking-widest">Community</span>
           </div>
-          <h2 className="text-3xl md:text-4xl font-bold text-[#1F1F1F] mb-4">
+          <h2 className="text-3xl md:text-4xl font-bold text-[#1F1F1F] dark:text-white mb-4">
             ร่วมเป็นส่วนหนึ่ง<br />ของชุมชนนักเดินทาง
           </h2>
-          <p className="text-gray-500 mb-12 max-w-md mx-auto leading-relaxed">
+          <p className="text-gray-500 dark:text-slate-400 mb-12 max-w-md mx-auto leading-relaxed">
             แบ่งปันเส้นทาง บันทึกทริป และเชื่อมต่อกับนักเดินทางที่มีใจรักการผจญภัยเหมือนกัน
           </p>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-5 mb-12">
             {features.map((f) => (
               <div key={f.title}
-                className="bg-white rounded-2xl p-6 text-left shadow-sm hover:shadow-md hover:-translate-y-1 transition-all duration-200">
+                className="bg-white dark:bg-slate-700/50 rounded-2xl p-6 text-left shadow-sm hover:shadow-md hover:-translate-y-1 transition-all duration-200">
                 <div className="text-3xl mb-3">{f.icon}</div>
-                <h3 className="font-bold text-[#1F1F1F] text-base mb-1.5">{f.title}</h3>
-                <p className="text-gray-400 text-sm leading-relaxed">{f.desc}</p>
+                <h3 className="font-bold text-[#1F1F1F] dark:text-slate-100 text-base mb-1.5">{f.title}</h3>
+                <p className="text-gray-400 dark:text-slate-400 text-sm leading-relaxed">{f.desc}</p>
               </div>
             ))}
           </div>
@@ -238,10 +238,10 @@ export default async function LandingPage() {
       </section>
 
       {/* ─── HOW IT WORKS ─── */}
-      <section className="px-6 py-20 bg-white">
+      <section className="px-6 py-20 bg-white dark:bg-slate-900">
         <div className="max-w-4xl mx-auto text-center">
           <span className="text-[#398AB9] text-xs font-semibold uppercase tracking-widest">How it works</span>
-          <h2 className="text-3xl md:text-4xl font-bold text-[#1F1F1F] mt-2 mb-12">เริ่มต้นได้ง่ายมาก</h2>
+          <h2 className="text-3xl md:text-4xl font-bold text-[#1F1F1F] dark:text-white mt-2 mb-12">เริ่มต้นได้ง่ายมาก</h2>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             {steps.map((s, i) => (
               <div key={s.n} className="relative">
@@ -251,8 +251,8 @@ export default async function LandingPage() {
                 <div className="w-16 h-16 bg-[#398AB9]/10 rounded-2xl flex items-center justify-center mx-auto mb-4">
                   <span className="text-2xl font-black text-[#398AB9]">{s.n}</span>
                 </div>
-                <h3 className="font-bold text-gray-900 text-lg mb-2">{s.title}</h3>
-                <p className="text-gray-400 text-sm leading-relaxed">{s.desc}</p>
+                <h3 className="font-bold text-gray-900 dark:text-slate-100 text-lg mb-2">{s.title}</h3>
+                <p className="text-gray-400 dark:text-slate-500 text-sm leading-relaxed">{s.desc}</p>
               </div>
             ))}
           </div>
@@ -260,28 +260,28 @@ export default async function LandingPage() {
       </section>
 
       {/* ─── TESTIMONIALS ─── */}
-      <section className="px-6 py-20 bg-[#F8FAFC]">
+      <section className="px-6 py-20 bg-[#F8FAFC] dark:bg-slate-800">
         <div className="max-w-5xl mx-auto">
           <div className="text-center mb-12">
             <span className="text-[#398AB9] text-xs font-semibold uppercase tracking-widest">Reviews</span>
-            <h2 className="text-3xl md:text-4xl font-bold text-[#1F1F1F] mt-2">นักเดินทางพูดถึงเรา</h2>
+            <h2 className="text-3xl md:text-4xl font-bold text-[#1F1F1F] dark:text-white mt-2">นักเดินทางพูดถึงเรา</h2>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
             {testimonials.map((t) => (
-              <div key={t.name} className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
+              <div key={t.name} className="bg-white dark:bg-slate-700/50 rounded-2xl p-6 shadow-sm border border-gray-100 dark:border-slate-600">
                 <div className="flex gap-0.5 mb-4">
                   {[...Array(t.rating)].map((_, i) => (
                     <Star key={i} className="w-4 h-4 fill-amber-400 text-amber-400" />
                   ))}
                 </div>
-                <p className="text-gray-600 text-sm leading-relaxed mb-5 italic">"{t.text}"</p>
-                <div className="flex items-center gap-3 pt-4 border-t border-gray-50">
+                <p className="text-gray-600 dark:text-slate-300 text-sm leading-relaxed mb-5 italic">"{t.text}"</p>
+                <div className="flex items-center gap-3 pt-4 border-t border-gray-50 dark:border-slate-600">
                   <div className={`w-10 h-10 ${t.bg} rounded-full flex items-center justify-center text-white text-sm font-bold flex-shrink-0`}>
                     {t.avatar}
                   </div>
                   <div>
-                    <p className="font-semibold text-gray-900 text-sm">{t.name}</p>
-                    <p className="text-xs text-gray-400">{t.role} · {t.trips} ทริป</p>
+                    <p className="font-semibold text-gray-900 dark:text-slate-100 text-sm">{t.name}</p>
+                    <p className="text-xs text-gray-400 dark:text-slate-500">{t.role} · {t.trips} ทริป</p>
                   </div>
                   <CheckCircle className="w-4 h-4 text-emerald-500 ml-auto flex-shrink-0" />
                 </div>

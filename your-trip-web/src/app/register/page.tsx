@@ -54,7 +54,7 @@ export default function RegisterPage() {
           <p className="text-white/65 text-sm mt-1">สังคมแห่งการท่องเที่ยว</p>
         </div>
 
-        <div className="bg-white rounded-3xl p-8 shadow-2xl">
+        <div className="bg-white dark:bg-slate-800 rounded-3xl p-8 shadow-2xl">
           <h2 className="text-2xl font-bold text-[#398AB9] text-center mb-6">Sign Up</h2>
 
           {error && (
@@ -70,7 +70,7 @@ export default function RegisterPage() {
               <input
                 type="text" placeholder="Username" value={form.name}
                 onChange={set("name")} required
-                className="w-full pl-10 pr-4 py-3.5 border border-gray-200 rounded-xl focus:outline-none focus:border-[#398AB9] focus:ring-2 focus:ring-[#398AB9]/10 text-sm bg-[#F8FBFE] placeholder:text-gray-400"
+                className="w-full pl-10 pr-4 py-3.5 border border-gray-200 dark:border-slate-600 rounded-xl focus:outline-none focus:border-[#398AB9] focus:ring-2 focus:ring-[#398AB9]/10 text-sm bg-[#F8FBFE] dark:bg-slate-700/50 dark:text-slate-200 placeholder:text-gray-400 dark:placeholder:text-slate-500"
               />
             </div>
 
@@ -80,7 +80,7 @@ export default function RegisterPage() {
               <input
                 type="email" placeholder="Email" value={form.email}
                 onChange={set("email")} required
-                className="w-full pl-10 pr-4 py-3.5 border border-gray-200 rounded-xl focus:outline-none focus:border-[#398AB9] focus:ring-2 focus:ring-[#398AB9]/10 text-sm bg-[#F8FBFE] placeholder:text-gray-400"
+                className="w-full pl-10 pr-4 py-3.5 border border-gray-200 dark:border-slate-600 rounded-xl focus:outline-none focus:border-[#398AB9] focus:ring-2 focus:ring-[#398AB9]/10 text-sm bg-[#F8FBFE] dark:bg-slate-700/50 dark:text-slate-200 placeholder:text-gray-400 dark:placeholder:text-slate-500"
               />
             </div>
 
@@ -90,7 +90,7 @@ export default function RegisterPage() {
               <input
                 type={showPw ? "text" : "password"} placeholder="Password" value={form.password}
                 onChange={set("password")} required
-                className="w-full pl-10 pr-10 py-3.5 border border-gray-200 rounded-xl focus:outline-none focus:border-[#398AB9] focus:ring-2 focus:ring-[#398AB9]/10 text-sm bg-[#F8FBFE] placeholder:text-gray-400"
+                className="w-full pl-10 pr-10 py-3.5 border border-gray-200 dark:border-slate-600 rounded-xl focus:outline-none focus:border-[#398AB9] focus:ring-2 focus:ring-[#398AB9]/10 text-sm bg-[#F8FBFE] dark:bg-slate-700/50 dark:text-slate-200 placeholder:text-gray-400 dark:placeholder:text-slate-500"
               />
               <button type="button" onClick={() => setShowPw(!showPw)}
                 className="absolute right-3.5 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600">
@@ -104,7 +104,7 @@ export default function RegisterPage() {
               <input
                 type="password" placeholder="Confirm Password" value={form.confirmPw}
                 onChange={set("confirmPw")} required
-                className="w-full pl-10 pr-4 py-3.5 border border-gray-200 rounded-xl focus:outline-none focus:border-[#398AB9] focus:ring-2 focus:ring-[#398AB9]/10 text-sm bg-[#F8FBFE] placeholder:text-gray-400"
+                className="w-full pl-10 pr-4 py-3.5 border border-gray-200 dark:border-slate-600 rounded-xl focus:outline-none focus:border-[#398AB9] focus:ring-2 focus:ring-[#398AB9]/10 text-sm bg-[#F8FBFE] dark:bg-slate-700/50 dark:text-slate-200 placeholder:text-gray-400 dark:placeholder:text-slate-500"
               />
             </div>
 
@@ -113,13 +113,13 @@ export default function RegisterPage() {
               <Calendar className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-[#398AB9]" />
               <input
                 type="date" value={form.dob} onChange={set("dob")}
-                className="w-full pl-10 pr-4 py-3.5 border border-gray-200 rounded-xl focus:outline-none focus:border-[#398AB9] focus:ring-2 focus:ring-[#398AB9]/10 text-sm bg-[#F8FBFE] text-gray-500"
+                className="w-full pl-10 pr-4 py-3.5 border border-gray-200 dark:border-slate-600 rounded-xl focus:outline-none focus:border-[#398AB9] focus:ring-2 focus:ring-[#398AB9]/10 text-sm bg-[#F8FBFE] dark:bg-slate-700/50 text-gray-500 dark:text-slate-300"
               />
             </div>
 
             {/* Gender */}
             <div>
-              <p className="text-gray-500 text-xs mb-2 pl-1">Gender</p>
+              <p className="text-gray-500 dark:text-slate-400 text-xs mb-2 pl-1">Gender</p>
               <div className="flex gap-3">
                 {["Male", "Female", "Other"].map((g) => (
                   <button
@@ -128,7 +128,7 @@ export default function RegisterPage() {
                     className={`flex-1 py-3 rounded-xl border text-sm font-medium transition-all ${
                       form.gender === g
                         ? "border-[#398AB9] bg-[#398AB9] text-white"
-                        : "border-gray-200 text-gray-500 hover:border-[#398AB9]"
+                        : "border-gray-200 dark:border-slate-600 text-gray-500 dark:text-slate-400 hover:border-[#398AB9]"
                     }`}
                   >
                     {g === "Male" ? "♂" : g === "Female" ? "♀" : "⚧"} {g}
@@ -146,14 +146,14 @@ export default function RegisterPage() {
           </form>
 
           <div className="flex items-center gap-3 my-5">
-            <div className="flex-1 h-px bg-gray-100" />
-            <span className="text-gray-400 text-xs">or</span>
-            <div className="flex-1 h-px bg-gray-100" />
+            <div className="flex-1 h-px bg-gray-100 dark:bg-slate-700" />
+            <span className="text-gray-400 dark:text-slate-500 text-xs">or</span>
+            <div className="flex-1 h-px bg-gray-100 dark:bg-slate-700" />
           </div>
 
           <button
             onClick={handleGoogle}
-            className="w-full flex items-center justify-center gap-3 py-3.5 border border-gray-200 rounded-xl hover:bg-gray-50 transition text-sm font-medium text-gray-600"
+            className="w-full flex items-center justify-center gap-3 py-3.5 border border-gray-200 dark:border-slate-600 rounded-xl hover:bg-gray-50 dark:hover:bg-slate-700 transition text-sm font-medium text-gray-600 dark:text-slate-300"
           >
             <svg className="w-5 h-5" viewBox="0 0 24 24">
               <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" />
@@ -164,7 +164,7 @@ export default function RegisterPage() {
             Continue with Google
           </button>
 
-          <p className="text-center text-gray-400 text-sm mt-6">
+          <p className="text-center text-gray-400 dark:text-slate-500 text-sm mt-6">
             Already have Account?{" "}
             <Link href="/login" className="text-[#398AB9] font-bold hover:underline">Log In</Link>
           </p>

@@ -38,23 +38,23 @@ export default function ForgotPasswordPage() {
           <p className="text-white/65 text-sm mt-1">สังคมแห่งการท่องเที่ยว</p>
         </div>
 
-        <div className="bg-white rounded-3xl p-8 shadow-2xl">
+        <div className="bg-white dark:bg-slate-800 rounded-3xl p-8 shadow-2xl">
           {sent ? (
             /* Success state */
             <div className="text-center">
-              <div className="w-16 h-16 bg-emerald-100 rounded-full flex items-center justify-center mx-auto mb-4">
+              <div className="w-16 h-16 bg-emerald-100 dark:bg-emerald-900/30 rounded-full flex items-center justify-center mx-auto mb-4">
                 <CheckCircle className="w-8 h-8 text-emerald-500" />
               </div>
-              <h2 className="text-xl font-bold text-gray-900 mb-2">ส่งลิงก์แล้ว!</h2>
-              <p className="text-sm text-gray-500 mb-6">
-                ตรวจสอบอีเมล <span className="font-semibold text-gray-700">{email}</span> เพื่อรีเซ็ตรหัสผ่าน
+              <h2 className="text-xl font-bold text-gray-900 dark:text-slate-100 mb-2">ส่งลิงก์แล้ว!</h2>
+              <p className="text-sm text-gray-500 dark:text-slate-400 mb-6">
+                ตรวจสอบอีเมล <span className="font-semibold text-gray-700 dark:text-slate-300">{email}</span> เพื่อรีเซ็ตรหัสผ่าน
               </p>
-              <p className="text-xs text-gray-400 mb-6">
+              <p className="text-xs text-gray-400 dark:text-slate-500 mb-6">
                 ไม่ได้รับอีเมล? ตรวจสอบโฟลเดอร์ Spam หรือ
               </p>
               <button
                 onClick={() => { setSent(false); setEmail(""); }}
-                className="w-full py-3 border border-gray-200 rounded-xl text-sm text-gray-600 hover:bg-gray-50 transition"
+                className="w-full py-3 border border-gray-200 dark:border-slate-600 rounded-xl text-sm text-gray-600 dark:text-slate-400 hover:bg-gray-50 dark:hover:bg-slate-700 transition"
               >
                 ลองอีกครั้ง
               </button>
@@ -65,13 +65,13 @@ export default function ForgotPasswordPage() {
           ) : (
             /* Form state */
             <>
-              <Link href="/login" className="flex items-center gap-1.5 text-sm text-gray-400 hover:text-gray-600 mb-6 transition">
+              <Link href="/login" className="flex items-center gap-1.5 text-sm text-gray-400 dark:text-slate-500 hover:text-gray-600 dark:hover:text-slate-300 mb-6 transition">
                 <ArrowLeft className="w-4 h-4" />
                 กลับไปล็อกอิน
               </Link>
 
               <h2 className="text-2xl font-bold text-[#398AB9] mb-2">ลืมรหัสผ่าน?</h2>
-              <p className="text-sm text-gray-400 mb-6">
+              <p className="text-sm text-gray-400 dark:text-slate-500 mb-6">
                 กรอกอีเมลของคุณ เราจะส่งลิงก์รีเซ็ตรหัสผ่านให้
               </p>
 
@@ -90,7 +90,7 @@ export default function ForgotPasswordPage() {
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     required
-                    className="w-full pl-10 pr-4 py-3.5 border border-gray-200 rounded-xl focus:outline-none focus:border-[#398AB9] focus:ring-2 focus:ring-[#398AB9]/10 text-sm bg-[#F8FBFE] text-gray-700 placeholder:text-gray-400"
+                    className="w-full pl-10 pr-4 py-3.5 border border-gray-200 dark:border-slate-600 rounded-xl focus:outline-none focus:border-[#398AB9] focus:ring-2 focus:ring-[#398AB9]/10 text-sm bg-[#F8FBFE] dark:bg-slate-700/50 text-gray-700 dark:text-slate-200 placeholder:text-gray-400 dark:placeholder:text-slate-500"
                   />
                 </div>
                 <button
