@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import Link from "next/link";
 import { Search, Star, MapPin, SlidersHorizontal, X, LayoutGrid, List, ArrowUpDown, Users, UserPlus, UserCheck, Bookmark } from "lucide-react";
 import { toggleSavePlace } from "@/server/actions/savedPlaces";
@@ -334,6 +334,25 @@ export default function ExploreClient({ initialPlaces, initialSaved = [] }: { in
   const hasMore = filtered.length > displayCount;
   const hasFilter = query || activeCategory !== "all" || activeRegion !== "all";
 
+  const sentinelRef = useRef<HTMLDivElement>(null);
+  const hasMoreRef = useRef(hasMore);
+  hasMoreRef.current = hasMore;
+
+  useEffect(() => {
+    const el = sentinelRef.current;
+    if (!el) return;
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries[0].isIntersecting && hasMoreRef.current) {
+          setDisplayCount((n) => n + PAGE_SIZE);
+        }
+      },
+      { rootMargin: "300px" }
+    );
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, []);
+
   return (
     <div className="max-w-6xl mx-auto px-4 md:px-6 py-4 md:py-6">
       {/* desktop title */}
@@ -565,17 +584,20 @@ export default function ExploreClient({ initialPlaces, initialSaved = [] }: { in
         </div>
       )}
 
-      {/* Load more */}
-      {hasMore && (
-        <div className="flex justify-center mt-6">
-          <button
-            onClick={() => setDisplayCount((n) => n + PAGE_SIZE)}
-            className="px-8 py-3 rounded-xl border border-[#398AB9] text-[#398AB9] text-sm font-medium hover:bg-[#398AB9]/5 transition"
-          >
-            โหลดเพิ่มเติม ({filtered.length - displayCount} สถานที่)
-          </button>
-        </div>
-      )}
+      {/* Infinite scroll sentinel */}
+      <div ref={sentinelRef} className="mt-6 flex justify-center py-4" aria-hidden>
+        {hasMore && (
+          <div className="flex gap-1.5">
+            {[0, 1, 2].map((i) => (
+              <div key={i} className="w-2 h-2 rounded-full bg-[#398AB9]/40 animate-bounce"
+                style={{ animationDelay: `${i * 0.15}s` }} />
+            ))}
+          </div>
+        )}
+        {!hasMore && filtered.length > PAGE_SIZE && (
+          <p className="text-sm text-gray-400">แสดงทั้งหมด {filtered.length} สถานที่ แล้ว</p>
+        )}
+      </div>
 
       </> /* end places section */}
     </div>

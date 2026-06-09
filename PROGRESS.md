@@ -4,8 +4,8 @@
 ## Status: Phase 2 | Day 12 (cont.) | 2026-06-09
 
 ## Current sprint task
-→ **DONE Day 12 session 2**: S7 (place bookmark wired), S1 (extended search), S10 (duplicate trip), S9 (image lazy loading), A11 (real notifications on like/comment/follow), A12 (trips count in profile), A13 (search history localStorage), A14 (post edit/delete for owner), A15 (trip share link)
-→ **NEXT**: Deploy to Vercel (push to remote); Quest S2 (seed demo posts); Quest S6 (geolocation sort)
+→ **DONE Day 13**: B16 dark mode (ThemeProvider + anti-FOUC + AppShell + Settings + Feed + PostCard + Explore + Toast + Trips), B18 PWA SVG icon (icon.svg + manifest)
+→ **NEXT**: Deploy to Vercel (push to remote); B17 Capacitor wrap (needs iOS/Android env); B19 custom domain (user action)
 
 ---
 
@@ -139,3 +139,4 @@
 | 2026-06-04 | Day 9: SavedPlace model+SQL migration; Explore wishlist→DB (optimistic); Profile saved tab (สถานที่/โพสต์ sub-tab); Create post place picker (placeId link) | ~90% | E2E wishlist test + PostCard place badge |
 | 2026-06-07 | Day 10: PostCard place badge (Post→Place Prisma relation wired; getFeed includes place; blue clickable badge); Feed tag filter chips UI; PROGRESS.md updated | ~25% | Deploy Vercel → E2E test → seed post data |
 | 2026-06-09 | Day 11: Post detail place badge; clickable post tags→filter feed; Feed right panel suggested places from DB; Place detail SEO generateMetadata (og:image); Landing page real featured places from DB; Explore load-more pagination (12/page); SEO metadata /feed /explore /trips; sitemap+robots.ts URL fix | ~70% | Deploy → E2E test |
+| 2026-06-09 | Day 13: Dark mode B16 (ThemeProvider + anti-FOUC script + CSS vars + AppShell + Settings + Feed + PostCard + Explore + Toast + Trips + FeedPostsClient); PWA SVG icon B18 (icon.svg + manifest sizes=any) | ~60% | Deploy → Capacitor (B17) |

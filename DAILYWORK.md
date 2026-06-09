@@ -63,9 +63,9 @@ PROGRESS ██████████████████░░ 88%  (Day 
 
 | # | Quest | XP | Status |
 |---|-------|----|--------|
-| 16 | **Dark mode** — toggle + CSS variables swap | 200 | ⬜ |
+| 16 | **Dark mode** — toggle + CSS variables swap | 200 | ✅ |
 | 17 | **Capacitor wrap** → iOS/Android build | 300 | ⬜ |
-| 18 | **PWA icons** — สร้าง icon-192.png + icon-512.png จริง | 150 | ⬜ |
+| 18 | **PWA icons** — SVG icon (icon.svg) + manifest update | 150 | ✅ |
 | 19 | **Custom domain** ผูกกับ your-trip-nu.vercel.app | 100 | ⬜ |
 
 ---
@@ -145,9 +145,10 @@ PROGRESS ██████████████████░░ 88%  (Day 
 
 ## 📊 XP TRACKER
 ```
-Total earned: ~8,050 XP (Day 1–12 complete)
-This session: S7✅+S1✅+S2✅+S6✅+S8✅+S9✅+S10✅+A11✅+A12✅+A13✅+A14✅+A15✅ = +2,550 XP
+Total earned: ~8,400 XP (Day 1–13 complete)
+This session: B16✅+B18✅ = +350 XP (+ dark mode extended to Feed/PostCard/Explore/Trips)
 All Tier S and A quests CLEARED! 🎉
+Tier B remaining: B17 (Capacitor, needs iOS env), B19 (custom domain, user action)
 ```
 
 ---
