@@ -13,6 +13,8 @@ export const metadata: Metadata = {
 import { type PostCardData } from "@/components/features/PostCard";
 import { getFeed } from "@/server/actions/posts";
 import { getPlaces } from "@/server/actions/places";
+import { getPublicTrips } from "@/server/actions/trips";
+import { MapPin as MapPinIcon } from "lucide-react";
 import { FeedPostsClient } from "./FeedPostsClient";
 import SuggestedUsers from "@/components/features/SuggestedUsers";
 
@@ -82,9 +84,11 @@ export default async function FeedPage() {
   const [
     { data: dbPosts, nextCursor, hasMore },
     { data: featuredPlaces },
+    { data: communityTrips },
   ] = await Promise.all([
     getFeed(),
     getPlaces({ featured: true, take: 3 }),
+    getPublicTrips(3),
   ]);
 
   const feedPosts: PostCardData[] = dbPosts.length > 0
@@ -193,6 +197,43 @@ export default async function FeedPage() {
             <div className="mb-4">
               <SuggestedUsers />
             </div>
+
+            {/* Community Trips — from DB */}
+            {communityTrips.length > 0 && (
+              <div className="bg-white dark:bg-slate-800 rounded-2xl border border-gray-100 dark:border-slate-700 p-5 mb-4">
+                <div className="flex items-center justify-between mb-3">
+                  <h3 className="text-sm font-semibold text-gray-900 dark:text-slate-100">ทริปชุมชน</h3>
+                  <Link href="/trips" className="text-[11px] text-[#398AB9] hover:underline">ดูทั้งหมด →</Link>
+                </div>
+                <div className="space-y-2.5">
+                  {communityTrips.slice(0, 3).map((t) => (
+                    <Link key={t.id} href={`/trips/${t.id}`}
+                      className="flex gap-2.5 hover:bg-gray-50 dark:hover:bg-slate-700 -mx-2 px-2 py-1.5 rounded-xl transition group">
+                      <div className="w-12 h-12 flex-shrink-0 rounded-lg overflow-hidden bg-gray-100 dark:bg-slate-700">
+                        <img
+                          src={t.coverImage ?? `https://images.unsplash.com/photo-1476514525405-8d4b4c284c1e?auto=format&fit=crop&w=200&q=80&sig=${t.id}`}
+                          alt={t.title}
+                          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                          loading="lazy"
+                          referrerPolicy="no-referrer"
+                          onError={(e) => { (e.target as HTMLImageElement).src = "https://images.unsplash.com/photo-1476514525405-8d4b4c284c1e?auto=format&fit=crop&w=200&q=80"; }}
+                        />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-xs font-semibold text-gray-900 dark:text-slate-100 truncate">{t.title}</p>
+                        <div className="flex items-center gap-1 mt-0.5">
+                          <MapPinIcon className="w-2.5 h-2.5 text-[#398AB9] flex-shrink-0" />
+                          <span className="text-[10px] text-gray-400 dark:text-slate-500 truncate">{t.destination}</span>
+                        </div>
+                        {t.itemCount > 0 && (
+                          <p className="text-[9px] text-gray-400 dark:text-slate-500 mt-0.5">{t.itemCount} จุดหมาย</p>
+                        )}
+                      </div>
+                    </Link>
+                  ))}
+                </div>
+              </div>
+            )}
 
             {/* Suggested places — from DB */}
             {featuredPlaces.length > 0 && (
