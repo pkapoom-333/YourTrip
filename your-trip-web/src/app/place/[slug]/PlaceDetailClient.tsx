@@ -3,6 +3,7 @@
 import { useState } from "react";
 import AppShell from "@/components/AppShell";
 import Link from "next/link";
+import Image from "next/image";
 import {
   MapPin, Star, Clock, Phone, Globe, ChevronLeft,
   ChevronRight, Heart, Share2, Bookmark, Camera,
@@ -135,10 +136,9 @@ export default function PlaceDetailClient({ place, slug, initialSaved = false }:
       <div className="max-w-4xl mx-auto">
         {/* ── Hero Carousel ── */}
         <div className="relative aspect-[16/9] md:aspect-[2/1] overflow-hidden bg-gray-900 md:mt-6 md:mx-6 md:rounded-2xl">
-          <img src={safeImages[imgIndex]} alt={place.name}
-            className="w-full h-full object-cover transition-opacity duration-500"
-            referrerPolicy="no-referrer"
-            onError={(e) => { (e.target as HTMLImageElement).style.opacity = "0"; }} />
+          <Image src={safeImages[imgIndex]} alt={place.name} fill priority
+            className="object-cover transition-opacity duration-500"
+            sizes="(max-width: 768px) 100vw, 896px" />
 
           <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-black/20" />
 

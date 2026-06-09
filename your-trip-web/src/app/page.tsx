@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Image from "next/image";
 import { MapPin, Users, Compass, ChevronDown, Star, CheckCircle } from "lucide-react";
 import type { Metadata } from "next";
 import { getPlaces } from "@/server/actions/places";
@@ -146,9 +147,10 @@ export default async function LandingPage() {
                   <Link key={p.id} href={`/place/${p.slug}`}
                     className="group relative rounded-2xl overflow-hidden aspect-[3/4] cursor-pointer shadow-md hover:shadow-xl transition-all hover:-translate-y-1 block">
                     {p.coverImage ? (
-                      <img src={p.coverImage} alt={p.name}
-                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                        referrerPolicy="no-referrer" />
+                      <Image src={p.coverImage} alt={p.name} fill
+                        className="object-cover group-hover:scale-105 transition-transform duration-500"
+                        sizes="(max-width: 768px) 50vw, 25vw"
+                        priority={false} />
                     ) : (
                       <div className="w-full h-full bg-gradient-to-b from-[#398AB9] to-[#1C658C] flex items-center justify-center">
                         <span className="text-5xl">🗺️</span>
