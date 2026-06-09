@@ -4,6 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { Plus, MapPin, Calendar, Users, ChevronRight, Map, Plane, Trash2, X, ChevronDown, Copy, Check } from "lucide-react";
 import { deleteTrip, updateTripStatus, duplicateTrip } from "@/server/actions/trips";
+import { useToast } from "@/components/shared/Toast";
 
 export interface TripSummary {
   id: string;
@@ -33,6 +34,7 @@ export default function TripsClient({ initialTrips }: { initialTrips: TripSummar
   const [deleting, setDeleting] = useState(false);
   const [duplicatingId, setDuplicatingId] = useState<string | null>(null);
   const [duplicatedId, setDuplicatedId] = useState<string | null>(null);
+  const { success, error: toastError } = useToast();
 
   const filtered = tab === "all" ? trips : trips.filter((t) => t.status === tab);
 
@@ -60,10 +62,11 @@ export default function TripsClient({ initialTrips }: { initialTrips: TripSummar
         const cloned: TripSummary = { ...original, id: data.id, title: data.title, status: "planning" };
         setTrips((prev) => [cloned, ...prev]);
         setDuplicatedId(data.id);
+        success(`คัดลอก "${data.title}" แล้ว ✓`);
         setTimeout(() => setDuplicatedId(null), 3000);
       }
     } else {
-      console.error(error?.message);
+      toastError("ไม่สามารถคัดลอกทริปได้");
     }
   }
 
@@ -86,7 +89,7 @@ export default function TripsClient({ initialTrips }: { initialTrips: TripSummar
   return (
     <div className="max-w-2xl mx-auto px-4 md:px-6 py-4 md:py-6">
       <div className="hidden md:flex items-center justify-between mb-6">
-        <h1 className="text-xl font-bold text-gray-900">ทริปของฉัน</h1>
+        <h1 className="text-xl font-bold text-gray-900 dark:text-slate-100">ทริปของฉัน</h1>
         <Link href="/trips/new"
           className="flex items-center gap-2 bg-[#398AB9] text-white text-sm font-medium px-4 py-2 rounded-xl hover:bg-[#1C658C] transition">
           <Plus className="w-4 h-4" />
@@ -101,10 +104,10 @@ export default function TripsClient({ initialTrips }: { initialTrips: TripSummar
           { icon: MapPin,   label: "สถานที่",         value: totalPlaces },
           { icon: Calendar, label: "วันที่เดินทาง",  value: totalDays },
         ].map((s) => (
-          <div key={s.label} className="bg-white rounded-2xl border border-gray-100 p-3 text-center">
+          <div key={s.label} className="bg-white dark:bg-slate-800 rounded-2xl border border-gray-100 dark:border-slate-700 p-3 text-center">
             <s.icon className="w-5 h-5 text-[#398AB9] mx-auto mb-1" />
-            <p className="text-xl font-bold text-gray-900">{s.value}</p>
-            <p className="text-[10px] text-gray-400">{s.label}</p>
+            <p className="text-xl font-bold text-gray-900 dark:text-slate-100">{s.value}</p>
+            <p className="text-[10px] text-gray-400 dark:text-slate-500">{s.label}</p>
           </div>
         ))}
       </div>
@@ -114,7 +117,7 @@ export default function TripsClient({ initialTrips }: { initialTrips: TripSummar
         {(["all", "upcoming", "planning", "completed"] as const).map((t) => (
           <button key={t} onClick={() => setTab(t)}
             className={`px-3.5 py-1.5 rounded-full text-xs font-medium flex-shrink-0 transition ${
-              tab === t ? "bg-[#398AB9] text-white" : "bg-white border border-gray-200 text-gray-500"
+              tab === t ? "bg-[#398AB9] text-white" : "bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-600 text-gray-500 dark:text-slate-400"
             }`}>
             {t === "all" ? "ทั้งหมด" : statusConfig[t].label}
           </button>
@@ -137,7 +140,7 @@ export default function TripsClient({ initialTrips }: { initialTrips: TripSummar
           const s = statusConfig[trip.status] ?? statusConfig.planning;
           const isConfirming = confirmDeleteId === trip.id;
           return (
-            <div key={trip.id} className="bg-white rounded-2xl border border-gray-100 overflow-hidden hover:shadow-md transition-shadow">
+            <div key={trip.id} className="bg-white dark:bg-slate-800 rounded-2xl border border-gray-100 dark:border-slate-700 overflow-hidden hover:shadow-md transition-shadow">
               <div className="relative h-36 overflow-hidden">
                 <img src={trip.img || PLACEHOLDER_IMG} alt={trip.title} className="w-full h-full object-cover"
                   referrerPolicy="no-referrer" loading="lazy"

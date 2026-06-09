@@ -13,6 +13,7 @@ import {
 import { createReview } from "@/server/actions/places";
 import { toggleSavePlace } from "@/server/actions/savedPlaces";
 import { Avatar } from "@/components/shared/Avatar";
+import { useToast } from "@/components/shared/Toast";
 
 /* ── types ────────────────────────────────────────────────── */
 export interface PlaceData {
@@ -86,6 +87,7 @@ function TransportTab({ icon: Icon, label, content }: { icon: React.ElementType;
 export default function PlaceDetailClient({ place, slug, initialSaved = false }: { place: PlaceData; slug: string; initialSaved?: boolean }) {
   const [imgIndex, setImgIndex] = useState(0);
   const [saved, setSaved] = useState(initialSaved);
+  const { success, error: toastError, info } = useToast();
   const [liked, setLiked] = useState(false);
   const [expanded, setExpanded] = useState(false);
   const [showReviewForm, setShowReviewForm] = useState(false);
@@ -103,6 +105,7 @@ export default function PlaceDetailClient({ place, slug, initialSaved = false }:
     } else {
       await navigator.clipboard.writeText(url);
       setShareCopied(true);
+      info("คัดลอกลิงก์แล้ว ✓");
       setTimeout(() => setShareCopied(false), 2000);
     }
   }
@@ -148,8 +151,12 @@ export default function PlaceDetailClient({ place, slug, initialSaved = false }:
             <div className="flex items-center gap-2">
               <button onClick={async () => {
                   if (!place.id || place.id.startsWith("mock")) return;
-                  setSaved((s) => !s);
-                  try { await toggleSavePlace(place.id!); } catch { setSaved((s) => !s); }
+                  const next = !saved;
+                  setSaved(next);
+                  try {
+                    await toggleSavePlace(place.id!);
+                    if (next) success("เพิ่มใน Wishlist แล้ว ✓");
+                  } catch { setSaved((s) => !s); toastError("ไม่สามารถบันทึกได้"); }
                 }}
                 className="w-9 h-9 bg-black/30 backdrop-blur-sm rounded-full flex items-center justify-center hover:bg-black/50 transition">
                 <Bookmark className={`w-5 h-5 ${saved ? "fill-white text-white" : "text-white"}`} />

@@ -4,16 +4,35 @@
 
 ---
 
-## 🎮 CURRENT SPRINT — S5 "Social Polish"
-**ช่วง:** 8–13 มิ.ย. 2026 | **MVP deadline:** 14 ก.ค. 2026
+## 🎮 CURRENT SPRINT — S6 "Launch Prep"
+**ช่วง:** 9–20 มิ.ย. 2026 | **MVP deadline:** 14 ก.ค. 2026
 
 ```
-PROGRESS ████████████████░░░░ 78%  (Day 12 / ~15 ก่อน launch)
+PROGRESS ██████████████████░░ 88%  (Day 13 / ~10 ก่อน launch)
 ```
 
 ---
 
-## 🔥 QUEST BOARD — เลือกทำตามลำดับ
+## 🔥 QUEST BOARD — Sprint S6 NEW QUESTS
+
+### ⚔️ TIER S — ทำก่อนเลย (ไม่ต้อง allow)
+
+| # | Quest | XP | Status |
+|---|-------|----|--------|
+| S6-1 | **Toast feedback system** — global toast/snackbar สำหรับ save, like, delete, error | 300 | ⬜ |
+| S6-2 | **Explore infinite scroll** — replace "โหลดเพิ่มเติม" button ด้วย IntersectionObserver | 200 | ⬜ |
+| S6-3 | **Place nearby from DB** — ตอนนี้ nearby คือ [] hardcoded ใน PlaceDetailClient | 200 | ⬜ |
+| S6-4 | **next/image optimization** — convert hero images ใน Landing + Place Detail | 150 | ⬜ |
+| S6-5 | **Custom 404 page** — not-found.tsx + error.tsx global | 100 | ⬜ |
+| S6-6 | **PWA icons** — สร้าง icon-192.png + icon-512.png จริง (SVG→PNG via canvas) | 150 | ⬜ |
+| S6-7 | **Profile/[userId] follow** — ตรวจสอบและ fix follow button บน public profile | 150 | ⬜ |
+| S6-8 | **Feed pull-to-refresh** — swipe-down gesture บน mobile | 100 | ⬜ |
+| S6-9 | **Post tags in explore** — เพิ่ม tag-based search ใน getPlaces (filter by tags array) | 200 | ⬜ |
+| S6-10 | **Dark mode** — toggle + CSS variables swap ใน Settings | 200 | ⬜ |
+
+---
+
+## 🔥 QUEST BOARD — Sprint S5 COMPLETED
 
 ### ⚔️ TIER S — ทำก่อนเลย (ไม่ต้อง allow)
 
