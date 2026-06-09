@@ -60,6 +60,7 @@ PROGRESS ██████████████████░░ 88%  (Day 
 | B14 | **Add to Trip FAB** — place detail → bottom sheet modal (trip+day selector, addItineraryItem) | 250 | ✅ |
 | B15 | **Trips list search bar** — filter by title+destination (visible when >3 trips) | 100 | ✅ |
 | B16 | **Explore map view** — 3rd view toggle (Leaflet, lazy init, markers+popup, fitBounds) | 300 | ✅ |
+| B17 | **Dark mode followers/following pages** — profile/[userId]/followers + following pages full dark sweep | 100 | ✅ |
 
 ---
 

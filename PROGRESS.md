@@ -9,6 +9,7 @@
 → **DONE Day 13 sess 3**: Full dark mode sweep — PlaceDetailClient, FeedPostsClient, SuggestedUsers, UserListRow, ResetPassword, ImageUpload, PWAInstallPrompt, not-found, all 10 loading skeletons, ExploreClient, TripsClient, create page, notifications, buddy/BuddyCard, profile/edit. Prisma client regenerated for lat/lng/googlePlaceId on TripItem.
 → **DONE Day 14 sess 4**: Google Maps integration trips/[id] (getMapsUrl, getFullRouteUrl, GooglePlacesPicker v2, TravelConnector OSRM); dark mode trips/new wizard; Guide Verification (BV-1+BV-4 badge 🏅, BV-2 /guide/apply wizard); Trip public read-only view (isOwner guard, read-only banner); Community Trips section on /trips page (getPublicTrips, 2-col grid with owner avatar)
 → **DONE Day 14 sess 5**: robots.ts /guide/ disallow; Featured Guides section on landing page (getVerifiedGuides action + FeaturedGuide type + 3-col cards + mock fallback); Trips tab on own profile page (/profile) with public/private badge; "Add to Trip" FAB on place detail (modal: trip+day selector, addItineraryItem); Trips list search bar (shows when >3 trips); Explore map view (Leaflet, 3rd view toggle, markers with popup). 0 TS errors.
+→ **DONE Day 14 sess 6**: Dark mode followers/following pages (profile/[userId]/followers + following — header, tab strip, empty state, divider rows). 0 TS errors.
 → **NEXT**: Deploy to Vercel (push to remote — user confirm); B17 Capacitor; B19 custom domain
 
 ---

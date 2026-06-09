@@ -23,22 +23,22 @@ export default async function FollowersPage({ params }: PageProps) {
 
   return (
     <AppShell>
-      <header className="sticky top-0 z-40 bg-white border-b border-gray-100 px-4 py-3 flex items-center gap-3">
+      <header className="sticky top-0 z-40 bg-white dark:bg-slate-900 border-b border-gray-100 dark:border-slate-700 px-4 py-3 flex items-center gap-3">
         <Link
           href={`/profile/${userId}`}
-          className="text-gray-500 hover:text-gray-700 transition"
+          className="text-gray-500 dark:text-slate-400 hover:text-gray-700 dark:hover:text-slate-200 transition"
         >
           <ChevronLeft className="w-5 h-5" />
         </Link>
         <div className="flex-1 min-w-0">
-          <p className="text-sm font-semibold text-gray-900 truncate">{displayName}</p>
-          <p className="text-[11px] text-gray-400">ผู้ติดตาม</p>
+          <p className="text-sm font-semibold text-gray-900 dark:text-slate-100 truncate">{displayName}</p>
+          <p className="text-[11px] text-gray-400 dark:text-slate-500">ผู้ติดตาม</p>
         </div>
       </header>
 
-      <div className="max-w-2xl mx-auto bg-white">
+      <div className="max-w-2xl mx-auto bg-white dark:bg-slate-900">
         {/* Tab strip */}
-        <div className="flex border-b border-gray-100">
+        <div className="flex border-b border-gray-100 dark:border-slate-700">
           <Link
             href={`/profile/${userId}/followers`}
             className="flex-1 text-center py-3 border-b-2 border-[#398AB9] text-[#398AB9] text-sm font-semibold"
@@ -47,7 +47,7 @@ export default async function FollowersPage({ params }: PageProps) {
           </Link>
           <Link
             href={`/profile/${userId}/following`}
-            className="flex-1 text-center py-3 border-b-2 border-transparent text-gray-400 text-sm font-medium hover:text-gray-700"
+            className="flex-1 text-center py-3 border-b-2 border-transparent text-gray-400 dark:text-slate-500 text-sm font-medium hover:text-gray-700 dark:hover:text-slate-200"
           >
             กำลังติดตาม
           </Link>
@@ -55,11 +55,11 @@ export default async function FollowersPage({ params }: PageProps) {
 
         {followers.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-20 text-center px-8">
-            <Users className="w-12 h-12 text-gray-200 mb-4" />
-            <p className="text-gray-500 font-medium">ยังไม่มีผู้ติดตาม</p>
+            <Users className="w-12 h-12 text-gray-200 dark:text-slate-700 mb-4" />
+            <p className="text-gray-500 dark:text-slate-400 font-medium">ยังไม่มีผู้ติดตาม</p>
           </div>
         ) : (
-          <div className="divide-y divide-gray-50">
+          <div className="divide-y divide-gray-50 dark:divide-slate-700">
             {followers.map((u) => (
               <UserListRow key={u.id} user={u} selfId={me?.id} />
             ))}
