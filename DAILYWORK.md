@@ -19,16 +19,16 @@ PROGRESS ██████████████████░░ 88%  (Day 
 
 | # | Quest | XP | Status |
 |---|-------|----|--------|
-| S6-1 | **Toast feedback system** — global toast/snackbar สำหรับ save, like, delete, error | 300 | ⬜ |
-| S6-2 | **Explore infinite scroll** — replace "โหลดเพิ่มเติม" button ด้วย IntersectionObserver | 200 | ⬜ |
-| S6-3 | **Place nearby from DB** — ตอนนี้ nearby คือ [] hardcoded ใน PlaceDetailClient | 200 | ⬜ |
-| S6-4 | **next/image optimization** — convert hero images ใน Landing + Place Detail | 150 | ⬜ |
-| S6-5 | **Custom 404 page** — not-found.tsx + error.tsx global | 100 | ⬜ |
-| S6-6 | **PWA icons** — สร้าง icon-192.png + icon-512.png จริง (SVG→PNG via canvas) | 150 | ⬜ |
-| S6-7 | **Profile/[userId] follow** — ตรวจสอบและ fix follow button บน public profile | 150 | ⬜ |
-| S6-8 | **Feed pull-to-refresh** — swipe-down gesture บน mobile | 100 | ⬜ |
-| S6-9 | **Post tags in explore** — เพิ่ม tag-based search ใน getPlaces (filter by tags array) | 200 | ⬜ |
-| S6-10 | **Dark mode** — toggle + CSS variables swap ใน Settings | 200 | ⬜ |
+| S6-1 | **Toast feedback system** — global toast/snackbar สำหรับ save, like, delete, error | 300 | ✅ |
+| S6-2 | **Explore infinite scroll** — replace "โหลดเพิ่มเติม" button ด้วย IntersectionObserver | 200 | ✅ |
+| S6-3 | **Place nearby from DB** — ตอนนี้ nearby คือ [] hardcoded ใน PlaceDetailClient | 200 | ✅ |
+| S6-4 | **next/image optimization** — convert hero images ใน Landing + Place Detail | 150 | ✅ |
+| S6-5 | **Custom 404 page** — not-found.tsx + error.tsx global | 100 | ✅ |
+| S6-6 | **PWA icons** — สร้าง icon-192.png + icon-512.png จริง (SVG→PNG via canvas) | 150 | ✅ |
+| S6-7 | **Profile/[userId] follow** — ตรวจสอบและ fix follow button บน public profile | 150 | ✅ |
+| S6-8 | **Feed pull-to-refresh** — swipe-down gesture บน mobile | 100 | ✅ |
+| S6-9 | **Post tags in explore** — เพิ่ม tag-based search ใน getPlaces (filter by tags array) | 200 | ✅ |
+| S6-10 | **Dark mode** — toggle + CSS variables swap ใน Settings | 200 | ✅ |
 
 ---
 
@@ -145,9 +145,10 @@ PROGRESS ██████████████████░░ 88%  (Day 
 
 ## 📊 XP TRACKER
 ```
-Total earned: ~8,400 XP (Day 1–13 complete)
-This session: B16✅+B18✅ = +350 XP (+ dark mode extended to Feed/PostCard/Explore/Trips)
-All Tier S and A quests CLEARED! 🎉
+Total earned: ~8,400 XP (Day 1–13 sess 1 complete)
+Session 2: S6-2(200)+S6-4(150)+S6-7(150)+S6-8(100)+S6-9(200) = +800 XP (S6-1/3/5/6/10 already done)
+Sprint S6 TIER S: ALL 10 QUESTS CLEARED! 🎉
+Grand total: ~9,200 XP
 Tier B remaining: B17 (Capacitor, needs iOS env), B19 (custom domain, user action)
 ```
 
