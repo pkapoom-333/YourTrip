@@ -110,13 +110,13 @@ export default function CreatePage() {
     <AppShell>
       <div className="max-w-xl mx-auto">
         {/* Header */}
-        <div className="sticky top-0 z-30 bg-white border-b border-gray-100 px-4 py-3 flex items-center justify-between">
+        <div className="sticky top-0 z-30 bg-white dark:bg-slate-800 border-b border-gray-100 dark:border-slate-700 px-4 py-3 flex items-center justify-between">
           <button onClick={() => router.back()}
-            className="flex items-center gap-1.5 text-sm text-gray-500 hover:text-gray-700 transition">
+            className="flex items-center gap-1.5 text-sm text-gray-500 dark:text-slate-400 hover:text-gray-700 dark:hover:text-slate-200 transition">
             <ChevronLeft className="w-4 h-4" />
             ยกเลิก
           </button>
-          <h1 className="text-sm font-semibold text-gray-900">โพสต์ใหม่</h1>
+          <h1 className="text-sm font-semibold text-gray-900 dark:text-slate-100">โพสต์ใหม่</h1>
           <button
             onClick={handlePost}
             disabled={!canPost}
@@ -158,7 +158,7 @@ export default function CreatePage() {
               onChange={(e) => setContent(e.target.value.slice(0, MAX_CHARS))}
               placeholder="แชร์ประสบการณ์การท่องเที่ยวของคุณ..."
               rows={5}
-              className="w-full text-sm text-gray-800 placeholder:text-gray-400 resize-none outline-none leading-relaxed bg-transparent"
+              className="w-full text-sm text-gray-800 dark:text-slate-200 placeholder:text-gray-400 dark:placeholder:text-slate-500 resize-none outline-none leading-relaxed bg-transparent"
               autoFocus
             />
             <div className={`text-right text-xs mt-1 ${remaining < 50 ? "text-[#FF4F4F]" : "text-gray-300"}`}>
@@ -187,13 +187,13 @@ export default function CreatePage() {
               </div>
             ) : (
               /* Search input */
-              <div className="flex items-center gap-2 bg-gray-50 rounded-xl px-3 py-2">
+              <div className="flex items-center gap-2 bg-gray-50 dark:bg-slate-700/50 rounded-xl px-3 py-2">
                 <MapPin className="w-4 h-4 text-[#398AB9] flex-shrink-0" />
                 <input
                   value={placeSearchQ}
                   onChange={(e) => searchPlace(e.target.value)}
                   placeholder="แท็กสถานที่ (ค้นหาจาก YourTrip...)"
-                  className="flex-1 text-sm text-gray-700 placeholder:text-gray-400 bg-transparent outline-none"
+                  className="flex-1 text-sm text-gray-700 dark:text-slate-300 placeholder:text-gray-400 dark:placeholder:text-slate-500 bg-transparent outline-none"
                 />
                 {placeSearching
                   ? <Loader2 className="w-3.5 h-3.5 text-gray-400 animate-spin" />
@@ -204,14 +204,14 @@ export default function CreatePage() {
 
             {/* Dropdown results */}
             {placeResults.length > 0 && (
-              <div className="absolute z-20 w-full mt-1 bg-white border border-gray-100 rounded-xl shadow-lg overflow-hidden">
+              <div className="absolute z-20 w-full mt-1 bg-white dark:bg-slate-800 border border-gray-100 dark:border-slate-700 rounded-xl shadow-lg overflow-hidden">
                 {placeResults.map((p) => (
                   <button key={p.id} type="button" onClick={() => selectPlace(p)}
-                    className="w-full flex items-center gap-3 px-4 py-2.5 hover:bg-[#398AB9]/5 text-left transition">
+                    className="w-full flex items-center gap-3 px-4 py-2.5 hover:bg-[#398AB9]/5 dark:hover:bg-[#398AB9]/10 text-left transition">
                     <MapPin className="w-4 h-4 text-[#398AB9] flex-shrink-0" />
                     <div className="min-w-0">
-                      <p className="text-sm font-medium text-gray-800 truncate">{p.name}</p>
-                      <p className="text-[11px] text-gray-400">{p.province ?? p.nameEn}</p>
+                      <p className="text-sm font-medium text-gray-800 dark:text-slate-200 truncate">{p.name}</p>
+                      <p className="text-[11px] text-gray-400 dark:text-slate-500">{p.province ?? p.nameEn}</p>
                     </div>
                   </button>
                 ))}
@@ -254,7 +254,7 @@ export default function CreatePage() {
             <div className="flex flex-wrap gap-1.5">
               {suggestedTags.filter((t) => !tags.includes(t)).slice(0, 6).map((t) => (
                 <button key={t} onClick={() => addTag(t)}
-                  className="text-[11px] bg-gray-100 text-gray-500 px-2.5 py-1 rounded-full hover:bg-gray-200 transition">
+                  className="text-[11px] bg-gray-100 dark:bg-slate-700 text-gray-500 dark:text-slate-400 px-2.5 py-1 rounded-full hover:bg-gray-200 dark:hover:bg-slate-600 transition">
                   #{t}
                 </button>
               ))}
@@ -263,7 +263,7 @@ export default function CreatePage() {
         </div>
 
         {/* Bottom toolbar */}
-        <div className="sticky bottom-20 md:bottom-4 bg-white border-t border-gray-100 px-4 py-3">
+        <div className="sticky bottom-20 md:bottom-4 bg-white dark:bg-slate-800 border-t border-gray-100 dark:border-slate-700 px-4 py-3">
           <div className="flex items-center gap-4">
             <button className="text-sm text-gray-500 hover:text-[#398AB9] transition">
               <Smile className="w-5 h-5" />
