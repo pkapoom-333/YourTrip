@@ -101,12 +101,17 @@ interface FeedPostsClientProps {
   initialHasMore?: boolean;
 }
 
+const PULL_THRESHOLD = 70;
+
 export function FeedPostsClient({ initialPosts, initialCursor, initialHasMore = false }: FeedPostsClientProps) {
   const [posts, setPosts] = useState<PostCardData[]>(initialPosts);
   const [cursor, setCursor] = useState<string | undefined>(initialCursor);
   const [hasMore, setHasMore] = useState(initialHasMore);
   const [loading, setLoading] = useState(false);
   const [activeTag, setActiveTag] = useState("ทั้งหมด");
+  const [refreshing, setRefreshing] = useState(false);
+  const [pullDelta, setPullDelta] = useState(0);
+  const touchStartY = useRef(0);
   const sentinelRef = useRef<HTMLDivElement>(null);
 
   // Client-side filter by tag
@@ -149,6 +154,41 @@ export function FeedPostsClient({ initialPosts, initialCursor, initialHasMore = 
     }
   }, [cursor, hasMore, loading]);
 
+  async function refreshFeed() {
+    if (refreshing || loading) return;
+    setRefreshing(true);
+    try {
+      const { data, nextCursor, hasMore: more } = await getFeed(undefined);
+      const newPosts: PostCardData[] = data.map((p) => ({
+        id: p.id,
+        caption: p.content,
+        img: p.images?.[0] ?? undefined,
+        user: { id: p.user?.id ?? undefined, name: p.user?.name ?? "YourTrip User", avatarUrl: p.user?.avatarUrl ?? undefined, location: p.location ?? undefined },
+        likes: p.likesCount, comments: p.commentsCount,
+        liked: p.likedByMe ?? false, saved: p.savedByMe ?? false,
+        time: fmtTime(p.createdAt), tags: p.tags ?? [], place: p.place ?? null,
+      }));
+      setPosts(newPosts);
+      setCursor(nextCursor);
+      setHasMore(more);
+    } catch { /* silent */ } finally { setRefreshing(false); }
+  }
+
+  function onTouchStart(e: React.TouchEvent) {
+    if (window.scrollY === 0) touchStartY.current = e.touches[0].clientY;
+  }
+  function onTouchMove(e: React.TouchEvent) {
+    if (!touchStartY.current) return;
+    const delta = e.touches[0].clientY - touchStartY.current;
+    if (delta > 0 && window.scrollY === 0) setPullDelta(Math.min(delta, PULL_THRESHOLD + 30));
+    else setPullDelta(0);
+  }
+  function onTouchEnd() {
+    if (pullDelta >= PULL_THRESHOLD) refreshFeed();
+    setPullDelta(0);
+    touchStartY.current = 0;
+  }
+
   // Intersection observer for infinite scroll
   useEffect(() => {
     const sentinel = sentinelRef.current;
@@ -167,8 +207,30 @@ export function FeedPostsClient({ initialPosts, initialCursor, initialHasMore = 
     return () => observer.disconnect();
   }, [loadMore, hasMore]);
 
+  const pullProgress = Math.min(pullDelta / PULL_THRESHOLD, 1);
+  const showPullIndicator = pullDelta > 10 || refreshing;
+
   return (
-    <div className="space-y-3">
+    <div className="space-y-3"
+      onTouchStart={onTouchStart}
+      onTouchMove={onTouchMove}
+      onTouchEnd={onTouchEnd}
+    >
+      {/* Pull-to-refresh indicator */}
+      {showPullIndicator && (
+        <div className="flex justify-center py-1 -mb-1">
+          <div className={`w-8 h-8 rounded-full border-2 flex items-center justify-center transition-all ${
+            refreshing || pullProgress >= 1
+              ? "border-[#398AB9] bg-[#398AB9]/10"
+              : "border-gray-200 bg-white"
+          }`}
+            style={{ transform: `scale(${0.5 + pullProgress * 0.5})` }}>
+            <Loader2 className={`w-4 h-4 text-[#398AB9] ${refreshing ? "animate-spin" : ""}`}
+              style={{ transform: refreshing ? undefined : `rotate(${pullProgress * 360}deg)` }} />
+          </div>
+        </div>
+      )}
+
       {/* Compose box */}
       <ComposeBox />
 
