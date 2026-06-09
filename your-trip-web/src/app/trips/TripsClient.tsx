@@ -2,9 +2,10 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { Plus, MapPin, Calendar, Users, ChevronRight, Map, Plane, Trash2, X, ChevronDown, Copy, Check } from "lucide-react";
-import { deleteTrip, updateTripStatus, duplicateTrip } from "@/server/actions/trips";
+import { Plus, MapPin, Calendar, Users, ChevronRight, Map, Plane, Trash2, X, ChevronDown, Copy, Check, Globe } from "lucide-react";
+import { deleteTrip, updateTripStatus, duplicateTrip, type PublicTripItem } from "@/server/actions/trips";
 import { useToast } from "@/components/shared/Toast";
+import { Avatar } from "@/components/shared/Avatar";
 
 export interface TripSummary {
   id: string;
@@ -27,7 +28,7 @@ const statusConfig: Record<TripSummary["status"], { label: string; color: string
 
 const PLACEHOLDER_IMG = "https://images.unsplash.com/photo-1476514525405-8d4b4c284c1e?auto=format&fit=crop&w=800&q=80";
 
-export default function TripsClient({ initialTrips }: { initialTrips: TripSummary[] }) {
+export default function TripsClient({ initialTrips, communityTrips = [] }: { initialTrips: TripSummary[]; communityTrips?: PublicTripItem[] }) {
   const [tab, setTab] = useState<"all" | "upcoming" | "planning" | "completed">("all");
   const [trips, setTrips] = useState<TripSummary[]>(initialTrips.length > 0 ? initialTrips : MOCK_TRIPS);
   const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
@@ -231,6 +232,62 @@ export default function TripsClient({ initialTrips }: { initialTrips: TripSummar
           );
         })}
       </div>
+
+      {/* Community Trips */}
+      {communityTrips.length > 0 && (
+        <div className="px-4 mt-2 mb-24 md:mb-8">
+          <div className="flex items-center gap-2 mb-3">
+            <Globe className="w-4 h-4 text-[#398AB9]" />
+            <h2 className="text-sm font-bold text-gray-700 dark:text-slate-300">ทริปจากชุมชน</h2>
+            <span className="text-[10px] bg-[#398AB9]/10 text-[#398AB9] px-2 py-0.5 rounded-full font-medium ml-auto">
+              {communityTrips.length} ทริป
+            </span>
+          </div>
+          <div className="grid grid-cols-2 gap-3 md:grid-cols-3">
+            {communityTrips.map((t) => (
+              <Link
+                key={t.id}
+                href={`/trips/${t.id}`}
+                className="group bg-white dark:bg-slate-800 rounded-2xl border border-gray-100 dark:border-slate-700 overflow-hidden hover:shadow-md transition-shadow"
+              >
+                {/* Cover image */}
+                <div className="aspect-[4/3] overflow-hidden relative bg-gray-100 dark:bg-slate-700">
+                  <img
+                    src={t.coverImage ?? `https://images.unsplash.com/photo-1476514525405-8d4b4c284c1e?auto=format&fit=crop&w=400&q=80&sig=${t.id}`}
+                    alt={t.title}
+                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                    loading="lazy"
+                    referrerPolicy="no-referrer"
+                    onError={(e) => { (e.target as HTMLImageElement).src = "https://images.unsplash.com/photo-1476514525405-8d4b4c284c1e?auto=format&fit=crop&w=400&q=80"; }}
+                  />
+                  {t.itemCount > 0 && (
+                    <span className="absolute bottom-2 right-2 bg-black/50 text-white text-[10px] px-1.5 py-0.5 rounded-full">
+                      {t.itemCount} จุด
+                    </span>
+                  )}
+                </div>
+                <div className="p-3">
+                  <p className="text-xs font-bold text-gray-800 dark:text-slate-200 line-clamp-1">{t.title}</p>
+                  <div className="flex items-center gap-1 mt-0.5 text-[10px] text-gray-400 dark:text-slate-500">
+                    <MapPin className="w-2.5 h-2.5 flex-shrink-0" />
+                    <span className="truncate">{t.destination}</span>
+                  </div>
+                  <div className="flex items-center gap-1.5 mt-2">
+                    <Avatar
+                      src={t.owner.avatarUrl}
+                      name={t.owner.name ?? "ผู้ใช้"}
+                      className="w-5 h-5 text-[9px]"
+                    />
+                    <span className="text-[10px] text-gray-400 dark:text-slate-500 truncate flex-1">
+                      {t.owner.name ?? "ผู้ใช้"}
+                    </span>
+                  </div>
+                </div>
+              </Link>
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* FAB mobile */}
       <Link href="/trips/new"

@@ -83,6 +83,55 @@ export async function getUserTrips() {
   }
 }
 
+export interface PublicTripItem {
+  id: string;
+  title: string;
+  destination: string;
+  coverImage: string | null;
+  startDate: Date | null;
+  endDate: Date | null;
+  itemCount: number;
+  owner: { name: string | null; avatarUrl: string | null };
+}
+
+export async function getPublicTrips(limit = 12): Promise<{ data: PublicTripItem[] }> {
+  try {
+    const supabase = await createServerClient();
+    const { data: { user } } = await supabase.auth.getUser();
+
+    const trips = await prisma.trip.findMany({
+      where: {
+        isPublic: true,
+        ...(user ? { userId: { not: user.id } } : {}),
+      },
+      orderBy: { updatedAt: "desc" },
+      take: limit,
+      include: {
+        user: { select: { name: true, avatarUrl: true } },
+        _count: { select: { days: true } },
+        days: {
+          include: { _count: { select: { items: true } } },
+        },
+      },
+    });
+
+    return {
+      data: trips.map((t) => ({
+        id: t.id,
+        title: t.title,
+        destination: t.destination,
+        coverImage: t.coverImage,
+        startDate: t.startDate,
+        endDate: t.endDate,
+        itemCount: t.days.reduce((sum, d) => sum + d._count.items, 0),
+        owner: { name: t.user.name, avatarUrl: t.user.avatarUrl },
+      })),
+    };
+  } catch {
+    return { data: [] };
+  }
+}
+
 export async function getTripById(tripId: string) {
   try {
     const supabase = await createServerClient();

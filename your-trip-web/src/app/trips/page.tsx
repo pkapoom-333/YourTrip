@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import AppShell from "@/components/AppShell";
 import TripsClient, { type TripSummary } from "./TripsClient";
-import { getUserTrips } from "@/server/actions/trips";
+import { getUserTrips, getPublicTrips, type PublicTripItem } from "@/server/actions/trips";
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? "https://your-trip-nu.vercel.app";
 
@@ -21,7 +21,10 @@ function mapStatus(raw: string): TripSummary["status"] {
 }
 
 export default async function TripsPage() {
-  const { data: rawTrips } = await getUserTrips();
+  const [{ data: rawTrips }, { data: communityTrips }] = await Promise.all([
+    getUserTrips(),
+    getPublicTrips(12),
+  ]);
 
   const trips: TripSummary[] = (rawTrips as Awaited<ReturnType<typeof getUserTrips>>["data"]).map((t) => {
     const allItems = t.days.flatMap((d) => d.items);
@@ -36,7 +39,7 @@ export default async function TripsPage() {
       status: mapStatus(t.status),
       startDate: t.startDate ? fmt.format(t.startDate) : "—",
       endDate:   t.endDate   ? fmt.format(t.endDate)   : "—",
-      members: 1,  // solo until team-trip feature added
+      members: 1,
       places: allItems.length,
       img: t.coverImage ?? "",
       destinations,
@@ -48,7 +51,7 @@ export default async function TripsPage() {
       <header className="md:hidden sticky top-0 z-40 bg-white dark:bg-slate-800 border-b border-gray-100 dark:border-slate-700 px-4 py-3">
         <span className="text-lg font-bold text-[#398AB9]">ทริปของฉัน</span>
       </header>
-      <TripsClient initialTrips={trips} />
+      <TripsClient initialTrips={trips} communityTrips={communityTrips} />
     </AppShell>
   );
 }
