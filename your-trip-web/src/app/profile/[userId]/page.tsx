@@ -17,6 +17,8 @@ import {
   type PostGridItem,
 } from "@/server/actions/profile";
 import { Avatar } from "@/components/shared/Avatar";
+import { useUser } from "@/hooks/useUser";
+import { useToast } from "@/components/shared/Toast";
 
 interface ProfileState {
   id: string;
@@ -45,6 +47,10 @@ export default function UserProfilePage() {
   const [isFollowing, setIsFollowing] = useState(false);
   const [followerCount, setFollowerCount] = useState(0);
   const [loading, setLoading] = useState(true);
+  const { user: currentUser } = useUser();
+  const { success } = useToast();
+
+  const isOwnProfile = currentUser?.id === userId;
 
   useEffect(() => {
     if (!userId) return;
@@ -71,7 +77,7 @@ export default function UserProfilePage() {
       if (postsRes.data.length > 0) setPosts(postsRes.data);
       setIsFollowing(followRes.following);
       setLoading(false);
-    });
+    }).catch(() => setLoading(false));
   }, [userId]);
 
   async function handleFollow() {
@@ -79,11 +85,18 @@ export default function UserProfilePage() {
     if (isFollowing) {
       setIsFollowing(false);
       setFollowerCount((n) => n - 1);
-      unfollowUser(profile.id).catch(() => {});
+      unfollowUser(profile.id).catch(() => {
+        setIsFollowing(true);
+        setFollowerCount((n) => n + 1);
+      });
     } else {
       setIsFollowing(true);
       setFollowerCount((n) => n + 1);
-      followUser(profile.id).catch(() => {});
+      followUser(profile.id).catch(() => {
+        setIsFollowing(false);
+        setFollowerCount((n) => n - 1);
+      });
+      success(`ติดตาม ${profile.name} แล้ว ✓`);
     }
   }
 
@@ -191,35 +204,42 @@ export default function UserProfilePage() {
           </div>
 
           {/* Action buttons */}
-          <div className="flex gap-2">
-            <button
-              onClick={handleFollow}
-              className={`flex-1 flex items-center justify-center gap-2 py-2 rounded-xl text-sm font-semibold transition ${
-                isFollowing
-                  ? "border border-gray-200 text-gray-600 hover:bg-gray-50"
-                  : "bg-[#398AB9] text-white hover:bg-[#1C658C]"
-              }`}
-            >
-              {isFollowing ? (
-                <>
-                  <UserCheck className="w-4 h-4" />
-                  ติดตามอยู่
-                </>
-              ) : (
-                <>
-                  <UserPlus className="w-4 h-4" />
-                  ติดตาม
-                </>
-              )}
-            </button>
-            <Link
-              href={`/buddy?request=${profile.id}`}
-              className="flex-1 flex items-center justify-center gap-2 py-2 border border-gray-200 text-gray-600 text-sm font-semibold rounded-xl hover:bg-gray-50 transition"
-            >
-              <MessageCircle className="w-4 h-4" />
-              ส่งคำขอทริป
+          {isOwnProfile ? (
+            <Link href="/profile/edit"
+              className="flex items-center justify-center gap-2 py-2 border border-gray-200 text-gray-600 text-sm font-semibold rounded-xl hover:bg-gray-50 transition w-full">
+              แก้ไขโปรไฟล์
             </Link>
-          </div>
+          ) : (
+            <div className="flex gap-2">
+              <button
+                onClick={handleFollow}
+                className={`flex-1 flex items-center justify-center gap-2 py-2 rounded-xl text-sm font-semibold transition ${
+                  isFollowing
+                    ? "border border-gray-200 text-gray-600 hover:bg-gray-50"
+                    : "bg-[#398AB9] text-white hover:bg-[#1C658C]"
+                }`}
+              >
+                {isFollowing ? (
+                  <>
+                    <UserCheck className="w-4 h-4" />
+                    ติดตามอยู่
+                  </>
+                ) : (
+                  <>
+                    <UserPlus className="w-4 h-4" />
+                    ติดตาม
+                  </>
+                )}
+              </button>
+              <Link
+                href={`/buddy?request=${profile.id}`}
+                className="flex-1 flex items-center justify-center gap-2 py-2 border border-gray-200 text-gray-600 text-sm font-semibold rounded-xl hover:bg-gray-50 transition"
+              >
+                <MessageCircle className="w-4 h-4" />
+                ส่งคำขอทริป
+              </Link>
+            </div>
+          )}
         </div>
 
         {/* Tabs */}
