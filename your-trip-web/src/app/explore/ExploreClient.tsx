@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback, useRef } from "react";
 import Link from "next/link";
-import { Search, Star, MapPin, SlidersHorizontal, X, LayoutGrid, List, ArrowUpDown, Users, UserPlus, UserCheck, Bookmark } from "lucide-react";
+import { Search, Star, MapPin, SlidersHorizontal, X, LayoutGrid, List, ArrowUpDown, Users, UserPlus, UserCheck, Bookmark, Map } from "lucide-react";
 import { toggleSavePlace } from "@/server/actions/savedPlaces";
 import type { PlaceListItem } from "@/server/actions/places";
 import { searchUsers, followUser, unfollowUser, type UserCard } from "@/server/actions/profile";
@@ -297,7 +297,58 @@ export default function ExploreClient({ initialPlaces, initialSaved = [] }: { in
       { timeout: 8000 }
     );
   }
-  const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
+  const [viewMode, setViewMode] = useState<"grid" | "list" | "map">("grid");
+  const mapContainerRef = useRef<HTMLDivElement>(null);
+  const leafletMapRef = useRef<{ remove: () => void } | null>(null);
+
+  useEffect(() => {
+    if (viewMode !== "map") {
+      leafletMapRef.current?.remove();
+      leafletMapRef.current = null;
+      return;
+    }
+    const container = mapContainerRef.current;
+    if (!container) return;
+
+    let cancelled = false;
+    const init = async () => {
+      const L = (await import("leaflet")).default;
+      if (!document.getElementById("leaflet-css")) {
+        const link = document.createElement("link");
+        link.id = "leaflet-css";
+        link.rel = "stylesheet";
+        link.href = "https://unpkg.com/leaflet@1.9.4/dist/leaflet.css";
+        document.head.appendChild(link);
+      }
+      if (cancelled || !container || leafletMapRef.current) return;
+
+      (L.Icon.Default.prototype as unknown as Record<string, unknown>)._getIconUrl = undefined;
+      L.Icon.Default.mergeOptions({
+        iconRetinaUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png",
+        iconUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png",
+        shadowUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png",
+      });
+
+      const map = L.map(container).setView([13.0, 101.0], 6);
+      leafletMapRef.current = map;
+      L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+        attribution: "© OpenStreetMap",
+        maxZoom: 18,
+      }).addTo(map);
+
+      const withCoords = filtered.filter((p) => p.lat && p.lng);
+      withCoords.forEach((p) => {
+        L.marker([p.lat!, p.lng!]).addTo(map)
+          .bindPopup(`<a href="/place/${p.slug}" style="font-weight:600;color:#398AB9">${p.name}</a><br><span style="font-size:11px;color:#888">${p.category} · ${p.province ?? p.country}</span>`);
+      });
+      if (withCoords.length > 0) {
+        map.fitBounds(L.latLngBounds(withCoords.map((p) => [p.lat!, p.lng!] as [number, number])), { padding: [30, 30], maxZoom: 12 });
+      }
+    };
+    init();
+    return () => { cancelled = true; };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [viewMode]);
 
   const filtered = initialPlaces
     .filter((p) => {
@@ -531,6 +582,10 @@ export default function ExploreClient({ initialPlaces, initialSaved = [] }: { in
               className={`p-1.5 ${viewMode === "list" ? "bg-[#398AB9] text-white" : "text-gray-400 dark:text-slate-500 hover:bg-gray-50 dark:hover:bg-slate-700"}`}>
               <List className="w-3.5 h-3.5" />
             </button>
+            <button onClick={() => setViewMode("map")}
+              className={`p-1.5 ${viewMode === "map" ? "bg-[#398AB9] text-white" : "text-gray-400 dark:text-slate-500 hover:bg-gray-50 dark:hover:bg-slate-700"}`}>
+              <Map className="w-3.5 h-3.5" />
+            </button>
           </div>
           {hasFilter && (
             <button onClick={() => { setQuery(""); setActiveCategory("all"); setActiveRegion("all"); setActiveTags([]); }}
@@ -541,8 +596,18 @@ export default function ExploreClient({ initialPlaces, initialSaved = [] }: { in
         </div>
       </div>
 
+      {/* Map View */}
+      {viewMode === "map" && (
+        <div className="mb-4">
+          <div ref={mapContainerRef} className="w-full h-[60vh] min-h-[360px] rounded-2xl overflow-hidden border border-gray-100 dark:border-slate-700 bg-gray-100 dark:bg-slate-800" />
+          {filtered.filter((p) => p.lat && p.lng).length === 0 && (
+            <p className="text-center text-xs text-gray-400 dark:text-slate-500 mt-2">ไม่มีสถานที่ที่มีพิกัดในผลการค้นหา</p>
+          )}
+        </div>
+      )}
+
       {/* Places Results */}
-      {filtered.length > 0 ? (
+      {filtered.length > 0 && viewMode !== "map" ? (
         viewMode === "grid" ? (
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 md:gap-4">
             {displayedPlaces.map((p) => (
@@ -600,7 +665,7 @@ export default function ExploreClient({ initialPlaces, initialSaved = [] }: { in
             })}
           </div>
         )
-      ) : (
+      ) : viewMode !== "map" ? (
         <div className="flex flex-col items-center justify-center py-20 text-center px-6">
           <div className="w-16 h-16 bg-gray-100 dark:bg-slate-700 rounded-full flex items-center justify-center mb-4 text-3xl">
             🔍
@@ -614,7 +679,7 @@ export default function ExploreClient({ initialPlaces, initialSaved = [] }: { in
             ล้างตัวกรองทั้งหมด
           </button>
         </div>
-      )}
+      ) : null}
 
       {/* Infinite scroll sentinel */}
       <div ref={sentinelRef} className="mt-6 flex justify-center py-4" aria-hidden>
