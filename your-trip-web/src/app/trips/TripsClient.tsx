@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { Plus, MapPin, Calendar, Users, ChevronRight, Map, Plane, Trash2, X, ChevronDown, Copy, Check, Globe, Search } from "lucide-react";
+import { Plus, MapPin, Calendar, Users, ChevronRight, Map, Plane, Trash2, X, ChevronDown, Copy, Check, Globe, Search, Sparkles } from "lucide-react";
 import { deleteTrip, updateTripStatus, duplicateTrip, type PublicTripItem } from "@/server/actions/trips";
 import { useToast } from "@/components/shared/Toast";
 import { Avatar } from "@/components/shared/Avatar";
@@ -94,11 +94,18 @@ export default function TripsClient({ initialTrips, communityTrips = [] }: { ini
     <div className="max-w-2xl mx-auto px-4 md:px-6 py-4 md:py-6">
       <div className="hidden md:flex items-center justify-between mb-6">
         <h1 className="text-xl font-bold text-gray-900 dark:text-slate-100">ทริปของฉัน</h1>
-        <Link href="/trips/new"
-          className="flex items-center gap-2 bg-[#398AB9] text-white text-sm font-medium px-4 py-2 rounded-xl hover:bg-[#1C658C] transition">
-          <Plus className="w-4 h-4" />
-          สร้างทริปใหม่
-        </Link>
+        <div className="flex items-center gap-2">
+          <Link href="/trips/ai-plan"
+            className="flex items-center gap-2 bg-gradient-to-r from-[#398AB9] to-[#1C658C] text-white text-sm font-medium px-4 py-2 rounded-xl hover:opacity-90 transition">
+            <Sparkles className="w-4 h-4" />
+            AI วางแผนให้
+          </Link>
+          <Link href="/trips/new"
+            className="flex items-center gap-2 border border-[#398AB9] text-[#398AB9] text-sm font-medium px-4 py-2 rounded-xl hover:bg-[#398AB9]/5 transition">
+            <Plus className="w-4 h-4" />
+            สร้างเอง
+          </Link>
+        </div>
       </div>
 
       {/* Stat strip */}
@@ -310,11 +317,18 @@ export default function TripsClient({ initialTrips, communityTrips = [] }: { ini
         </div>
       )}
 
-      {/* FAB mobile */}
-      <Link href="/trips/new"
-        className="md:hidden fixed bottom-24 right-4 w-14 h-14 bg-[#398AB9] rounded-2xl flex items-center justify-center shadow-lg shadow-[#398AB9]/40 hover:bg-[#1C658C] transition z-40">
-        <Plus className="w-6 h-6 text-white" />
-      </Link>
+      {/* FAB mobile — two buttons */}
+      <div className="md:hidden fixed bottom-24 right-4 flex flex-col items-end gap-2 z-40">
+        <Link href="/trips/ai-plan"
+          className="flex items-center gap-2 bg-gradient-to-r from-[#398AB9] to-[#1C658C] text-white text-xs font-semibold px-4 py-2.5 rounded-2xl shadow-lg shadow-[#398AB9]/40 hover:opacity-90 transition">
+          <Sparkles className="w-4 h-4" />
+          AI วางแผนให้
+        </Link>
+        <Link href="/trips/new"
+          className="w-12 h-12 bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-600 rounded-2xl flex items-center justify-center shadow-md hover:bg-gray-50 dark:hover:bg-slate-700 transition">
+          <Plus className="w-5 h-5 text-[#398AB9]" />
+        </Link>
+      </div>
     </div>
   );
 }
