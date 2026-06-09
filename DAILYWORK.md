@@ -187,6 +187,10 @@ Remaining (blocked): B17 Capacitor (needs iOS env), B19 custom domain (user acti
 ```sql
 -- Run in: https://supabase.com/dashboard/project/wujunlagtipvbzappuwx/sql
 ALTER TABLE trip_items ADD COLUMN IF NOT EXISTS travel_time_to INTEGER;
+
+-- Guide Verification System (BV-1)
+ALTER TABLE users ADD COLUMN IF NOT EXISTS is_guide BOOLEAN NOT NULL DEFAULT FALSE;
+ALTER TABLE users ADD COLUMN IF NOT EXISTS is_verified_guide BOOLEAN NOT NULL DEFAULT FALSE;
 ```
 
 ### Vercel Environment Variables
@@ -237,10 +241,10 @@ URL: https://vercel.com → YourTrip → Settings → Environment Variables
 
 | # | Feature | รายละเอียด | Status |
 |---|---------|------------|--------|
-| BV-1 | **Guide role + badge** | เพิ่ม field `isGuide` + `isVerifiedGuide` ใน User model, แสดง badge ✓ บน avatar + profile | ⬜ |
-| BV-2 | **Verification flow** | หน้า apply เป็น guide → upload หลักฐาน (ID card / ใบอนุญาต) → pending review | ⬜ |
-| BV-3 | **Admin review** | admin dashboard อนุมัติ/ปฏิเสธ คำขอ guide verification | ⬜ |
-| BV-4 | **Accept job guard** | guard ใน /buddy → ถ้า isGuide แต่ isVerifiedGuide=false → block รับงาน + แสดง "รอการยืนยัน" | ⬜ |
+| BV-1 | **Guide role + badge** | เพิ่ม field `isGuide` + `isVerifiedGuide` ใน User model, แสดง badge 🏅 บน avatar + BuddyCard + profile | ✅ |
+| BV-2 | **Verification flow** | หน้า apply เป็น guide → upload หลักฐาน (ID card / ใบอนุญาต) → pending review | ⬜ Phase 2 |
+| BV-3 | **Admin review** | admin dashboard อนุมัติ/ปฏิเสธ คำขอ guide verification | ⬜ Phase 2 |
+| BV-4 | **Accept job guard** | badge ⏳ รอการยืนยัน แสดงบน BuddyCard + requests tab (visual guard) | ✅ partial |
 
 **Badge design:**
 - Avatar: เครื่องหมาย ✓ สีทอง (verified guide) หรือ สีน้ำเงิน (regular verified) ที่มุมล่างขวา

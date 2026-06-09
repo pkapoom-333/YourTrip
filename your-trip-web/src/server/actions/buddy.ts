@@ -10,6 +10,8 @@ export interface BuddyProfileItem {
   location: string | null;
   bio: string | null;
   isVerified: boolean;
+  isGuide: boolean;
+  isVerifiedGuide: boolean;
   tripCount: number;
   requestId?: string;
   requestStatus?: "PENDING" | "ACCEPTED" | "DECLINED";
@@ -32,6 +34,8 @@ export interface BuddyRequestItem {
     avatarUrl: string | null;
     location: string | null;
     isVerified: boolean;
+    isGuide: boolean;
+    isVerifiedGuide: boolean;
   };
 }
 
@@ -64,6 +68,8 @@ export async function getDiscoverBuddies(limit = 20): Promise<{ data: BuddyProfi
         location: true,
         bio: true,
         isVerified: true,
+        isGuide: true,
+        isVerifiedGuide: true,
         _count: { select: { posts: true } },
       },
     });
@@ -76,6 +82,8 @@ export async function getDiscoverBuddies(limit = 20): Promise<{ data: BuddyProfi
         location: u.location,
         bio: u.bio,
         isVerified: u.isVerified,
+        isGuide: u.isGuide,
+        isVerifiedGuide: u.isVerifiedGuide,
         tripCount: u._count.posts,
       })),
     };
@@ -102,6 +110,8 @@ export async function getIncomingRequests(): Promise<{ data: BuddyRequestItem[] 
             avatarUrl: true,
             location: true,
             isVerified: true,
+            isGuide: true,
+            isVerifiedGuide: true,
           },
         },
       },
@@ -122,6 +132,8 @@ export async function getIncomingRequests(): Promise<{ data: BuddyRequestItem[] 
           avatarUrl: r.from.avatarUrl,
           location: r.from.location,
           isVerified: r.from.isVerified,
+          isGuide: r.from.isGuide,
+          isVerifiedGuide: r.from.isVerifiedGuide,
         },
       })),
     };
@@ -144,8 +156,8 @@ export async function getMatchedBuddies(): Promise<{ data: BuddyRequestItem[] }>
       },
       orderBy: { updatedAt: "desc" },
       include: {
-        from: { select: { id: true, name: true, avatarUrl: true, location: true, isVerified: true } },
-        to: { select: { id: true, name: true, avatarUrl: true, location: true, isVerified: true } },
+        from: { select: { id: true, name: true, avatarUrl: true, location: true, isVerified: true, isGuide: true, isVerifiedGuide: true } },
+        to: { select: { id: true, name: true, avatarUrl: true, location: true, isVerified: true, isGuide: true, isVerifiedGuide: true } },
       },
     });
 
@@ -167,6 +179,8 @@ export async function getMatchedBuddies(): Promise<{ data: BuddyRequestItem[] }>
             avatarUrl: other.avatarUrl,
             location: other.location,
             isVerified: other.isVerified,
+            isGuide: other.isGuide,
+            isVerifiedGuide: other.isVerifiedGuide,
           },
         };
       }),

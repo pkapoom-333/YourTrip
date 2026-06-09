@@ -34,6 +34,8 @@ interface BuddyProfile {
   tripCount: number;
   rating: number;
   isVerified: boolean;
+  isGuide: boolean;
+  isVerifiedGuide: boolean;
   mutualFriends?: number;
   photos: string[];
 }
@@ -53,6 +55,8 @@ const MOCK_BUDDIES: BuddyProfile[] = [
     tripCount: 23,
     rating: 4.9,
     isVerified: true,
+    isGuide: true,
+    isVerifiedGuide: true,
     mutualFriends: 3,
     photos: [
       "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=200&h=200&fit=crop",
@@ -73,6 +77,8 @@ const MOCK_BUDDIES: BuddyProfile[] = [
     tripCount: 47,
     rating: 4.8,
     isVerified: true,
+    isGuide: true,
+    isVerifiedGuide: false,
     mutualFriends: 1,
     photos: [
       "https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?w=200&h=200&fit=crop",
@@ -92,6 +98,8 @@ const MOCK_BUDDIES: BuddyProfile[] = [
     tripCount: 12,
     rating: 4.7,
     isVerified: false,
+    isGuide: false,
+    isVerifiedGuide: false,
     photos: [
       "https://images.unsplash.com/photo-1537996194471-e657df975ab4?w=200&h=200&fit=crop",
       "https://images.unsplash.com/photo-1518548419970-58e3b4079ab2?w=200&h=200&fit=crop",
@@ -111,6 +119,8 @@ const MOCK_BUDDIES: BuddyProfile[] = [
     tripCount: 35,
     rating: 4.6,
     isVerified: true,
+    isGuide: false,
+    isVerifiedGuide: false,
     photos: [
       "https://images.unsplash.com/photo-1555400038-63f5ba517a47?w=200&h=200&fit=crop",
     ],
@@ -142,6 +152,8 @@ function mapDbToBuddy(u: BuddyProfileItem): BuddyProfile {
     tripCount: u.tripCount,
     rating: 0,
     isVerified: u.isVerified,
+    isGuide: u.isGuide,
+    isVerifiedGuide: u.isVerifiedGuide,
     photos: [],
   };
 }
@@ -313,9 +325,15 @@ export default function BuddyPage() {
                     <div className="flex items-center gap-3 mb-3">
                       <Avatar src={req.from.avatarUrl} name={req.from.name ?? "ผู้ใช้"} className="w-12 h-12" />
                       <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-1.5">
+                        <div className="flex items-center gap-1.5 flex-wrap">
                           <p className="font-semibold text-gray-900 dark:text-slate-100 text-sm">{req.from.name ?? "ผู้ใช้"}</p>
-                          {req.from.isVerified && (
+                          {req.from.isVerifiedGuide && (
+                            <span className="text-[10px] bg-amber-50 dark:bg-amber-900/30 text-amber-600 dark:text-amber-400 border border-amber-200 dark:border-amber-700 px-1.5 py-0.5 rounded-full font-semibold">🏅 มัคคุเทศก์ ✓</span>
+                          )}
+                          {req.from.isGuide && !req.from.isVerifiedGuide && (
+                            <span className="text-[10px] bg-gray-100 dark:bg-slate-700 text-gray-500 dark:text-slate-400 px-1.5 py-0.5 rounded-full">⏳ รอยืนยัน</span>
+                          )}
+                          {req.from.isVerified && !req.from.isGuide && (
                             <span className="text-[10px] bg-[#398AB9]/10 text-[#398AB9] px-1.5 py-0.5 rounded-full">✓</span>
                           )}
                         </div>
@@ -419,6 +437,7 @@ function BuddyCard({
   onLike: () => void;
   onPass: () => void;
 }) {
+  // BV-4: guides awaiting verification can still be discovered, but badge makes status clear
   const [expanded, setExpanded] = useState(false);
 
   return (
@@ -439,12 +458,31 @@ function BuddyCard({
       <div className="p-4">
         {/* Name row */}
         <div className="flex items-start gap-3 mb-3">
-          <Avatar src={buddy.avatarUrl} name={buddy.name} className="w-12 h-12" />
+          {/* Avatar with guide crown overlay */}
+          <div className="relative flex-shrink-0">
+            <Avatar src={buddy.avatarUrl} name={buddy.name} className="w-12 h-12" />
+            {buddy.isVerifiedGuide && (
+              <span className="absolute -bottom-1 -right-1 text-base leading-none" title="มัคคุเทศก์ที่ได้รับการรับรอง">🏅</span>
+            )}
+            {buddy.isGuide && !buddy.isVerifiedGuide && (
+              <span className="absolute -bottom-1 -right-1 text-base leading-none" title="มัคคุเทศก์ (รอการยืนยัน)">⏳</span>
+            )}
+          </div>
           <div className="flex-1 min-w-0">
-            <div className="flex items-center gap-1.5">
+            <div className="flex items-center gap-1.5 flex-wrap">
               <p className="font-bold text-gray-900 dark:text-slate-100">{buddy.name}</p>
-              <span className="text-gray-400 dark:text-slate-500 text-sm">• {buddy.age}</span>
-              {buddy.isVerified && (
+              {buddy.age > 0 && <span className="text-gray-400 dark:text-slate-500 text-sm">• {buddy.age}</span>}
+              {buddy.isVerifiedGuide && (
+                <span className="text-[10px] bg-amber-50 text-amber-600 dark:bg-amber-900/30 dark:text-amber-400 border border-amber-200 dark:border-amber-700 px-1.5 py-0.5 rounded-full font-semibold">
+                  🏅 มัคคุเทศก์ ✓
+                </span>
+              )}
+              {buddy.isGuide && !buddy.isVerifiedGuide && (
+                <span className="text-[10px] bg-gray-100 dark:bg-slate-700 text-gray-500 dark:text-slate-400 px-1.5 py-0.5 rounded-full font-medium">
+                  ⏳ รอการยืนยัน
+                </span>
+              )}
+              {buddy.isVerified && !buddy.isGuide && (
                 <span className="text-[10px] bg-[#398AB9]/10 text-[#398AB9] px-1.5 py-0.5 rounded-full font-medium">
                   ✓ ยืนยัน
                 </span>

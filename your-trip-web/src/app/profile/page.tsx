@@ -32,6 +32,8 @@ export default function ProfilePage() {
     bio: "นักเดินทางสายธรรมชาติ ✈️ | ไปแล้ว 23 ประเทศ | กำลังวางแผนทริปต่อไป 🌍",
     location: "เชียงใหม่, ไทย",
     avatarUrl: null as string | null,
+    isGuide: false,
+    isVerifiedGuide: false,
     postsCount: 48,
     followersCount: 1200,
     followingCount: 234,
@@ -51,6 +53,8 @@ export default function ProfilePage() {
         bio: data.bio ?? "",
         location: data.location ?? "",
         avatarUrl: data.avatarUrl ?? null,
+        isGuide: (data as { isGuide?: boolean }).isGuide ?? false,
+        isVerifiedGuide: (data as { isVerifiedGuide?: boolean }).isVerifiedGuide ?? false,
         postsCount: data.postsCount,
         followersCount: data.followersCount,
         followingCount: data.followingCount,
@@ -120,7 +124,19 @@ export default function ProfilePage() {
           </div>
 
           <div>
-            <p className="font-bold text-gray-900 dark:text-slate-100">{profile.name}</p>
+            <div className="flex items-center gap-2 flex-wrap">
+              <p className="font-bold text-gray-900 dark:text-slate-100">{profile.name}</p>
+              {profile.isVerifiedGuide && (
+                <span className="text-[11px] bg-amber-50 dark:bg-amber-900/30 text-amber-600 dark:text-amber-400 border border-amber-200 dark:border-amber-700 px-2 py-0.5 rounded-full font-semibold">
+                  🏅 มัคคุเทศก์ที่ได้รับการรับรอง
+                </span>
+              )}
+              {profile.isGuide && !profile.isVerifiedGuide && (
+                <span className="text-[11px] bg-gray-100 dark:bg-slate-700 text-gray-500 dark:text-slate-400 px-2 py-0.5 rounded-full">
+                  ⏳ รอการยืนยันเป็นมัคคุเทศก์
+                </span>
+              )}
+            </div>
             {profile.username && (
               <p className="text-xs text-gray-400 dark:text-slate-500">@{profile.username}</p>
             )}
