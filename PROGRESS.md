@@ -1,13 +1,14 @@
 # PROGRESS.md
 # Travel Community App — Dev Log
 
-## Status: Phase 2 | Day 14 (sess 4) | 2026-06-09
+## Status: Phase 2 | Day 14 (sess 5) | 2026-06-09
 
 ## Current sprint task
 → **DONE Day 13 sess 1**: B16 dark mode (ThemeProvider + anti-FOUC + AppShell + Settings + Feed + PostCard + Explore + Toast + Trips), B18 PWA SVG icon
 → **DONE Day 13 sess 2**: Sprint S6 ALL TIER S cleared + Tier A + Tier B + Extras (see session log)
 → **DONE Day 13 sess 3**: Full dark mode sweep — PlaceDetailClient, FeedPostsClient, SuggestedUsers, UserListRow, ResetPassword, ImageUpload, PWAInstallPrompt, not-found, all 10 loading skeletons, ExploreClient, TripsClient, create page, notifications, buddy/BuddyCard, profile/edit. Prisma client regenerated for lat/lng/googlePlaceId on TripItem.
 → **DONE Day 14 sess 4**: Google Maps integration trips/[id] (getMapsUrl, getFullRouteUrl, GooglePlacesPicker v2, TravelConnector OSRM); dark mode trips/new wizard; Guide Verification (BV-1+BV-4 badge 🏅, BV-2 /guide/apply wizard); Trip public read-only view (isOwner guard, read-only banner); Community Trips section on /trips page (getPublicTrips, 2-col grid with owner avatar)
+→ **DONE Day 14 sess 5**: robots.ts /guide/ disallow; Featured Guides section on landing page (getVerifiedGuides action + FeaturedGuide type + 3-col cards + mock fallback); Trips tab on own profile page (/profile) with public/private badge; "Add to Trip" FAB on place detail (modal: trip+day selector, addItineraryItem); Trips list search bar (shows when >3 trips); Explore map view (Leaflet, 3rd view toggle, markers with popup). 0 TS errors.
 → **NEXT**: Deploy to Vercel (push to remote — user confirm); B17 Capacitor; B19 custom domain
 
 ---
@@ -146,3 +147,4 @@
 | 2026-06-09 | Day 13 cont: Sprint S6 ALL TIER S cleared — Explore infinite scroll (IntersectionObserver), next/image hero (Landing+PlaceDetail+Cloudinary patterns), profile follow fix (own-profile guard+rollback+toast), feed pull-to-refresh (touch swipe gesture), tag-based search in Explore (facility chips multi-select filter) | ~40% | git push → Vercel deploy |
 | 2026-06-09 | Day 13 sess 2: Sprint S6 Tier A — JSON-LD (place TouristAttraction/Restaurant/Cafe, landing WebSite+SearchAction), security headers (next.config.ts), PWA offline page (/offline + sw.js), canonical tags (/feed /explore /trips /place/[slug] /), preconnect hints. Tier B — RouteError dark mode + smart error categorisation, Explore clear-filters empty state, Notifications rich empty state, Buddy improved empty states (x3), sitemap expansion (+/feed/trips/forgot-password). Extras — env validator (lib/env.ts), dark mode Notifications+Buddy pages, LCP image priority on landing, robots.ts updates. 0 TS errors throughout. | ~70% | git push → Vercel deploy |
 | 2026-06-09 | Day 14 sess 4: Google Maps integration trips/[id] (getMapsUrl/getFullRouteUrl/GooglePlacesPicker v2 setOptions+importLibrary/TravelConnector OSRM); dark mode trips/new wizard full sweep; isGuide+isVerifiedGuide Prisma schema+regenerate; buddy.ts+buddy/page.tsx+BuddyCard guide 🏅 badge+⏳ pending; profile.ts+profile/page.tsx guide badge; getTripById public trip read-only (isOwner flag, amber banner, hide edit controls); getPublicTrips+TripsClient community grid; /guide/apply 3-step wizard+applyAsGuide action; settings "สมัครเป็นมัคคุเทศก์" link. 0 TS errors. | ~50% | git push → Vercel → Capacitor |
+| 2026-06-09 | Day 14 sess 5: robots.ts /guide/ disallow; Featured Guides on landing page (getVerifiedGuides+FeaturedGuide+3-col cards+mock fallback+Shield CTA); Trips tab on /profile own page (grid+public/private badge+create tile); "Add to Trip" FAB on place detail (bottom sheet modal: trip+day selector→addItineraryItem+toast); Trips list search bar (visible when >3 trips, filters by title+destination); Explore map view (3rd toggle, Leaflet lazy init, markers+popup, auto fitBounds). 0 TS errors. | ~60% | git push → Vercel |

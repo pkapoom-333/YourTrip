@@ -55,6 +55,11 @@ PROGRESS ██████████████████░░ 88%  (Day 
 | B11 | **Dark mode full sweep** — PlaceDetailClient, FeedPostsClient, SuggestedUsers, UserListRow, ResetPassword, ImageUpload, PWAPrompt, 404, 10 loading skeletons, ExploreClient, TripsClient, create, buddy/BuddyCard, profile/edit | 500 | ✅ |
 | B9 | **LCP image priority** — priority=true บน first destination image ใน landing | 100 | ✅ |
 | B10 | **robots.ts** — เพิ่ม /post/, /offline, /auth/ disallow rules | 50 | ✅ |
+| B12 | **Featured Guides on landing** — getVerifiedGuides + 3-col cards + mock fallback + CTA | 200 | ✅ |
+| B13 | **Profile own Trips tab** — /profile page Trips tab (grid, public/private badge, create tile) | 150 | ✅ |
+| B14 | **Add to Trip FAB** — place detail → bottom sheet modal (trip+day selector, addItineraryItem) | 250 | ✅ |
+| B15 | **Trips list search bar** — filter by title+destination (visible when >3 trips) | 100 | ✅ |
+| B16 | **Explore map view** — 3rd view toggle (Leaflet, lazy init, markers+popup, fitBounds) | 300 | ✅ |
 
 ---
 
@@ -175,7 +180,9 @@ Total earned: ~8,400 XP (Day 1–13 sess 1 complete)
 Session 2: S6-2(200)+S6-4(150)+S6-7(150)+S6-8(100)+S6-9(200) = +800 XP (S6-1/3/5/6/10 already done)
 Sprint S6 TIER S: ALL 10 QUESTS CLEARED! 🎉
 Session 3: Tier A (300+200+250+150+100=1,000) + Tier B (200+150+150+150+200+100+150+200+100+50=1,450) = +2,450 XP
-Grand total: ~12,050 XP 🏆
+Session 4 (Day 14): Google Maps+Guide System+Trip public+Community = ~800 XP
+Session 5 (Day 14): robots(50)+FeaturedGuides(200)+ProfileTripsTab(150)+AddToTrip(250)+TripsSearch(100)+ExploreMap(300) = +1,050 XP
+Grand total: ~15,100 XP 🏆
 Remaining (blocked): B17 Capacitor (needs iOS env), B19 custom domain (user action), B3 git push (user confirm)
 ```
 
@@ -251,4 +258,101 @@ URL: https://vercel.com → YourTrip → Settings → Environment Variables
 - Profile: badge "มัคคุเทศก์ที่ได้รับการรับรอง" ใต้ชื่อ
 
 **Depends on:** Supabase Storage (upload หลักฐาน) + admin role
+
+
+### 🤖 AI Trip Planner — สร้างทริปด้วย AI
+> บันทึก: 2026-06-09 | ลำดับความสำคัญ: สูง (Phase 3)
+
+**ความต้องการ:** หน้า /trips มี AI assistant ช่วยสร้างทริปอัตโนมัติจาก form input
+
+**Form inputs:**
+- จำนวนคน (solo / คู่ / กลุ่ม)
+- วันที่เดินทาง (ช่วงวัน)
+- สไตล์ (cafe hopping / outdoor / cultural / adventure / shopping / ฯลฯ)
+- จังหวัด/เมืองปลายทาง
+- งบประมาณ (฿ / ฿฿ / ฿฿฿)
+
+**AI Output:**
+- สร้าง Trip + TripDays + TripItems อัตโนมัติ
+- ดึงสถานที่จาก DB ที่ match กับ style + จังหวัด + งบ
+- จัดลำดับสถานที่ต่อวันอย่างสมเหตุสมผล (เช้า/บ่าย/เย็น)
+- คำนวณเวลาเดินทางระหว่างจุด (OSRM)
+- บันทึก trip ลง DB ให้เลย
+
+| # | Feature | รายละเอียด | Status |
+|---|---------|------------|--------|
+| AI-1 | **AI Trip form** | /trips/ai-plan หรือ modal — form กรอก preference | ⬜ |
+| AI-2 | **AI generation logic** | Server Action เรียก Claude API (claude-haiku) ส่ง context สถานที่ใน DB + preference → รับ itinerary JSON | ⬜ |
+| AI-3 | **Auto-create trip** | parse AI response → createTrip + TripDays + TripItems อัตโนมัติ | ⬜ |
+| AI-4 | **Preview before save** | แสดง itinerary ที่ AI สร้างให้ดูก่อน → กด "บันทึกทริปนี้" | ⬜ |
+
+**Stack:** Anthropic SDK (claude-haiku-4-5) + Prisma places as context
+**Env ที่ต้องเพิ่ม:** `ANTHROPIC_API_KEY`
+
+
+### 🌐 AI Content Pipeline — ดึงสถานที่ใหม่อัตโนมัติ
+> บันทึก: 2026-06-09 | ลำดับความสำคัญ: Phase 4 (หลัง launch)
+
+**ความต้องการ:** AI agent คอย monitor และดึงข้อมูลสถานที่ท่องเที่ยวใหม่/trending มาเพิ่มใน DB อัตโนมัติ
+
+**Sources หลัก:**
+- Google Maps / Google Places API (New) — สถานที่ใหม่, rating, รูป, เวลาทำการ
+- Google Trends — trend การท่องเที่ยวในไทย
+- Social signals (Instagram hashtag, TikTok location) — Phase 5
+
+**Flow:**
+```
+Scheduled Job (daily/weekly)
+  → ค้นหา trending places ในไทยจาก Google Places API
+  → กรอง: rating > 4.0, review > 50, ไม่มีใน DB
+  → AI (Claude) summarize + แปล description เป็นภาษาไทย
+  → สร้าง Place draft → admin review → publish
+```
+
+| # | Feature | รายละเอียด | Status |
+|---|---------|------------|--------|
+| CP-1 | **Google Places crawler** | scheduled job ดึง places ใหม่จาก Places API (New) ตาม category + province | ⬜ |
+| CP-2 | **AI content writer** | Claude summarize + แปล + เติม description ภาษาไทย/อังกฤษ | ⬜ |
+| CP-3 | **Trend detector** | Google Trends API → ดึง keyword ท่องเที่ยว → ค้นหา places ที่ match | ⬜ |
+| CP-4 | **Admin review queue** | หน้า /admin/places สำหรับ approve/edit/reject draft places ก่อน publish | ⬜ |
+| CP-5 | **Auto image import** | ดึงรูปจาก Google Places Photos → อัปโหลด Cloudinary → link กับ Place | ⬜ |
+
+**Env ที่ต้องเพิ่ม:**
+- `GOOGLE_PLACES_API_KEY` (server-side, ไม่ต้อง NEXT_PUBLIC_)
+- `ANTHROPIC_API_KEY` (ใช้ร่วมกับ AI Trip Planner)
+
+**Architecture:** BullMQ job queue + Redis (Phase 4 backend scale) หรือ Vercel Cron Jobs (ง่ายกว่าสำหรับ MVP)
+
+
+### 🎯 AI Personalized Feed — ดึงข้อมูลตรงกับ interest ของ user
+> บันทึก: 2026-06-09 | ลำดับความสำคัญ: Phase 4
+
+**ความต้องการ:** Feed ไม่แสดงแบบ chronological อีกต่อไป — AI วิเคราะห์ว่า user สนใจอะไรแล้ว curate content ให้ตรง
+
+**Signals ที่ใช้วิเคราะห์ interest:**
+- สถานที่ที่ save / wishlist
+- posts ที่ like / comment / share
+- categories ที่เปิดดูบ่อย (cafe / outdoor / cultural)
+- จังหวัดที่สนใจ
+- ทริปที่เคยสร้าง (destination pattern)
+- เวลาที่ใช้บน post แต่ละประเภท
+
+**Flow:**
+```
+User เปิด /feed
+  → ดึง interest profile จาก DB (หรือ cache Redis)
+  → Ranking model: score แต่ละ post/place ตาม interest match
+  → แสดง feed ที่ personalized + mix "discover" content (สิ่งใหม่ที่อาจชอบ)
+  → บันทึก engagement กลับมาปรับ model
+```
+
+| # | Feature | รายละเอียด | Status |
+|---|---------|------------|--------|
+| PF-1 | **Interest profile** | track user behavior → บันทึก category/province/style preference ใน DB | ⬜ |
+| PF-2 | **Feed ranking** | scoring function: interest match + recency + engagement rate | ⬜ |
+| PF-3 | **AI rerank** | ส่ง interest profile + candidate posts ให้ Claude → rerank ตาม context | ⬜ |
+| PF-4 | **Discover mix** | 20% content นอก comfort zone — ของใหม่ที่ AI คิดว่าอาจชอบ | ⬜ |
+| PF-5 | **"ทำไมถึงแนะนำ"** | แสดง reason ใต้ post "เพราะคุณสนใจ cafe ในเชียงใหม่" | ⬜ |
+
+**Architecture:** user_interests table + Postgres vector (pgvector) หรือ simple scoring ก่อน → upgrade ทีหลัง
 
