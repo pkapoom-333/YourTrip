@@ -7,7 +7,7 @@ import {
   ChevronLeft, Plus, MapPin, Clock, Wallet,
   Trash2, GripVertical, Calendar, Share2,
   Edit3, ChevronDown, ChevronUp, Flag, Car, Map,
-  Navigation, Search, Loader2, X,
+  Navigation, Search, Loader2, X, ExternalLink,
 } from "lucide-react";
 import Link from "next/link";
 import dynamic from "next/dynamic";
@@ -28,12 +28,20 @@ interface TripItem {
   type: "place" | "food" | "hotel" | "transport" | "activity";
   lat?: number;
   lng?: number;
+  googlePlaceId?: string;
 }
 
 interface TripDay {
   day: number;
   date: string;
   items: TripItem[];
+}
+
+interface GooglePlaceResult {
+  name: string;
+  googlePlaceId: string;
+  lat?: number;
+  lng?: number;
 }
 
 const MOCK_TRIP = {
@@ -51,30 +59,30 @@ const MOCK_TRIP = {
       day: 1,
       date: "วันอาทิตย์ที่ 15 มิ.ย.",
       items: [
-        { id: "i1", name: "ดอยสุเทพ", time: "07:00", duration: 120, travelTimeTo: 45, cost: 50, type: "place" as const },
-        { id: "i2", name: "ข้าวมันไก่ป้าแดง", time: "10:00", duration: 45, travelTimeTo: 20, cost: 60, type: "food" as const },
-        { id: "i3", name: "ตลาดวโรรส", time: "11:30", duration: 90, travelTimeTo: 30, cost: 200, type: "place" as const },
-        { id: "i4", name: "เช็คอิน Akyra Manor", time: "14:00", duration: 30, travelTimeTo: 15, cost: 2800, type: "hotel" as const },
-        { id: "i5", name: "ถนนคนเดินวันอาทิตย์", time: "17:00", duration: 180, cost: 300, type: "place" as const },
+        { id: "i1", name: "ดอยสุเทพ", time: "07:00", duration: 120, travelTimeTo: 45, cost: 50, type: "place" as const, lat: 18.8048, lng: 98.9220 },
+        { id: "i2", name: "ข้าวมันไก่ป้าแดง", time: "10:00", duration: 45, travelTimeTo: 20, cost: 60, type: "food" as const, lat: 18.7883, lng: 98.9853 },
+        { id: "i3", name: "ตลาดวโรรส", time: "11:30", duration: 90, travelTimeTo: 30, cost: 200, type: "place" as const, lat: 18.7916, lng: 98.9946 },
+        { id: "i4", name: "เช็คอิน Akyra Manor", time: "14:00", duration: 30, travelTimeTo: 15, cost: 2800, type: "hotel" as const, lat: 18.7940, lng: 98.9927 },
+        { id: "i5", name: "ถนนคนเดินวันอาทิตย์", time: "17:00", duration: 180, cost: 300, type: "place" as const, lat: 18.7876, lng: 98.9877 },
       ],
     },
     {
       day: 2,
       date: "วันจันทร์ที่ 16 มิ.ย.",
       items: [
-        { id: "i6", name: "ดอยอ่างขาง", time: "06:00", duration: 240, travelTimeTo: 180, cost: 100, type: "place" as const, note: "ออกเร็วเพราะไกล ~3 ชม." },
+        { id: "i6", name: "ดอยอ่างขาง", time: "06:00", duration: 240, travelTimeTo: 180, cost: 100, type: "place" as const, note: "ออกเร็วเพราะไกล ~3 ชม.", lat: 19.4895, lng: 99.0434 },
         { id: "i7", name: "ข้าวเหนียวปิ้งไก่ข้างทาง", time: "13:00", duration: 30, travelTimeTo: 40, cost: 80, type: "food" as const },
-        { id: "i8", name: "น้ำพุร้อนฝาง", time: "15:00", duration: 60, cost: 100, type: "activity" as const },
+        { id: "i8", name: "น้ำพุร้อนฝาง", time: "15:00", duration: 60, cost: 100, type: "activity" as const, lat: 19.6172, lng: 99.0375 },
       ],
     },
     {
       day: 3,
       date: "วันอังคารที่ 17 มิ.ย.",
       items: [
-        { id: "i9", name: "คาเฟ่ริมนา Hygge", time: "08:00", duration: 90, travelTimeTo: 25, cost: 180, type: "food" as const },
-        { id: "i10", name: "วัดอุโมงค์", time: "10:30", duration: 60, travelTimeTo: 30, cost: 0, type: "place" as const },
-        { id: "i11", name: "ย่านนิมมานเหมินท์", time: "14:00", duration: 180, travelTimeTo: 20, cost: 500, type: "place" as const },
-        { id: "i12", name: "ดินเนอร์ร้าน The Larder", time: "19:00", duration: 90, cost: 450, type: "food" as const },
+        { id: "i9", name: "คาเฟ่ริมนา Hygge", time: "08:00", duration: 90, travelTimeTo: 25, cost: 180, type: "food" as const, lat: 18.7650, lng: 98.9673 },
+        { id: "i10", name: "วัดอุโมงค์", time: "10:30", duration: 60, travelTimeTo: 30, cost: 0, type: "place" as const, lat: 18.7651, lng: 98.9693 },
+        { id: "i11", name: "ย่านนิมมานเหมินท์", time: "14:00", duration: 180, travelTimeTo: 20, cost: 500, type: "place" as const, lat: 18.7985, lng: 98.9652 },
+        { id: "i12", name: "ดินเนอร์ร้าน The Larder", time: "19:00", duration: 90, cost: 450, type: "food" as const, lat: 18.7981, lng: 98.9660 },
       ],
     },
     {
@@ -82,8 +90,8 @@ const MOCK_TRIP = {
       date: "วันพุธที่ 18 มิ.ย.",
       items: [
         { id: "i13", name: "เช็คเอาท์ + ฝากกระเป๋า", time: "10:00", duration: 30, travelTimeTo: 15, cost: 0, type: "hotel" as const },
-        { id: "i14", name: "ตลาดสันป่าตอง", time: "10:30", duration: 120, travelTimeTo: 60, cost: 200, type: "place" as const },
-        { id: "i15", name: "สนามบินเชียงใหม่", time: "15:00", duration: 60, cost: 200, type: "transport" as const },
+        { id: "i14", name: "ตลาดสันป่าตอง", time: "10:30", duration: 120, travelTimeTo: 60, cost: 200, type: "place" as const, lat: 18.4828, lng: 98.9084 },
+        { id: "i15", name: "สนามบินเชียงใหม่", time: "15:00", duration: 60, cost: 200, type: "transport" as const, lat: 18.7667, lng: 98.9628 },
       ],
     },
   ] as TripDay[],
@@ -112,7 +120,135 @@ function fmtMin(min: number) {
   return m > 0 ? `${h} ชม. ${m} นาที` : `${h} ชม.`;
 }
 
-/** Search & pick a place from DB to link to an itinerary item */
+// ─── Google Maps link helpers ─────────────────────────────────────────────────
+
+function getMapsUrl(item: TripItem): string {
+  if (item.googlePlaceId) {
+    return `https://www.google.com/maps/place/?q=place_id:${item.googlePlaceId}`;
+  }
+  if (item.lat !== undefined && item.lng !== undefined) {
+    return `https://www.google.com/maps?q=${item.lat},${item.lng}`;
+  }
+  return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(item.name)}`;
+}
+
+function getFullRouteUrl(items: TripItem[]): string {
+  const waypoints = items.map((item) => {
+    if (item.lat !== undefined && item.lng !== undefined) return `${item.lat},${item.lng}`;
+    return encodeURIComponent(item.name);
+  });
+  return `https://www.google.com/maps/dir/${waypoints.join("/")}`;
+}
+
+// ─── Google Places Autocomplete ───────────────────────────────────────────────
+// TODO: Add NEXT_PUBLIC_GOOGLE_MAPS_API_KEY to .env.local to enable this picker
+
+function GooglePlacesPicker({
+  onSelect,
+  onClear,
+}: {
+  onSelect: (result: GooglePlaceResult) => void;
+  onClear: () => void;
+}) {
+  const apiKey = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY;
+  const inputRef = useRef<HTMLInputElement>(null);
+  const onSelectRef = useRef(onSelect);
+  onSelectRef.current = onSelect;
+  const onClearRef = useRef(onClear);
+  onClearRef.current = onClear;
+  const [initialized, setInitialized] = useState(false);
+  const [selected, setSelected] = useState<GooglePlaceResult | null>(null);
+
+  useEffect(() => {
+    if (!apiKey || !inputRef.current || initialized) return;
+    let cancelled = false;
+
+    (async () => {
+      try {
+        const { setOptions, importLibrary } = await import("@googlemaps/js-api-loader");
+        if (cancelled || !inputRef.current) return;
+        setOptions({ key: apiKey, v: "weekly" });
+        await importLibrary("places");
+        if (cancelled || !inputRef.current) return;
+
+        const ac = new google.maps.places.Autocomplete(inputRef.current, {
+          fields: ["place_id", "name", "geometry"],
+        });
+
+        ac.addListener("place_changed", () => {
+          const place = ac.getPlace();
+          if (!place?.place_id || !place?.name) return;
+          const result: GooglePlaceResult = {
+            name: place.name,
+            googlePlaceId: place.place_id,
+            lat: place.geometry?.location?.lat(),
+            lng: place.geometry?.location?.lng(),
+          };
+          setSelected(result);
+          onSelectRef.current(result);
+        });
+
+        setInitialized(true);
+      } catch {
+        // API key invalid or quota exceeded — silent fail, fall back to DB picker
+      }
+    })();
+
+    return () => { cancelled = true; };
+  }, [apiKey, initialized]);
+
+  if (!apiKey) return null;
+
+  return (
+    <>
+      <div className="flex items-center gap-2">
+        <div className="flex-1 h-px bg-gray-100 dark:bg-slate-600" />
+        <span className="text-[10px] text-gray-400 dark:text-slate-500">
+          หรือค้นหาจาก{" "}
+          <span className="font-semibold text-sky-500">Google Maps</span>
+        </span>
+        <div className="flex-1 h-px bg-gray-100 dark:bg-slate-600" />
+      </div>
+
+      {selected ? (
+        <div className="flex items-center gap-2 bg-sky-50 dark:bg-sky-900/20 border border-sky-100 dark:border-sky-800 rounded-xl px-3 py-2">
+          <span className="text-base leading-none">🗺️</span>
+          <span className="text-sm text-sky-700 dark:text-sky-300 font-medium flex-1 truncate">{selected.name}</span>
+          {selected.lat !== undefined && (
+            <span className="text-[10px] bg-sky-100 dark:bg-sky-800 text-sky-600 dark:text-sky-300 px-2 py-0.5 rounded-full flex-shrink-0">
+              📍 Maps
+            </span>
+          )}
+          <button
+            type="button"
+            onClick={() => {
+              setSelected(null);
+              if (inputRef.current) inputRef.current.value = "";
+              onClearRef.current();
+            }}
+            className="text-sky-400 hover:text-sky-600 transition flex-shrink-0">
+            <X className="w-3.5 h-3.5" />
+          </button>
+        </div>
+      ) : (
+        <div className="relative">
+          <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm leading-none select-none">🗺️</span>
+          <input
+            ref={inputRef}
+            placeholder="ค้นหาด้วย Google Maps..."
+            className="w-full pl-9 pr-8 py-3 border border-sky-200 dark:border-sky-700 bg-sky-50/50 dark:bg-sky-900/10 rounded-xl text-sm focus:outline-none focus:border-sky-400 dark:text-slate-200 dark:placeholder:text-slate-500 transition"
+          />
+          {!initialized && (
+            <Loader2 className="absolute right-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-gray-400 animate-spin" />
+          )}
+        </div>
+      )}
+    </>
+  );
+}
+
+// ─── DB PlacePicker ───────────────────────────────────────────────────────────
+
 function PlacePicker({
   onSelect,
 }: {
@@ -175,7 +311,8 @@ function PlacePicker({
   );
 }
 
-/** เส้นเชื่อมระหว่างสถานที่ — แสดงเวลาเดินทาง + ระยะทาง */
+// ─── TravelConnector ──────────────────────────────────────────────────────────
+
 function TravelConnector({
   minutes,
   distanceKm,
@@ -240,6 +377,8 @@ function TravelConnector({
   );
 }
 
+// ─── ItemCard ─────────────────────────────────────────────────────────────────
+
 function ItemCard({
   item,
   onDelete,
@@ -258,6 +397,8 @@ function ItemCard({
     if (!isNaN(n) && n > 0) onUpdateDuration(item.id, n);
     setEditingDuration(false);
   }
+
+  const mapsUrl = getMapsUrl(item);
 
   return (
     <div className="bg-white dark:bg-slate-800 rounded-2xl border border-gray-100 dark:border-slate-700 p-3.5 hover:shadow-sm transition-shadow">
@@ -326,6 +467,16 @@ function ItemCard({
               {expanded ? <ChevronUp className="w-3.5 h-3.5" /> : <ChevronDown className="w-3.5 h-3.5" />}
             </button>
           )}
+          {/* Google Maps link */}
+          <a
+            href={mapsUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-gray-300 dark:text-slate-600 hover:text-[#398AB9] dark:hover:text-[#398AB9] transition p-1"
+            title="เปิดใน Google Maps"
+          >
+            <ExternalLink className="w-3.5 h-3.5" />
+          </a>
           <button onClick={() => onDelete(item.id)} className="text-gray-300 dark:text-slate-600 hover:text-red-400 transition p-1">
             <Trash2 className="w-3.5 h-3.5" />
           </button>
@@ -334,6 +485,8 @@ function ItemCard({
     </div>
   );
 }
+
+// ─── Page ─────────────────────────────────────────────────────────────────────
 
 export default function TripDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
@@ -348,6 +501,7 @@ export default function TripDetailPage({ params }: { params: Promise<{ id: strin
     duration: "", travelTimeTo: "",
     type: "place" as TripItem["type"],
     placeId: "" as string | undefined,
+    googlePlaceId: "" as string | undefined,
     placeLat: undefined as number | undefined,
     placeLng: undefined as number | undefined,
   });
@@ -379,8 +533,10 @@ export default function TripDetailPage({ params }: { params: Promise<{ id: strin
               cost: item.cost ?? undefined,
               note: item.note ?? undefined,
               type: "place" as TripItem["type"],
-              lat: item.place?.lat ?? undefined,
-              lng: item.place?.lng ?? undefined,
+              // TripItem.lat/lng first (Google Places), then linked Place coords
+              lat: item.lat ?? item.place?.lat ?? undefined,
+              lng: item.lng ?? item.place?.lng ?? undefined,
+              googlePlaceId: item.googlePlaceId ?? undefined,
             })),
           })),
         });
@@ -399,29 +555,32 @@ export default function TripDetailPage({ params }: { params: Promise<{ id: strin
       .map((i) => ({ lat: i.lat!, lng: i.lng! }));
 
     if (coords.length < 2) {
-      // Haversine fallback for consecutive pairs
-      const segs = [];
-      for (let i = 0; i < coords.length - 1; i++) {
-        const km = haversineKm(coords[i], coords[i + 1]);
-        segs.push({ distanceKm: km, durationMin: Math.round((km / 40) * 60) });
-      }
-      setRouteSegments(segs);
+      setRouteSegments([]);
       return;
     }
     try {
       const segs = await getDrivingRoute(coords);
-      setRouteSegments(segs);
-    } catch {
-      setRouteSegments([]);
+      if (segs.length > 0) {
+        setRouteSegments(segs);
+        return;
+      }
+    } catch { /* fall through to haversine */ }
+
+    // Haversine fallback for consecutive pairs
+    const segs = [];
+    for (let i = 0; i < coords.length - 1; i++) {
+      const km = haversineKm(coords[i], coords[i + 1]);
+      segs.push({ distanceKm: km, durationMin: Math.round((km / 40) * 60) });
     }
+    setRouteSegments(segs);
   }, [currentDay]);
 
   useEffect(() => { fetchRoute(); }, [fetchRoute]);
+
   const totalCost = trip.days.flatMap((d) => d.items).reduce((s, i) => s + (i.cost ?? 0), 0);
   const budgetPercent = Math.min((totalCost / (trip.budget ?? 1)) * 100, 100);
 
   function updateItem(dayNum: number, itemId: string, patch: Partial<TripItem>) {
-    // Optimistic UI update
     setTrip((prev) => ({
       ...prev,
       days: prev.days.map((d) =>
@@ -430,7 +589,6 @@ export default function TripDetailPage({ params }: { params: Promise<{ id: strin
           : d
       ),
     }));
-    // Persist to DB (skip mock IDs)
     if (!itemId.startsWith("new-") && !itemId.startsWith("i")) {
       updateTripItem(itemId, {
         duration: patch.duration,
@@ -454,6 +612,14 @@ export default function TripDetailPage({ params }: { params: Promise<{ id: strin
     }
   }
 
+  function resetNewItem() {
+    setNewItem({
+      name: "", time: "", cost: "", note: "", duration: "", travelTimeTo: "",
+      type: "place", placeId: "", googlePlaceId: "",
+      placeLat: undefined, placeLng: undefined,
+    });
+  }
+
   async function addItem() {
     if (!newItem.name.trim()) return;
     const optimisticId = `new-${Date.now()}`;
@@ -468,6 +634,7 @@ export default function TripDetailPage({ params }: { params: Promise<{ id: strin
       type: newItem.type,
       lat: newItem.placeLat,
       lng: newItem.placeLng,
+      googlePlaceId: newItem.googlePlaceId || undefined,
     };
     setTrip((prev) => ({
       ...prev,
@@ -475,7 +642,7 @@ export default function TripDetailPage({ params }: { params: Promise<{ id: strin
         d.day === activeDay ? { ...d, items: [...d.items, item] } : d
       ),
     }));
-    setNewItem({ name: "", time: "", cost: "", note: "", duration: "", travelTimeTo: "", type: "place", placeId: "", placeLat: undefined, placeLng: undefined });
+    resetNewItem();
     setShowAddModal(false);
     try {
       const result = await addItineraryItem(trip.id, {
@@ -487,6 +654,9 @@ export default function TripDetailPage({ params }: { params: Promise<{ id: strin
         travelTimeTo: newItem.travelTimeTo ? parseInt(newItem.travelTimeTo) : undefined,
         cost: newItem.cost ? parseInt(newItem.cost) : undefined,
         placeId: newItem.placeId || undefined,
+        googlePlaceId: newItem.googlePlaceId || undefined,
+        lat: newItem.placeLat,
+        lng: newItem.placeLng,
       });
       if (result.data) {
         setTrip((prev) => ({
@@ -498,7 +668,7 @@ export default function TripDetailPage({ params }: { params: Promise<{ id: strin
           ),
         }));
       }
-    } catch { /* mock fallback */ }
+    } catch { /* mock fallback — optimistic update already applied */ }
   }
 
   return (
@@ -612,11 +782,24 @@ export default function TripDetailPage({ params }: { params: Promise<{ id: strin
                   className={`flex items-center gap-1.5 text-xs font-medium px-3 py-1.5 rounded-xl transition ${
                     showMap
                       ? "bg-[#398AB9] text-white"
-                      : "border border-gray-200 text-gray-500 hover:border-[#398AB9] hover:text-[#398AB9]"
+                      : "border border-gray-200 dark:border-slate-600 text-gray-500 dark:text-slate-400 hover:border-[#398AB9] hover:text-[#398AB9]"
                   }`}>
                   <Map className="w-3.5 h-3.5" />
                   แผนที่
                 </button>
+                {/* Open full route in Google Maps — shows when day has 2+ items */}
+                {currentDay.items.length >= 2 && (
+                  <a
+                    href={getFullRouteUrl(currentDay.items)}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex items-center gap-1.5 text-xs font-medium px-3 py-1.5 rounded-xl border border-gray-200 dark:border-slate-600 text-gray-500 dark:text-slate-400 hover:border-emerald-400 hover:text-emerald-600 dark:hover:text-emerald-400 transition"
+                    title="เปิด route ทั้งหมดใน Google Maps"
+                  >
+                    <Navigation className="w-3.5 h-3.5" />
+                    Route
+                  </a>
+                )}
               </div>
             </div>
 
@@ -634,7 +817,7 @@ export default function TripDetailPage({ params }: { params: Promise<{ id: strin
                     } satisfies MapPoint))
                   }
                 />
-                {/* Route summary */}
+                {/* Route summary from OSRM */}
                 {routeSegments.length > 0 && (
                   <div className="mt-2 flex gap-2 flex-wrap">
                     {routeSegments.map((seg, i) => (
@@ -666,7 +849,7 @@ export default function TripDetailPage({ params }: { params: Promise<{ id: strin
                       onDelete={(itemId) => deleteItem(currentDay.day, itemId)}
                       onUpdateDuration={(itemId, min) => updateItem(currentDay.day, itemId, { duration: min })}
                     />
-                    {/* Travel connector — แสดงหลังทุก item ยกเว้นตัวสุดท้าย */}
+                    {/* Travel connector — after every item except the last */}
                     {idx < currentDay.items.length - 1 && (
                       <TravelConnector
                         minutes={item.travelTimeTo ?? routeSegments[idx]?.durationMin ?? 15}
@@ -692,10 +875,11 @@ export default function TripDetailPage({ params }: { params: Promise<{ id: strin
         {/* Add modal */}
         {showAddModal && (
           <div className="fixed inset-0 z-50 flex items-end md:items-center justify-center">
-            <div className="absolute inset-0 bg-black/40" onClick={() => setShowAddModal(false)} />
-            <div className="relative z-10 w-full max-w-lg bg-white dark:bg-slate-800 rounded-t-3xl md:rounded-3xl p-6 shadow-2xl">
+            <div className="absolute inset-0 bg-black/40" onClick={() => { setShowAddModal(false); resetNewItem(); }} />
+            <div className="relative z-10 w-full max-w-lg bg-white dark:bg-slate-800 rounded-t-3xl md:rounded-3xl p-6 shadow-2xl max-h-[90dvh] overflow-y-auto">
               <h3 className="text-base font-bold text-gray-900 dark:text-slate-100 mb-4">เพิ่มในวันที่ {activeDay}</h3>
 
+              {/* Type selector */}
               <div className="flex gap-2 mb-4 flex-wrap">
                 {(["place", "food", "hotel", "transport", "activity"] as const).map((t) => (
                   <button key={t}
@@ -709,25 +893,26 @@ export default function TripDetailPage({ params }: { params: Promise<{ id: strin
               </div>
 
               <div className="space-y-3">
-                {/* Place picker from DB */}
+                {/* DB picker */}
                 <PlacePicker
                   onSelect={(p) => setNewItem((prev) => ({
                     ...prev,
                     name: p.name,
                     placeId: p.id,
+                    googlePlaceId: "",         // clear Google Place
                     placeLat: p.lat ?? undefined,
                     placeLng: p.lng ?? undefined,
                     type: p.category === "cafe" || p.category === "restaurant" ? "food" : "place",
                   }))}
                 />
 
-                {/* Selected place badge */}
+                {/* DB selected place badge */}
                 {newItem.placeId && (
-                  <div className="flex items-center gap-2 bg-emerald-50 border border-emerald-100 rounded-xl px-3 py-2">
+                  <div className="flex items-center gap-2 bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-100 dark:border-emerald-800 rounded-xl px-3 py-2">
                     <MapPin className="w-4 h-4 text-emerald-600 flex-shrink-0" />
-                    <span className="text-sm text-emerald-700 font-medium flex-1 truncate">{newItem.name}</span>
+                    <span className="text-sm text-emerald-700 dark:text-emerald-300 font-medium flex-1 truncate">{newItem.name}</span>
                     {newItem.placeLat && (
-                      <span className="text-[10px] bg-emerald-100 text-emerald-600 px-2 py-0.5 rounded-full">📍 มีแผนที่</span>
+                      <span className="text-[10px] bg-emerald-100 dark:bg-emerald-800 text-emerald-600 dark:text-emerald-300 px-2 py-0.5 rounded-full">📍 มีแผนที่</span>
                     )}
                     <button
                       type="button"
@@ -738,8 +923,27 @@ export default function TripDetailPage({ params }: { params: Promise<{ id: strin
                   </div>
                 )}
 
-                {/* Manual name (shown when no place selected) */}
-                {!newItem.placeId && (
+                {/* Google Places Autocomplete — hides if no API key */}
+                <GooglePlacesPicker
+                  onSelect={(p) => setNewItem((prev) => ({
+                    ...prev,
+                    name: p.name,
+                    googlePlaceId: p.googlePlaceId,
+                    placeId: "",               // clear DB place
+                    placeLat: p.lat,
+                    placeLng: p.lng,
+                  }))}
+                  onClear={() => setNewItem((prev) => ({
+                    ...prev,
+                    googlePlaceId: "",
+                    placeLat: undefined,
+                    placeLng: undefined,
+                    name: "",
+                  }))}
+                />
+
+                {/* Manual name input — hidden when a place is selected */}
+                {!newItem.placeId && !newItem.googlePlaceId && (
                   <input
                     value={newItem.name}
                     onChange={(e) => setNewItem((p) => ({ ...p, name: e.target.value }))}
@@ -747,6 +951,7 @@ export default function TripDetailPage({ params }: { params: Promise<{ id: strin
                     className="w-full px-4 py-3 border border-gray-200 dark:border-slate-600 dark:bg-slate-700/50 dark:text-slate-200 dark:placeholder:text-slate-500 rounded-xl text-sm focus:outline-none focus:border-[#398AB9]"
                   />
                 )}
+
                 <div className="flex gap-2">
                   <div className="relative flex-1">
                     <Clock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
@@ -790,7 +995,7 @@ export default function TripDetailPage({ params }: { params: Promise<{ id: strin
               </div>
 
               <div className="flex gap-2 mt-5">
-                <button onClick={() => setShowAddModal(false)}
+                <button onClick={() => { setShowAddModal(false); resetNewItem(); }}
                   className="flex-1 py-3 rounded-xl border border-gray-200 dark:border-slate-600 text-gray-600 dark:text-slate-400 text-sm font-medium hover:bg-gray-50 dark:hover:bg-slate-700 transition">
                   ยกเลิก
                 </button>
