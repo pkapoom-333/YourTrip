@@ -381,10 +381,12 @@ function TravelConnector({
 
 function ItemCard({
   item,
+  isOwner,
   onDelete,
   onUpdateDuration,
 }: {
   item: TripItem;
+  isOwner: boolean;
   onDelete: (id: string) => void;
   onUpdateDuration: (id: string, min: number) => void;
 }) {
@@ -403,7 +405,7 @@ function ItemCard({
   return (
     <div className="bg-white dark:bg-slate-800 rounded-2xl border border-gray-100 dark:border-slate-700 p-3.5 hover:shadow-sm transition-shadow">
       <div className="flex items-start gap-3">
-        <GripVertical className="w-4 h-4 text-gray-300 dark:text-slate-600 mt-0.5 flex-shrink-0 cursor-grab" />
+        {isOwner && <GripVertical className="w-4 h-4 text-gray-300 dark:text-slate-600 mt-0.5 flex-shrink-0 cursor-grab" />}
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2 flex-wrap">
             <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-full ${typeColors[item.type]}`}>
@@ -424,38 +426,43 @@ function ItemCard({
           </div>
           <p className="text-sm font-semibold text-gray-800 dark:text-slate-200 mt-1">{item.name}</p>
 
-          {/* Duration — กดแก้ได้ */}
-          <div className="mt-1.5">
-            {editingDuration ? (
-              <div className="flex items-center gap-1.5">
-                <span className="text-[10px] text-gray-400">อยู่ที่นี่</span>
-                <input
-                  type="number"
-                  value={durVal}
-                  onChange={(e) => setDurVal(e.target.value)}
-                  onKeyDown={(e) => e.key === "Enter" && saveDuration()}
-                  autoFocus
-                  className="w-14 px-1.5 py-0.5 text-xs border border-[#398AB9] rounded focus:outline-none"
-                />
-                <span className="text-[10px] text-gray-400">นาที</span>
-                <button onClick={saveDuration} className="text-[10px] text-white bg-[#398AB9] px-1.5 py-0.5 rounded">
-                  ✓
+          {/* Duration — กดแก้ได้ (เจ้าของเท่านั้น) */}
+          {item.duration !== undefined && (
+            <div className="mt-1.5">
+              {isOwner && editingDuration ? (
+                <div className="flex items-center gap-1.5">
+                  <span className="text-[10px] text-gray-400">อยู่ที่นี่</span>
+                  <input
+                    type="number"
+                    value={durVal}
+                    onChange={(e) => setDurVal(e.target.value)}
+                    onKeyDown={(e) => e.key === "Enter" && saveDuration()}
+                    autoFocus
+                    className="w-14 px-1.5 py-0.5 text-xs border border-[#398AB9] rounded focus:outline-none"
+                  />
+                  <span className="text-[10px] text-gray-400">นาที</span>
+                  <button onClick={saveDuration} className="text-[10px] text-white bg-[#398AB9] px-1.5 py-0.5 rounded">
+                    ✓
+                  </button>
+                </div>
+              ) : isOwner ? (
+                <button
+                  onClick={() => { setDurVal(String(item.duration ?? "")); setEditingDuration(true); }}
+                  className="flex items-center gap-1 text-[11px] text-gray-400 hover:text-[#398AB9] transition group"
+                >
+                  <span className="w-1.5 h-1.5 rounded-full bg-[#398AB9]/40 flex-shrink-0" />
+                  อยู่ที่นี่{" "}
+                  <span className="font-medium">{fmtMin(item.duration)}</span>
+                  <span className="opacity-0 group-hover:opacity-100 text-[10px] ml-0.5">✏️</span>
                 </button>
-              </div>
-            ) : (
-              <button
-                onClick={() => { setDurVal(String(item.duration ?? "")); setEditingDuration(true); }}
-                className="flex items-center gap-1 text-[11px] text-gray-400 hover:text-[#398AB9] transition group"
-              >
-                <span className="w-1.5 h-1.5 rounded-full bg-[#398AB9]/40 flex-shrink-0" />
-                อยู่ที่นี่{" "}
-                <span className="font-medium">
-                  {item.duration ? fmtMin(item.duration) : "— นาที"}
-                </span>
-                <span className="opacity-0 group-hover:opacity-100 text-[10px] ml-0.5">✏️</span>
-              </button>
-            )}
-          </div>
+              ) : (
+                <div className="flex items-center gap-1 text-[11px] text-gray-400">
+                  <span className="w-1.5 h-1.5 rounded-full bg-[#398AB9]/40 flex-shrink-0" />
+                  อยู่ที่นี่ <span className="font-medium">{fmtMin(item.duration)}</span>
+                </div>
+              )}
+            </div>
+          )}
 
           {item.note && (
             <p className={`text-xs text-gray-400 dark:text-slate-500 mt-1 ${!expanded ? "line-clamp-1" : ""}`}>{item.note}</p>
@@ -477,9 +484,11 @@ function ItemCard({
           >
             <ExternalLink className="w-3.5 h-3.5" />
           </a>
-          <button onClick={() => onDelete(item.id)} className="text-gray-300 dark:text-slate-600 hover:text-red-400 transition p-1">
-            <Trash2 className="w-3.5 h-3.5" />
-          </button>
+          {isOwner && (
+            <button onClick={() => onDelete(item.id)} className="text-gray-300 dark:text-slate-600 hover:text-red-400 transition p-1">
+              <Trash2 className="w-3.5 h-3.5" />
+            </button>
+          )}
         </div>
       </div>
     </div>
@@ -491,6 +500,7 @@ function ItemCard({
 export default function TripDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
   const [trip, setTrip] = useState(MOCK_TRIP);
+  const [isOwner, setIsOwner] = useState(true); // assumed owner until DB confirms otherwise
   const [activeDay, setActiveDay] = useState(1);
   const [shareCopied, setShareCopied] = useState(false);
   const [showAddModal, setShowAddModal] = useState(false);
@@ -508,8 +518,9 @@ export default function TripDetailPage({ params }: { params: Promise<{ id: strin
 
   useEffect(() => {
     if (id && !id.startsWith("mock")) {
-      getTripById(id).then(({ data }) => {
+      getTripById(id).then(({ data, isOwner: owner }) => {
         if (!data) return;
+        setIsOwner(owner ?? false);
         const fmt = new Intl.DateTimeFormat("th-TH", { day: "numeric", month: "short", year: "numeric" });
         setTrip({
           id: data.id,
@@ -764,6 +775,26 @@ export default function TripDetailPage({ params }: { params: Promise<{ id: strin
           </div>
         </div>
 
+        {/* Read-only banner for non-owners */}
+        {!isOwner && (
+          <div className="mx-4 mt-4 flex items-center gap-2 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-700 rounded-2xl px-4 py-3">
+            <span className="text-base leading-none flex-shrink-0">👁️</span>
+            <div className="flex-1 min-w-0">
+              <p className="text-xs font-semibold text-amber-700 dark:text-amber-400">กำลังดูแบบ Read-only</p>
+              <p className="text-[11px] text-amber-600/80 dark:text-amber-500 mt-0.5">ทริปนี้เป็นของผู้ใช้อื่น — คุณสามารถดูแผนได้แต่แก้ไขไม่ได้</p>
+            </div>
+            <button
+              onClick={async () => {
+                // TODO: implement "Save a copy" — clone trip to current user
+                await navigator.clipboard.writeText(window.location.href).catch(() => {});
+              }}
+              className="flex-shrink-0 text-[11px] font-semibold bg-amber-100 dark:bg-amber-800/50 text-amber-700 dark:text-amber-300 px-3 py-1.5 rounded-xl hover:bg-amber-200 dark:hover:bg-amber-800 transition"
+            >
+              📋 คัดลอก link
+            </button>
+          </div>
+        )}
+
         {/* Active day */}
         {currentDay && (
           <div className="px-4 py-4">
@@ -846,6 +877,7 @@ export default function TripDetailPage({ params }: { params: Promise<{ id: strin
                   <div key={item.id}>
                     <ItemCard
                       item={item}
+                      isOwner={isOwner}
                       onDelete={(itemId) => deleteItem(currentDay.day, itemId)}
                       onUpdateDuration={(itemId, min) => updateItem(currentDay.day, itemId, { duration: min })}
                     />
@@ -862,18 +894,20 @@ export default function TripDetailPage({ params }: { params: Promise<{ id: strin
               )}
             </div>
 
-            {/* Add button */}
-            <button
-              onClick={() => setShowAddModal(true)}
-              className="w-full flex items-center justify-center gap-2 py-3.5 border-2 border-dashed border-[#398AB9]/30 rounded-2xl text-[#398AB9] text-sm font-medium hover:bg-[#398AB9]/5 transition"
-            >
-              <Plus className="w-4 h-4" />เพิ่มสถานที่ / กิจกรรม
-            </button>
+            {/* Add button — owner only */}
+            {isOwner && (
+              <button
+                onClick={() => setShowAddModal(true)}
+                className="w-full flex items-center justify-center gap-2 py-3.5 border-2 border-dashed border-[#398AB9]/30 rounded-2xl text-[#398AB9] text-sm font-medium hover:bg-[#398AB9]/5 transition"
+              >
+                <Plus className="w-4 h-4" />เพิ่มสถานที่ / กิจกรรม
+              </button>
+            )}
           </div>
         )}
 
-        {/* Add modal */}
-        {showAddModal && (
+        {/* Add modal — owner only */}
+        {isOwner && showAddModal && (
           <div className="fixed inset-0 z-50 flex items-end md:items-center justify-center">
             <div className="absolute inset-0 bg-black/40" onClick={() => { setShowAddModal(false); resetNewItem(); }} />
             <div className="relative z-10 w-full max-w-lg bg-white dark:bg-slate-800 rounded-t-3xl md:rounded-3xl p-6 shadow-2xl max-h-[90dvh] overflow-y-auto">

@@ -87,28 +87,38 @@ export async function getTripById(tripId: string) {
   try {
     const supabase = await createServerClient();
     const { data: { user } } = await supabase.auth.getUser();
-    if (!user) return { data: null };
 
-    const trip = await prisma.trip.findFirst({
-      where: { id: tripId, userId: user.id },
-      include: {
-        days: {
-          include: {
-            items: {
-              include: {
-                place: { select: { id: true, slug: true, name: true, lat: true, lng: true } },
-              },
-              orderBy: { order: "asc" },
+    const includeShape = {
+      days: {
+        include: {
+          items: {
+            include: {
+              place: { select: { id: true, slug: true, name: true, lat: true, lng: true } },
             },
+            orderBy: { order: "asc" as const },
           },
-          orderBy: { day: "asc" },
         },
+        orderBy: { day: "asc" as const },
       },
-    });
+    };
 
-    return { data: trip };
+    // Try owner first
+    if (user) {
+      const ownTrip = await prisma.trip.findFirst({
+        where: { id: tripId, userId: user.id },
+        include: includeShape,
+      });
+      if (ownTrip) return { data: ownTrip, isOwner: true };
+    }
+
+    // Fall back to public trip (read-only)
+    const publicTrip = await prisma.trip.findFirst({
+      where: { id: tripId, isPublic: true },
+      include: includeShape,
+    });
+    return { data: publicTrip, isOwner: false };
   } catch {
-    return { data: null };
+    return { data: null, isOwner: false };
   }
 }
 
