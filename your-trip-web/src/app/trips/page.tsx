@@ -3,9 +3,12 @@ import AppShell from "@/components/AppShell";
 import TripsClient, { type TripSummary } from "./TripsClient";
 import { getUserTrips } from "@/server/actions/trips";
 
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? "https://your-trip-nu.vercel.app";
+
 export const metadata: Metadata = {
   title: "ทริปของฉัน | Your Trip",
   description: "วางแผนทริป สร้าง itinerary รายวัน ติดตามงบประมาณ และจัดการการเดินทางของคุณ",
+  alternates: { canonical: `${SITE_URL}/trips` },
 };
 
 const fmt = new Intl.DateTimeFormat("th-TH", { day: "numeric", month: "short", year: "numeric" });

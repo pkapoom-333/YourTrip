@@ -3,9 +3,12 @@ import AppShell from "@/components/AppShell";
 import ExploreClient from "./ExploreClient";
 import { getPlaces } from "@/server/actions/places";
 
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? "https://your-trip-nu.vercel.app";
+
 export const metadata: Metadata = {
   title: "สำรวจสถานที่ | Your Trip",
   description: "ค้นพบสถานที่ท่องเที่ยว ร้านอาหาร คาเฟ่ พร้อมรีวิวจากชุมชนนักเดินทางจริง",
+  alternates: { canonical: `${SITE_URL}/explore` },
 };
 import type { PlaceListItem } from "@/server/actions/places";
 import { getSavedPlaceIds } from "@/server/actions/savedPlaces";

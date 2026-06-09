@@ -20,6 +20,9 @@ export async function generateMetadata(
   return {
     title,
     description,
+    alternates: {
+      canonical: `${BASE_URL}/place/${slug}`,
+    },
     openGraph: {
       title,
       description,
@@ -224,6 +227,49 @@ const MOCK_PLACES: Record<string, PlaceData> = {
   },
 };
 
+// ─── JSON-LD schema type per category ────────────────────────────────────────
+const SCHEMA_TYPE: Record<string, string> = {
+  restaurant: "Restaurant",
+  cafe: "CafeOrCoffeeShop",
+  hotel: "LodgingBusiness",
+  attraction: "TouristAttraction",
+  activity: "TouristAttraction",
+};
+
+function buildJsonLd(place: PlaceData, slug: string): Record<string, unknown> {
+  const type = SCHEMA_TYPE[place.categoryEn?.toLowerCase() ?? ""] ?? "TouristAttraction";
+  const ld: Record<string, unknown> = {
+    "@context": "https://schema.org",
+    "@type": type,
+    name: place.name,
+    description: place.description || undefined,
+    url: `${BASE_URL}/place/${slug}`,
+    image: place.images[0] ?? undefined,
+    address: {
+      "@type": "PostalAddress",
+      addressLocality: place.location,
+      addressCountry: "TH",
+    },
+  };
+  if (place.rating && place.reviewCount) {
+    ld.aggregateRating = {
+      "@type": "AggregateRating",
+      ratingValue: place.rating,
+      reviewCount: place.reviewCount,
+      bestRating: 5,
+    };
+  }
+  if (place.hours.length > 0) {
+    ld.openingHoursSpecification = place.hours.map((h) => ({
+      "@type": "OpeningHoursSpecification",
+      dayOfWeek: h.day,
+      opens: h.time.split("–")[0]?.trim(),
+      closes: h.time.split("–")[1]?.trim(),
+    }));
+  }
+  return ld;
+}
+
 // ─── Page ─────────────────────────────────────────────────────────────────────
 export default async function PlacePage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
@@ -247,9 +293,27 @@ export default async function PlacePage({ params }: { params: Promise<{ slug: st
       }));
 
     const placeData = { ...mapToPlaceData(dbPlace), nearby: nearbyPlaces };
-    return <PlaceDetailClient place={placeData} slug={slug} initialSaved={savedIds.includes(dbPlace.id)} />;
+    const jsonLd = buildJsonLd(placeData, slug);
+    return (
+      <>
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+        />
+        <PlaceDetailClient place={placeData} slug={slug} initialSaved={savedIds.includes(dbPlace.id)} />
+      </>
+    );
   }
 
   const placeData: PlaceData = MOCK_PLACES[slug] ?? MOCK_PLACES["doi-ang-khang"];
-  return <PlaceDetailClient place={placeData} slug={slug} />;
+  const jsonLd = buildJsonLd(placeData, slug);
+  return (
+    <>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+      />
+      <PlaceDetailClient place={placeData} slug={slug} />
+    </>
+  );
 }

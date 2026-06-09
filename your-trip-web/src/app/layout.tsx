@@ -55,6 +55,9 @@ export const metadata: Metadata = {
     index: true,
     follow: true,
   },
+  alternates: {
+    canonical: BASE_URL,
+  },
 };
 
 export const viewport: Viewport = {
@@ -76,6 +79,16 @@ export default function RootLayout({
         <script
           dangerouslySetInnerHTML={{
             __html: `try{if(JSON.parse(localStorage.getItem('settings_dark_mode')||'false'))document.documentElement.classList.add('dark')}catch(e){}`,
+          }}
+        />
+        {/* Preconnect to external domains for faster resource loading */}
+        <link rel="preconnect" href="https://res.cloudinary.com" />
+        <link rel="preconnect" href="https://images.unsplash.com" />
+        <link rel="dns-prefetch" href="https://wujunlagtipvbzappuwx.supabase.co" />
+        {/* Register service worker for offline support */}
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `if('serviceWorker' in navigator){navigator.serviceWorker.register('/sw.js').catch(()=>{})}`,
           }}
         />
       </head>
