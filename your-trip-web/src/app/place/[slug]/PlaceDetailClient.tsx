@@ -54,7 +54,7 @@ function StarRating({ rating, size = "sm" }: { rating: number; size?: "sm" | "lg
 function FacilityBadge({ icon: Icon, label, active }: { icon: React.ElementType; label: string; active: boolean }) {
   return (
     <div className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium ${
-      active ? "bg-[#398AB9]/10 text-[#398AB9]" : "bg-gray-100 text-gray-400 line-through"
+      active ? "bg-[#398AB9]/10 text-[#398AB9]" : "bg-gray-100 dark:bg-slate-700 text-gray-400 dark:text-slate-500 line-through"
     }`}>
       <Icon className="w-3.5 h-3.5" />
       {label}
@@ -67,17 +67,17 @@ function TransportTab({ icon: Icon, label, content }: { icon: React.ElementType;
   if (!content || content === "—") return null;
   return (
     <button onClick={() => setOpen(!open)}
-      className="w-full text-left border border-gray-100 rounded-xl overflow-hidden">
-      <div className="flex items-center justify-between px-4 py-3 hover:bg-gray-50 transition">
+      className="w-full text-left border border-gray-100 dark:border-slate-700 rounded-xl overflow-hidden">
+      <div className="flex items-center justify-between px-4 py-3 hover:bg-gray-50 dark:hover:bg-slate-700/50 transition">
         <div className="flex items-center gap-3">
           <Icon className="w-4 h-4 text-[#398AB9]" />
-          <span className="text-sm font-medium text-gray-700">{label}</span>
+          <span className="text-sm font-medium text-gray-700 dark:text-slate-300">{label}</span>
         </div>
-        <ChevronDown className={`w-4 h-4 text-gray-400 transition-transform ${open ? "rotate-180" : ""}`} />
+        <ChevronDown className={`w-4 h-4 text-gray-400 dark:text-slate-500 transition-transform ${open ? "rotate-180" : ""}`} />
       </div>
       {open && (
-        <div className="px-4 pb-3 pt-1 bg-gray-50 border-t border-gray-100">
-          <p className="text-sm text-gray-600 leading-relaxed">{content}</p>
+        <div className="px-4 pb-3 pt-1 bg-gray-50 dark:bg-slate-700/40 border-t border-gray-100 dark:border-slate-700">
+          <p className="text-sm text-gray-600 dark:text-slate-300 leading-relaxed">{content}</p>
         </div>
       )}
     </button>
@@ -218,10 +218,10 @@ export default function PlaceDetailClient({ place, slug, initialSaved = false }:
                     {place.isOpen ? `เปิดอยู่ · ถึง ${place.openUntil}` : "ปิดแล้ว"}
                   </span>
                 </div>
-                <h1 className="text-2xl font-bold text-gray-900">{place.name}</h1>
+                <h1 className="text-2xl font-bold text-gray-900 dark:text-slate-100">{place.name}</h1>
                 <div className="flex items-center gap-1.5 mt-1">
                   <MapPin className="w-3.5 h-3.5 text-[#398AB9] flex-shrink-0" />
-                  <span className="text-sm text-gray-500">{place.location}</span>
+                  <span className="text-sm text-gray-500 dark:text-slate-400">{place.location}</span>
                 </div>
               </div>
               <button onClick={() => setLiked(!liked)}
@@ -233,8 +233,8 @@ export default function PlaceDetailClient({ place, slug, initialSaved = false }:
             <div className="flex items-center gap-4 mt-3">
               <div className="flex items-center gap-2">
                 <StarRating rating={place.rating} size="lg" />
-                <span className="text-lg font-bold text-gray-900">{place.rating}</span>
-                <span className="text-sm text-gray-400">({place.reviewCount.toLocaleString()} รีวิว)</span>
+                <span className="text-lg font-bold text-gray-900 dark:text-slate-100">{place.rating}</span>
+                <span className="text-sm text-gray-400 dark:text-slate-500">({place.reviewCount.toLocaleString()} รีวิว)</span>
               </div>
             </div>
 
@@ -263,7 +263,7 @@ export default function PlaceDetailClient({ place, slug, initialSaved = false }:
             {place.tags.length > 0 && (
               <div className="flex flex-wrap gap-1.5 mt-3">
                 {place.tags.map((t) => (
-                  <span key={t} className="text-[11px] bg-gray-100 text-gray-500 px-2.5 py-0.5 rounded-full">
+                  <span key={t} className="text-[11px] bg-gray-100 dark:bg-slate-700 text-gray-500 dark:text-slate-400 px-2.5 py-0.5 rounded-full">
                     #{t}
                   </span>
                 ))}
@@ -274,14 +274,14 @@ export default function PlaceDetailClient({ place, slug, initialSaved = false }:
           {/* ── Description ── */}
           {place.description && (
             <section>
-              <h2 className="text-base font-semibold text-gray-900 mb-2">เกี่ยวกับสถานที่</h2>
+              <h2 className="text-base font-semibold text-gray-900 dark:text-slate-100 mb-2">เกี่ยวกับสถานที่</h2>
               <div className={`relative ${!expanded ? "max-h-[90px] overflow-hidden" : ""}`}>
-                <p className="text-sm text-gray-600 leading-relaxed">{place.description}</p>
+                <p className="text-sm text-gray-600 dark:text-slate-300 leading-relaxed">{place.description}</p>
                 {place.descriptionEn && (
                   <p className="text-sm text-gray-400 leading-relaxed mt-2 italic">{place.descriptionEn}</p>
                 )}
                 {!expanded && (
-                  <div className="absolute bottom-0 left-0 right-0 h-8 bg-gradient-to-t from-[#F8FAFC] to-transparent" />
+                  <div className="absolute bottom-0 left-0 right-0 h-8 bg-gradient-to-t from-[#F8FAFC] dark:from-slate-900 to-transparent" />
                 )}
               </div>
               <button onClick={() => setExpanded(!expanded)}
@@ -296,15 +296,15 @@ export default function PlaceDetailClient({ place, slug, initialSaved = false }:
             <section>
               <div className="flex items-center gap-2 mb-3">
                 <Clock className="w-4 h-4 text-[#398AB9]" />
-                <h2 className="text-base font-semibold text-gray-900">เวลาทำการ</h2>
+                <h2 className="text-base font-semibold text-gray-900 dark:text-slate-100">เวลาทำการ</h2>
               </div>
-              <div className="bg-white rounded-xl border border-gray-100 overflow-hidden">
+              <div className="bg-white dark:bg-slate-800 rounded-xl border border-gray-100 dark:border-slate-700 overflow-hidden">
                 {place.hours.map((h, i) => (
                   <div key={i} className={`flex items-center justify-between px-4 py-2.5 text-sm ${
-                    i < place.hours.length - 1 ? "border-b border-gray-50" : ""
+                    i < place.hours.length - 1 ? "border-b border-gray-50 dark:border-slate-700" : ""
                   }`}>
-                    <span className="text-gray-600">{h.day}</span>
-                    <span className="font-medium text-gray-900">{h.time}</span>
+                    <span className="text-gray-600 dark:text-slate-400">{h.day}</span>
+                    <span className="font-medium text-gray-900 dark:text-slate-200">{h.time}</span>
                   </div>
                 ))}
               </div>
@@ -313,7 +313,7 @@ export default function PlaceDetailClient({ place, slug, initialSaved = false }:
 
           {/* ── Facilities ── */}
           <section>
-            <h2 className="text-base font-semibold text-gray-900 mb-3">สิ่งอำนวยความสะดวก</h2>
+            <h2 className="text-base font-semibold text-gray-900 dark:text-slate-100 mb-3">สิ่งอำนวยความสะดวก</h2>
             <div className="flex flex-wrap gap-2">
               <FacilityBadge icon={Wifi} label="Wi-Fi" active={place.facilities.wifi} />
               <FacilityBadge icon={Wind} label="แอร์" active={place.facilities.ac} />
@@ -326,10 +326,10 @@ export default function PlaceDetailClient({ place, slug, initialSaved = false }:
           <section>
             <div className="flex items-center gap-2 mb-3">
               <Navigation className="w-4 h-4 text-[#398AB9]" />
-              <h2 className="text-base font-semibold text-gray-900">ที่ตั้ง</h2>
+              <h2 className="text-base font-semibold text-gray-900 dark:text-slate-100">ที่ตั้ง</h2>
             </div>
             {place.mapEmbed ? (
-              <div className="rounded-xl overflow-hidden border border-gray-100">
+              <div className="rounded-xl overflow-hidden border border-gray-100 dark:border-slate-700">
                 <iframe
                   src={place.mapEmbed}
                   className="w-full h-56 md:h-72"
@@ -339,7 +339,7 @@ export default function PlaceDetailClient({ place, slug, initialSaved = false }:
                 />
               </div>
             ) : (
-              <div className="rounded-xl border border-gray-100 bg-gray-50 h-40 flex items-center justify-center text-gray-400 text-sm">
+              <div className="rounded-xl border border-gray-100 dark:border-slate-700 bg-gray-50 dark:bg-slate-800 h-40 flex items-center justify-center text-gray-400 dark:text-slate-500 text-sm">
                 <MapPin className="w-4 h-4 mr-2" /> {place.location}
               </div>
             )}
@@ -357,7 +357,7 @@ export default function PlaceDetailClient({ place, slug, initialSaved = false }:
             <section>
               <div className="flex items-center gap-2 mb-3">
                 <Car className="w-4 h-4 text-[#398AB9]" />
-                <h2 className="text-base font-semibold text-gray-900">การเดินทาง</h2>
+                <h2 className="text-base font-semibold text-gray-900 dark:text-slate-100">การเดินทาง</h2>
               </div>
               <div className="space-y-2">
                 <TransportTab icon={Car} label="รถยนต์" content={place.transport.car} />
@@ -372,9 +372,9 @@ export default function PlaceDetailClient({ place, slug, initialSaved = false }:
           <section>
             <div className="flex items-center gap-2 mb-3">
               <ParkingSquare className="w-4 h-4 text-[#398AB9]" />
-              <h2 className="text-base font-semibold text-gray-900">ที่จอดรถ</h2>
+              <h2 className="text-base font-semibold text-gray-900 dark:text-slate-100">ที่จอดรถ</h2>
             </div>
-            <div className="bg-white rounded-xl border border-gray-100 p-4 space-y-2">
+            <div className="bg-white dark:bg-slate-800 rounded-xl border border-gray-100 dark:border-slate-700 p-4 space-y-2">
               <div className="flex items-center gap-2">
                 <span className={`text-xs font-semibold px-2 py-0.5 rounded-full ${
                   place.parking.available ? "bg-emerald-50 text-emerald-600" : "bg-red-50 text-red-500"
@@ -382,8 +382,8 @@ export default function PlaceDetailClient({ place, slug, initialSaved = false }:
                   {place.parking.available ? "มีที่จอดรถ" : "ไม่มีที่จอดรถ"}
                 </span>
               </div>
-              {place.parking.spaces && <p className="text-sm text-gray-600">{place.parking.spaces}</p>}
-              <p className="text-sm text-gray-500">ค่าบริการ: <span className="font-medium text-gray-700">{place.parking.fee}</span></p>
+              {place.parking.spaces && <p className="text-sm text-gray-600 dark:text-slate-300">{place.parking.spaces}</p>}
+              <p className="text-sm text-gray-500 dark:text-slate-400">ค่าบริการ: <span className="font-medium text-gray-700 dark:text-slate-300">{place.parking.fee}</span></p>
             </div>
           </section>
 
@@ -392,13 +392,13 @@ export default function PlaceDetailClient({ place, slug, initialSaved = false }:
             <section>
               <div className="flex items-center gap-2 mb-3">
                 <AlertTriangle className="w-4 h-4 text-amber-500" />
-                <h2 className="text-base font-semibold text-gray-900">คำเตือนและเคล็ดลับ</h2>
+                <h2 className="text-base font-semibold text-gray-900 dark:text-slate-100">คำเตือนและเคล็ดลับ</h2>
               </div>
               <div className="space-y-2">
                 {place.caution.map((c, i) => (
-                  <div key={i} className="flex items-start gap-3 bg-amber-50 border border-amber-100 rounded-xl px-4 py-3">
+                  <div key={i} className="flex items-start gap-3 bg-amber-50 dark:bg-amber-900/20 border border-amber-100 dark:border-amber-800/40 rounded-xl px-4 py-3">
                     <span className="text-amber-500 font-bold text-sm flex-shrink-0 mt-0.5">{i + 1}</span>
-                    <p className="text-sm text-gray-700 leading-relaxed">{c}</p>
+                    <p className="text-sm text-gray-700 dark:text-slate-300 leading-relaxed">{c}</p>
                   </div>
                 ))}
               </div>
@@ -411,41 +411,41 @@ export default function PlaceDetailClient({ place, slug, initialSaved = false }:
               <div className="flex items-center justify-between mb-3">
                 <div className="flex items-center gap-2">
                   <MessageCircle className="w-4 h-4 text-[#398AB9]" />
-                  <h2 className="text-base font-semibold text-gray-900">รีวิวจากชุมชน</h2>
+                  <h2 className="text-base font-semibold text-gray-900 dark:text-slate-100">รีวิวจากชุมชน</h2>
                 </div>
                 <div className="flex items-center gap-1.5">
                   <Star className="w-4 h-4 fill-amber-400 text-amber-400" />
-                  <span className="text-sm font-bold text-gray-900">{place.rating}</span>
-                  <span className="text-xs text-gray-400">({place.reviewCount.toLocaleString()})</span>
+                  <span className="text-sm font-bold text-gray-900 dark:text-slate-100">{place.rating}</span>
+                  <span className="text-xs text-gray-400 dark:text-slate-500">({place.reviewCount.toLocaleString()})</span>
                 </div>
               </div>
 
               <div className="space-y-3">
                 {place.reviews.map((r) => (
-                  <div key={r.id} className="bg-white rounded-xl border border-gray-100 p-4">
+                  <div key={r.id} className="bg-white dark:bg-slate-800 rounded-xl border border-gray-100 dark:border-slate-700 p-4">
                     <div className="flex items-start justify-between gap-3">
                       <div className="flex items-start gap-3">
                         <Avatar src={r.avatarUrl} name={r.user} className="w-9 h-9 text-xs" />
                         <div>
-                          <p className="text-sm font-semibold text-gray-900">{r.user}</p>
+                          <p className="text-sm font-semibold text-gray-900 dark:text-slate-100">{r.user}</p>
                           <div className="flex items-center gap-2 mt-0.5">
                             <StarRating rating={r.rating} />
-                            <span className="text-[10px] text-gray-400">{r.time}</span>
+                            <span className="text-[10px] text-gray-400 dark:text-slate-500">{r.time}</span>
                           </div>
                         </div>
                       </div>
-                      <button className="p-1 hover:bg-gray-50 rounded-full">
-                        <MoreHorizontal className="w-4 h-4 text-gray-300" />
+                      <button className="p-1 hover:bg-gray-50 dark:hover:bg-slate-700 rounded-full">
+                        <MoreHorizontal className="w-4 h-4 text-gray-300 dark:text-slate-600" />
                       </button>
                     </div>
-                    {r.text && <p className="text-sm text-gray-600 leading-relaxed mt-2">{r.text}</p>}
+                    {r.text && <p className="text-sm text-gray-600 dark:text-slate-300 leading-relaxed mt-2">{r.text}</p>}
                     <div className="flex items-center gap-4 mt-3">
-                      <button className="flex items-center gap-1.5 text-xs text-gray-400 hover:text-[#398AB9] transition">
+                      <button className="flex items-center gap-1.5 text-xs text-gray-400 dark:text-slate-500 hover:text-[#398AB9] transition">
                         <ThumbsUp className="w-3.5 h-3.5" />
                         <span>{r.likes}</span>
                       </button>
                       {r.photos > 0 && (
-                        <span className="flex items-center gap-1.5 text-xs text-gray-400">
+                        <span className="flex items-center gap-1.5 text-xs text-gray-400 dark:text-slate-500">
                           <Camera className="w-3.5 h-3.5" />
                           {r.photos} รูป
                         </span>
@@ -455,7 +455,7 @@ export default function PlaceDetailClient({ place, slug, initialSaved = false }:
                 ))}
               </div>
 
-              <button className="w-full mt-3 py-2.5 border border-gray-200 rounded-xl text-sm text-gray-500 hover:bg-gray-50 transition font-medium">
+              <button className="w-full mt-3 py-2.5 border border-gray-200 dark:border-slate-600 rounded-xl text-sm text-gray-500 dark:text-slate-400 hover:bg-gray-50 dark:hover:bg-slate-700 transition font-medium">
                 ดูรีวิวทั้งหมด ({place.reviewCount.toLocaleString()})
               </button>
 
@@ -475,8 +475,8 @@ export default function PlaceDetailClient({ place, slug, initialSaved = false }:
 
               {/* Review form */}
               {showReviewForm && (
-                <form onSubmit={handleSubmitReview} className="mt-3 bg-[#398AB9]/5 rounded-2xl p-4 space-y-3">
-                  <p className="text-sm font-semibold text-gray-800">เขียนรีวิว</p>
+                <form onSubmit={handleSubmitReview} className="mt-3 bg-[#398AB9]/5 dark:bg-[#398AB9]/10 rounded-2xl p-4 space-y-3">
+                  <p className="text-sm font-semibold text-gray-800 dark:text-slate-200">เขียนรีวิว</p>
                   {/* Star picker */}
                   <div className="flex items-center gap-1">
                     {[1, 2, 3, 4, 5].map((s) => (
@@ -484,20 +484,20 @@ export default function PlaceDetailClient({ place, slug, initialSaved = false }:
                         <Star className={`w-6 h-6 ${s <= reviewRating ? "fill-amber-400 text-amber-400" : "text-gray-300"}`} />
                       </button>
                     ))}
-                    <span className="text-sm text-gray-500 ml-1">{reviewRating}/5</span>
+                    <span className="text-sm text-gray-500 dark:text-slate-400 ml-1">{reviewRating}/5</span>
                   </div>
                   <textarea
                     value={reviewText}
                     onChange={(e) => setReviewText(e.target.value)}
                     placeholder="เล่าประสบการณ์ของคุณ..."
                     rows={3}
-                    className="w-full text-sm text-gray-700 bg-white border border-gray-200 rounded-xl px-3 py-2.5 outline-none focus:border-[#398AB9] resize-none"
+                    className="w-full text-sm text-gray-700 dark:text-slate-200 bg-white dark:bg-slate-700/50 border border-gray-200 dark:border-slate-600 rounded-xl px-3 py-2.5 outline-none focus:border-[#398AB9] resize-none"
                   />
                   <div className="flex gap-2">
                     <button
                       type="button"
                       onClick={() => setShowReviewForm(false)}
-                      className="flex-1 py-2 border border-gray-200 rounded-xl text-sm text-gray-500 hover:bg-gray-50 transition"
+                      className="flex-1 py-2 border border-gray-200 dark:border-slate-600 rounded-xl text-sm text-gray-500 dark:text-slate-400 hover:bg-gray-50 dark:hover:bg-slate-700 transition"
                     >
                       ยกเลิก
                     </button>
@@ -517,11 +517,11 @@ export default function PlaceDetailClient({ place, slug, initialSaved = false }:
           {/* ── Nearby Places ── */}
           {place.nearby.length > 0 && (
             <section>
-              <h2 className="text-base font-semibold text-gray-900 mb-3">สถานที่ใกล้เคียง</h2>
+              <h2 className="text-base font-semibold text-gray-900 dark:text-slate-100 mb-3">สถานที่ใกล้เคียง</h2>
               <div className="grid grid-cols-3 gap-3">
                 {place.nearby.map((n) => (
                   <Link key={n.slug} href={`/place/${n.slug}`}
-                    className="group rounded-xl overflow-hidden border border-gray-100 bg-white hover:shadow-md transition">
+                    className="group rounded-xl overflow-hidden border border-gray-100 dark:border-slate-700 bg-white dark:bg-slate-800 hover:shadow-md transition">
                     <div className="aspect-square overflow-hidden">
                       <img src={n.img} alt={n.name}
                         className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
@@ -529,8 +529,8 @@ export default function PlaceDetailClient({ place, slug, initialSaved = false }:
                         onError={(e) => { (e.target as HTMLImageElement).parentElement!.style.display = "none"; }} />
                     </div>
                     <div className="p-2">
-                      <p className="text-xs font-medium text-gray-800 truncate">{n.name}</p>
-                      <p className="text-[10px] text-gray-400 mt-0.5">{n.category}</p>
+                      <p className="text-xs font-medium text-gray-800 dark:text-slate-200 truncate">{n.name}</p>
+                      <p className="text-[10px] text-gray-400 dark:text-slate-500 mt-0.5">{n.category}</p>
                     </div>
                   </Link>
                 ))}
