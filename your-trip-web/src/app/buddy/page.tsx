@@ -242,12 +242,12 @@ export default function BuddyPage() {
           <div className="bg-white dark:bg-slate-800 border-b border-gray-100 dark:border-slate-700 px-4 py-4">
             {/* Search */}
             <div className="relative mb-3">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 dark:text-slate-500" />
               <input
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
                 placeholder="ค้นหาชื่อ หรือ ปลายทาง"
-                className="w-full pl-9 pr-4 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:border-[#398AB9]"
+                className="w-full pl-9 pr-4 py-2.5 border border-gray-200 dark:border-slate-600 rounded-xl text-sm bg-white dark:bg-slate-700/50 dark:text-slate-200 dark:placeholder:text-slate-500 focus:outline-none focus:border-[#398AB9]"
               />
             </div>
             {/* Destination chips */}
@@ -259,7 +259,7 @@ export default function BuddyPage() {
                   className={`flex-shrink-0 px-3.5 py-1.5 rounded-full text-xs font-medium transition-all ${
                     destFilter === d
                       ? "bg-[#398AB9] text-white"
-                      : "bg-gray-100 text-gray-500 hover:bg-gray-200"
+                      : "bg-gray-100 dark:bg-slate-700 text-gray-500 dark:text-slate-400 hover:bg-gray-200 dark:hover:bg-slate-600"
                   }`}
                 >
                   {d}
@@ -277,8 +277,8 @@ export default function BuddyPage() {
                 <div className="w-16 h-16 bg-violet-50 rounded-full flex items-center justify-center mb-4">
                   <Users className="w-7 h-7 text-violet-400" />
                 </div>
-                <p className="font-semibold text-gray-700 mb-1">ไม่พบ Travel Buddy</p>
-                <p className="text-sm text-gray-400">ลองเปลี่ยนตัวกรองการค้นหา</p>
+                <p className="font-semibold text-gray-700 dark:text-slate-200 mb-1">ไม่พบ Travel Buddy</p>
+                <p className="text-sm text-gray-400 dark:text-slate-500">ลองเปลี่ยนตัวกรองการค้นหา</p>
               </div>
             ) : (
               visible.map((buddy) => (
@@ -302,25 +302,25 @@ export default function BuddyPage() {
                 <div className="w-16 h-16 bg-[#398AB9]/8 rounded-full flex items-center justify-center mb-4">
                   <Users className="w-7 h-7 text-[#398AB9]/40" />
                 </div>
-                <p className="font-semibold text-gray-700 mb-1">ยังไม่มีคำขอใหม่</p>
-                <p className="text-sm text-gray-400">เมื่อมีคนส่งคำขอร่วมทริป จะแสดงที่นี่</p>
+                <p className="font-semibold text-gray-700 dark:text-slate-200 mb-1">ยังไม่มีคำขอใหม่</p>
+                <p className="text-sm text-gray-400 dark:text-slate-500">เมื่อมีคนส่งคำขอร่วมทริป จะแสดงที่นี่</p>
               </div>
             ) : (
               requests.map((req) => {
                 const initials = (req.from.name ?? "ผ").split(" ").map((w) => w.charAt(0)).join("").slice(0, 2);
                 return (
-                  <div key={req.id} className="bg-white rounded-2xl border border-gray-100 p-4">
+                  <div key={req.id} className="bg-white dark:bg-slate-800 rounded-2xl border border-gray-100 dark:border-slate-700 p-4">
                     <div className="flex items-center gap-3 mb-3">
                       <Avatar src={req.from.avatarUrl} name={req.from.name ?? "ผู้ใช้"} className="w-12 h-12" />
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-1.5">
-                          <p className="font-semibold text-gray-900 text-sm">{req.from.name ?? "ผู้ใช้"}</p>
+                          <p className="font-semibold text-gray-900 dark:text-slate-100 text-sm">{req.from.name ?? "ผู้ใช้"}</p>
                           {req.from.isVerified && (
                             <span className="text-[10px] bg-[#398AB9]/10 text-[#398AB9] px-1.5 py-0.5 rounded-full">✓</span>
                           )}
                         </div>
                         {req.destination && (
-                          <div className="flex items-center gap-1 text-xs text-gray-400 mt-0.5">
+                          <div className="flex items-center gap-1 text-xs text-gray-400 dark:text-slate-500 mt-0.5">
                             <MapPin className="w-3 h-3" />
                             {req.destination}
                           </div>
@@ -328,7 +328,7 @@ export default function BuddyPage() {
                       </div>
                     </div>
                     {req.message && (
-                      <p className="text-xs text-gray-500 mb-3 bg-gray-50 rounded-xl px-3 py-2 italic">
+                      <p className="text-xs text-gray-500 dark:text-slate-400 mb-3 bg-gray-50 dark:bg-slate-700/50 rounded-xl px-3 py-2 italic">
                         &ldquo;{req.message}&rdquo;
                       </p>
                     )}
@@ -341,7 +341,7 @@ export default function BuddyPage() {
                       </button>
                       <button
                         onClick={() => handleDecline(req.id)}
-                        className="flex-1 py-2 rounded-xl border border-gray-200 text-gray-600 text-sm font-medium hover:bg-gray-50 transition"
+                        className="flex-1 py-2 rounded-xl border border-gray-200 dark:border-slate-600 text-gray-600 dark:text-slate-400 text-sm font-medium hover:bg-gray-50 dark:hover:bg-slate-700 transition"
                       >
                         ปฏิเสธ
                       </button>
@@ -362,8 +362,8 @@ export default function BuddyPage() {
                 <div className="w-16 h-16 bg-red-50 rounded-full flex items-center justify-center mb-4">
                   <Heart className="w-7 h-7 text-red-300" />
                 </div>
-                <p className="font-semibold text-gray-700 mb-1">ยังไม่มี Buddy</p>
-                <p className="text-sm text-gray-400 mb-4">กด ❤️ หรือส่งคำขอในแท็บ Discover</p>
+                <p className="font-semibold text-gray-700 dark:text-slate-200 mb-1">ยังไม่มี Buddy</p>
+                <p className="text-sm text-gray-400 dark:text-slate-500 mb-4">กด ❤️ หรือส่งคำขอในแท็บ Discover</p>
               </div>
             ) : (
               <>
@@ -371,12 +371,12 @@ export default function BuddyPage() {
                 {matched.map((m) => {
                   const initials = (m.from.name ?? "ผ").split(" ").map((w) => w.charAt(0)).join("").slice(0, 2);
                   return (
-                    <div key={m.id} className="bg-white rounded-2xl border border-gray-100 p-4 flex items-center gap-3">
+                    <div key={m.id} className="bg-white dark:bg-slate-800 rounded-2xl border border-gray-100 dark:border-slate-700 p-4 flex items-center gap-3">
                       <Avatar src={m.from.avatarUrl} name={m.from.name ?? "ผู้ใช้"} className="w-12 h-12" />
                       <div className="flex-1 min-w-0">
-                        <p className="font-semibold text-gray-900 text-sm">{m.from.name ?? "ผู้ใช้"}</p>
+                        <p className="font-semibold text-gray-900 dark:text-slate-100 text-sm">{m.from.name ?? "ผู้ใช้"}</p>
                         {m.destination && (
-                          <div className="flex items-center gap-1 text-xs text-gray-400 mt-0.5">
+                          <div className="flex items-center gap-1 text-xs text-gray-400 dark:text-slate-500 mt-0.5">
                             <MapPin className="w-3 h-3" />
                             {m.destination}
                           </div>
@@ -391,11 +391,11 @@ export default function BuddyPage() {
                 })}
                 {/* Optimistic local likes (pending send) */}
                 {matchedBuddies.map((buddy) => (
-                  <div key={buddy.id} className="bg-white rounded-2xl border border-gray-100 p-4 flex items-center gap-3 opacity-70">
+                  <div key={buddy.id} className="bg-white dark:bg-slate-800 rounded-2xl border border-gray-100 dark:border-slate-700 p-4 flex items-center gap-3 opacity-70">
                     <Avatar src={buddy.avatarUrl} name={buddy.name} className="w-12 h-12" />
                     <div className="flex-1 min-w-0">
-                      <p className="font-semibold text-gray-900 text-sm">{buddy.name}</p>
-                      <p className="text-xs text-gray-400 mt-0.5">รอการตอบรับ...</p>
+                      <p className="font-semibold text-gray-900 dark:text-slate-100 text-sm">{buddy.name}</p>
+                      <p className="text-xs text-gray-400 dark:text-slate-500 mt-0.5">รอการตอบรับ...</p>
                     </div>
                   </div>
                 ))}

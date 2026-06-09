@@ -244,10 +244,10 @@ export default function NotificationsPage() {
             <div className="w-20 h-20 bg-[#398AB9]/8 rounded-full flex items-center justify-center mb-5">
               <Bell className="w-9 h-9 text-[#398AB9]/40" />
             </div>
-            <p className="font-semibold text-gray-700 mb-1">
+            <p className="font-semibold text-gray-700 dark:text-slate-200 mb-1">
               {filter === "unread" ? "ไม่มีการแจ้งเตือนที่ยังไม่ได้อ่าน" : "ยังไม่มีการแจ้งเตือน"}
             </p>
-            <p className="text-sm text-gray-400 max-w-xs">
+            <p className="text-sm text-gray-400 dark:text-slate-500 max-w-xs">
               {filter === "unread"
                 ? "คุณอ่านทุกอย่างหมดแล้ว 🎉"
                 : "เมื่อมีคนถูกใจโพสต์ คอมเมนต์ หรือติดตามคุณ จะแสดงที่นี่"}
@@ -284,7 +284,7 @@ export default function NotificationsPage() {
                       {/* Avatar + Icon badge */}
                       <div className="relative flex-shrink-0">
                         <div className={`w-11 h-11 rounded-full flex items-center justify-center text-white text-sm font-bold ${
-                          notif.type === "system" ? "bg-[#398AB9]" : "bg-gray-300"
+                          notif.type === "system" ? "bg-[#398AB9]" : "bg-gray-300 dark:bg-slate-600"
                         }`}>
                           {notif.actorAvatar}
                         </div>
@@ -344,8 +344,8 @@ export default function NotificationsPage() {
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 rounded-full bg-violet-300 flex items-center justify-center text-white text-sm font-bold">ณว</div>
               <div className="flex-1">
-                <p className="text-sm font-medium text-gray-800">ณัฐพล ว.</p>
-                <div className="flex items-center gap-1 text-xs text-gray-500 mt-0.5">
+                <p className="text-sm font-medium text-gray-800 dark:text-slate-200">ณัฐพล ว.</p>
+                <div className="flex items-center gap-1 text-xs text-gray-500 dark:text-slate-400 mt-0.5">
                   <MapPin className="w-3 h-3" />
                   เชียงใหม่ • 15–18 มิ.ย. 2026
                 </div>
@@ -355,7 +355,7 @@ export default function NotificationsPage() {
               <button className="flex-1 py-2 rounded-xl bg-violet-600 text-white text-sm font-bold hover:bg-violet-700 transition">
                 รับคำขอ
               </button>
-              <button className="flex-1 py-2 rounded-xl border border-gray-200 text-gray-600 text-sm font-medium hover:bg-gray-50 transition">
+              <button className="flex-1 py-2 rounded-xl border border-gray-200 dark:border-slate-600 text-gray-600 dark:text-slate-400 text-sm font-medium hover:bg-gray-50 dark:hover:bg-slate-700 transition">
                 ปฏิเสธ
               </button>
             </div>
