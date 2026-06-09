@@ -102,7 +102,7 @@ function PlaceCard({ place, saved, onToggleSave }: {
             className={`flex-shrink-0 p-1.5 rounded-lg transition ${
               saved
                 ? "text-[#398AB9] bg-[#398AB9]/10"
-                : "text-gray-300 hover:text-[#398AB9] hover:bg-[#398AB9]/5"
+                : "text-gray-300 dark:text-slate-600 hover:text-[#398AB9] hover:bg-[#398AB9]/5"
             }`}
             title={saved ? "ลบออกจาก wishlist" : "บันทึก"}>
             <Bookmark className={`w-3.5 h-3.5 ${saved ? "fill-current" : ""}`} />
@@ -156,9 +156,9 @@ function PeopleTab({ query }: { query: string }) {
   if (!query.trim()) {
     return (
       <div className="flex flex-col items-center justify-center py-16 text-center px-8">
-        <Users className="w-12 h-12 text-gray-200 mb-4" />
-        <p className="text-gray-500 font-medium">ค้นหาชื่อหรือ username</p>
-        <p className="text-sm text-gray-400 mt-1">พิมพ์ชื่อเพื่อหาเพื่อนนักท่องเที่ยว</p>
+        <Users className="w-12 h-12 text-gray-200 dark:text-slate-700 mb-4" />
+        <p className="text-gray-500 dark:text-slate-400 font-medium">ค้นหาชื่อหรือ username</p>
+        <p className="text-sm text-gray-400 dark:text-slate-500 mt-1">พิมพ์ชื่อเพื่อหาเพื่อนนักท่องเที่ยว</p>
       </div>
     );
   }
@@ -183,7 +183,7 @@ function PeopleTab({ query }: { query: string }) {
     return (
       <div className="flex flex-col items-center justify-center py-16 text-center">
         <div className="text-5xl mb-4">👤</div>
-        <p className="text-gray-500 font-medium">ไม่พบผู้ใช้ที่ตรงกับ &ldquo;{query}&rdquo;</p>
+        <p className="text-gray-500 dark:text-slate-400 font-medium">ไม่พบผู้ใช้ที่ตรงกับ &ldquo;{query}&rdquo;</p>
       </div>
     );
   }
@@ -359,13 +359,13 @@ export default function ExploreClient({ initialPlaces, initialSaved = [] }: { in
     <div className="max-w-6xl mx-auto px-4 md:px-6 py-4 md:py-6">
       {/* desktop title */}
       <div className="hidden md:flex items-center justify-between mb-6">
-        <h1 className="text-xl font-bold text-gray-900">สำรวจ</h1>
+        <h1 className="text-xl font-bold text-gray-900 dark:text-slate-100">สำรวจ</h1>
       </div>
 
       {/* Search bar */}
       <div className="flex gap-2 mb-4">
         <div className="flex-1 relative">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 dark:text-slate-500" />
           <input
             value={query}
             onChange={(e) => setQuery(e.target.value)}
@@ -383,7 +383,7 @@ export default function ExploreClient({ initialPlaces, initialSaved = [] }: { in
           />
           {query && (
             <button onClick={() => setQuery("")}
-              className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600">
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 dark:text-slate-500 hover:text-gray-600 dark:hover:text-slate-300">
               <X className="w-4 h-4" />
             </button>
           )}
@@ -398,7 +398,7 @@ export default function ExploreClient({ initialPlaces, initialSaved = [] }: { in
               {recentSearches.map((s) => (
                 <button key={s} onClick={() => { setQuery(s); setSearchFocused(false); }}
                   className="w-full text-left flex items-center gap-2 px-3 py-2 text-sm text-gray-700 dark:text-slate-300 hover:bg-gray-50 dark:hover:bg-slate-700 transition">
-                  <Search className="w-3.5 h-3.5 text-gray-300" />
+                  <Search className="w-3.5 h-3.5 text-gray-300 dark:text-slate-600" />
                   {s}
                 </button>
               ))}
@@ -556,7 +556,7 @@ export default function ExploreClient({ initialPlaces, initialSaved = [] }: { in
                 "https://images.unsplash.com/photo-1476514525405-8d4b4c284c1e?auto=format&fit=crop&w=600&q=80";
               return (
                 <Link key={p.id} href={`/place/${p.slug}`}
-                  className="flex gap-3 bg-white rounded-2xl border border-gray-100 p-3 hover:shadow-md transition-shadow group">
+                  className="flex gap-3 bg-white dark:bg-slate-800 rounded-2xl border border-gray-100 dark:border-slate-700 p-3 hover:shadow-md transition-shadow group">
                   <div className="w-20 h-20 md:w-24 md:h-24 flex-shrink-0 rounded-xl overflow-hidden">
                     <img src={img} alt={p.name}
                       className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
@@ -566,7 +566,7 @@ export default function ExploreClient({ initialPlaces, initialSaved = [] }: { in
                   </div>
                   <div className="flex-1 min-w-0">
                     <div className="flex items-start justify-between gap-2">
-                      <p className="font-semibold text-gray-900 text-sm">{p.name}</p>
+                      <p className="font-semibold text-gray-900 dark:text-slate-200 text-sm">{p.name}</p>
                       {p.isFeatured && (
                         <span className="flex-shrink-0 text-[10px] font-semibold px-2 py-0.5 rounded-full bg-[#398AB9]/10 text-[#398AB9]">
                           แนะนำ
@@ -575,19 +575,19 @@ export default function ExploreClient({ initialPlaces, initialSaved = [] }: { in
                     </div>
                     <div className="flex items-center gap-1 mt-0.5">
                       <MapPin className="w-3 h-3 text-[#398AB9]" />
-                      <span className="text-xs text-gray-400">{p.province ?? p.country}</span>
+                      <span className="text-xs text-gray-400 dark:text-slate-500">{p.province ?? p.country}</span>
                     </div>
                     <div className="flex items-center gap-2 mt-1.5">
                       <div className="flex items-center gap-1">
                         <Star className="w-3 h-3 fill-amber-400 text-amber-400" />
-                        <span className="text-xs font-bold text-gray-700">
+                        <span className="text-xs font-bold text-gray-700 dark:text-slate-300">
                           {p.rating > 0 ? p.rating.toFixed(1) : "–"}
                         </span>
                         {p.reviewCount > 0 && (
-                          <span className="text-[10px] text-gray-400">({fmt(p.reviewCount)})</span>
+                          <span className="text-[10px] text-gray-400 dark:text-slate-500">({fmt(p.reviewCount)})</span>
                         )}
                       </div>
-                      <span className="text-xs text-gray-400">{priceSymbol(p.priceRange)}</span>
+                      <span className="text-xs text-gray-400 dark:text-slate-500">{priceSymbol(p.priceRange)}</span>
                     </div>
                     <div className="flex gap-1 mt-1.5">
                       <span className="text-[10px] bg-[#398AB9]/8 text-[#398AB9] px-2 py-0.5 rounded-full">
@@ -627,7 +627,7 @@ export default function ExploreClient({ initialPlaces, initialSaved = [] }: { in
           </div>
         )}
         {!hasMore && filtered.length > PAGE_SIZE && (
-          <p className="text-sm text-gray-400">แสดงทั้งหมด {filtered.length} สถานที่ แล้ว</p>
+          <p className="text-sm text-gray-400 dark:text-slate-500">แสดงทั้งหมด {filtered.length} สถานที่ แล้ว</p>
         )}
       </div>
 
