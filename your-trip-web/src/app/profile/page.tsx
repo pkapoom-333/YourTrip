@@ -3,10 +3,11 @@
 import { useState, useEffect } from "react";
 import AppShell from "@/components/AppShell";
 import Link from "next/link";
-import { Settings, MapPin, Grid3X3, Bookmark, Heart, Star } from "lucide-react";
+import { Settings, MapPin, Grid3X3, Bookmark, Heart, Star, Map } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { getProfile, getUserPosts, getUserSavedPosts, type PostGridItem } from "@/server/actions/profile";
 import { getSavedPlaces, type SavedPlaceItem } from "@/server/actions/savedPlaces";
+import { getUserTrips } from "@/server/actions/trips";
 import { Star as StarIcon } from "lucide-react";
 import { useUser } from "@/hooks/useUser";
 import { Avatar } from "@/components/shared/Avatar";
@@ -24,7 +25,7 @@ const MOCK_POSTS: PostGridItem[] = [
 export default function ProfilePage() {
   const router = useRouter();
   const { user } = useUser();
-  const [tab, setTab] = useState<"posts" | "saved" | "reviews">("posts");
+  const [tab, setTab] = useState<"posts" | "trips" | "saved" | "reviews">("posts");
   const [profile, setProfile] = useState({
     id: "" as string,
     name: "Your Trip User",
@@ -41,6 +42,11 @@ export default function ProfilePage() {
   const [myPosts, setMyPosts] = useState<PostGridItem[]>(MOCK_POSTS);
   const [savedPosts, setSavedPosts] = useState<PostGridItem[]>([]);
   const [savedPlaces, setSavedPlaces] = useState<SavedPlaceItem[]>([]);
+  const [myTrips, setMyTrips] = useState<Array<{
+    id: string; title: string; destination: string;
+    coverImage: string | null; isPublic: boolean;
+    days: Array<{ items: Array<unknown> }>;
+  }>>([]);
   const [savedSubTab, setSavedSubTab] = useState<"posts" | "places">("places");
 
   useEffect(() => {
@@ -65,6 +71,11 @@ export default function ProfilePage() {
     });
     getUserSavedPosts().then(({ data }) => setSavedPosts(data));
     getSavedPlaces().then(({ data }) => setSavedPlaces(data));
+    getUserTrips().then(({ data }) => setMyTrips(data.map((t) => ({
+      id: t.id, title: t.title, destination: t.destination,
+      coverImage: t.coverImage, isPublic: t.isPublic,
+      days: t.days,
+    }))));
   }, []);
 
   return (
@@ -186,6 +197,7 @@ export default function ProfilePage() {
         <div className="flex bg-white dark:bg-slate-800 border-b border-gray-100 dark:border-slate-700">
           {[
             { key: "posts",   icon: Grid3X3,  label: "โพสต์" },
+            { key: "trips",   icon: Map,      label: `ทริป${myTrips.length > 0 ? ` (${myTrips.length})` : ""}` },
             { key: "saved",   icon: Bookmark, label: "บันทึก" },
             { key: "reviews", icon: Star,     label: "รีวิว" },
           ].map(({ key, icon: Icon, label }) => (
@@ -230,6 +242,66 @@ export default function ProfilePage() {
                   </div>
                 </div>
               ))
+            )}
+          </div>
+        )}
+
+        {tab === "trips" && (
+          <div className="p-4 bg-white dark:bg-slate-800">
+            {myTrips.length === 0 ? (
+              <div className="flex flex-col items-center justify-center py-16 text-center px-8">
+                <Map className="w-12 h-12 text-gray-200 dark:text-slate-600 mb-4" />
+                <p className="text-gray-500 dark:text-slate-400 font-medium">ยังไม่มีทริป</p>
+                <p className="text-xs text-gray-400 dark:text-slate-500 mt-1">สร้างแผนทริปแรกของคุณ</p>
+                <Link href="/trips/new" className="mt-4 text-sm text-[#398AB9] font-medium hover:underline">
+                  สร้างทริป →
+                </Link>
+              </div>
+            ) : (
+              <div className="grid grid-cols-2 gap-3">
+                {myTrips.map((t) => {
+                  const itemCount = t.days.reduce((s, d) => s + d.items.length, 0);
+                  return (
+                    <Link key={t.id} href={`/trips/${t.id}`}
+                      className="group rounded-2xl border border-gray-100 dark:border-slate-700 overflow-hidden hover:shadow-md transition-shadow">
+                      <div className="aspect-[4/3] overflow-hidden bg-gray-100 dark:bg-slate-700 relative">
+                        <img
+                          src={t.coverImage ?? `https://images.unsplash.com/photo-1476514525405-8d4b4c284c1e?auto=format&fit=crop&w=400&q=80&sig=${t.id}`}
+                          alt={t.title}
+                          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                          loading="lazy"
+                          referrerPolicy="no-referrer"
+                          onError={(e) => { (e.target as HTMLImageElement).src = "https://images.unsplash.com/photo-1476514525405-8d4b4c284c1e?auto=format&fit=crop&w=400&q=80"; }}
+                        />
+                        <div className="absolute top-2 left-2">
+                          {t.isPublic ? (
+                            <span className="text-[9px] font-semibold bg-[#398AB9] text-white px-1.5 py-0.5 rounded-full">Public</span>
+                          ) : (
+                            <span className="text-[9px] font-semibold bg-black/40 text-white/80 px-1.5 py-0.5 rounded-full">Private</span>
+                          )}
+                        </div>
+                        {itemCount > 0 && (
+                          <span className="absolute bottom-2 right-2 bg-black/50 text-white text-[10px] px-1.5 py-0.5 rounded-full">
+                            {itemCount} จุด
+                          </span>
+                        )}
+                      </div>
+                      <div className="p-2.5">
+                        <p className="text-xs font-bold text-gray-800 dark:text-slate-200 line-clamp-1">{t.title}</p>
+                        <div className="flex items-center gap-1 mt-0.5 text-[10px] text-gray-400 dark:text-slate-500">
+                          <MapPin className="w-2.5 h-2.5 flex-shrink-0" />
+                          <span className="truncate">{t.destination}</span>
+                        </div>
+                      </div>
+                    </Link>
+                  );
+                })}
+                <Link href="/trips/new"
+                  className="rounded-2xl border-2 border-dashed border-gray-200 dark:border-slate-700 flex flex-col items-center justify-center aspect-[4/3] text-gray-400 dark:text-slate-500 hover:border-[#398AB9] hover:text-[#398AB9] transition-colors">
+                  <span className="text-2xl mb-1">+</span>
+                  <span className="text-xs font-medium">สร้างทริปใหม่</span>
+                </Link>
+              </div>
             )}
           </div>
         )}
