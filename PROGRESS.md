@@ -6,6 +6,7 @@
 ## Current sprint task
 → **DONE Day 13 sess 1**: B16 dark mode (ThemeProvider + anti-FOUC + AppShell + Settings + Feed + PostCard + Explore + Toast + Trips), B18 PWA SVG icon
 → **DONE Day 13 sess 2**: Sprint S6 ALL TIER S cleared + Tier A + Tier B + Extras (see session log)
+→ **DONE Day 13 sess 3**: Full dark mode sweep — PlaceDetailClient, FeedPostsClient, SuggestedUsers, UserListRow, ResetPassword, ImageUpload, PWAInstallPrompt, not-found, all 10 loading skeletons, ExploreClient, TripsClient, create page, notifications, buddy/BuddyCard, profile/edit. Prisma client regenerated for lat/lng/googlePlaceId on TripItem.
 → **NEXT**: Deploy to Vercel (push to remote); B17 Capacitor wrap (needs iOS/Android env); B19 custom domain (user action)
 
 ---

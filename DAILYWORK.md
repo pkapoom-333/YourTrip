@@ -52,6 +52,7 @@ PROGRESS ██████████████████░░ 88%  (Day 
 | B6 | **Sitemap expansion** — เพิ่ม /feed /trips /forgot-password | 100 | ✅ |
 | B7 | **Env validator** — lib/env.ts ตรวจ env vars ตอน server start พร้อม hint | 150 | ✅ |
 | B8 | **Dark mode Notifications + Buddy** — header, tabs, rows, cards | 200 | ✅ |
+| B11 | **Dark mode full sweep** — PlaceDetailClient, FeedPostsClient, SuggestedUsers, UserListRow, ResetPassword, ImageUpload, PWAPrompt, 404, 10 loading skeletons, ExploreClient, TripsClient, create, buddy/BuddyCard, profile/edit | 500 | ✅ |
 | B9 | **LCP image priority** — priority=true บน first destination image ใน landing | 100 | ✅ |
 | B10 | **robots.ts** — เพิ่ม /post/, /offline, /auth/ disallow rules | 50 | ✅ |
 
@@ -208,3 +209,42 @@ URL: https://vercel.com → YourTrip → Settings → Environment Variables
 | S7 | 21–30 มิ.ย. | Capacitor + App Store | ⬜ |
 
 **🏁 MVP Launch: 14 กรกฎาคม 2026**
+
+---
+
+## 💡 USER REQUESTS — บันทึกความต้องการจาก Pakpoom
+
+### 🗺️ Google Maps Integration ใน /trips/[id]
+> บันทึก: 2026-06-09 | ลำดับความสำคัญ: สูง
+
+| # | Feature | รายละเอียด | Status |
+|---|---------|------------|--------|
+| GM-1 | **Open in Google Maps** | ปุ่มเปิด Google Maps ทุก destination + ปุ่ม "เปิด route ทั้งทริป" | ⏳ รอ API Key |
+| GM-2 | **เวลาเดินทาง A→B** | แสดง "🚗 25 นาที · 12 กม." ระหว่างแต่ละจุดใน itinerary โดยใช้ Google Directions API | ⏳ รอ API Key |
+| GM-3 | **Places Autocomplete** | ค้นหาสถานที่ผ่าน Google Places API เมื่อเพิ่ม destination ในทริป | ⏳ รอ API Key |
+
+**Env ที่ต้องเพิ่ม:**
+- `NEXT_PUBLIC_GOOGLE_MAPS_API_KEY` ใน `.env.local` และ Vercel dashboard
+- Enable APIs: Maps JavaScript API, Directions API, Places API, Distance Matrix API
+
+
+### 👥 Buddy — Guide Verification System
+> บันทึก: 2026-06-09 | ลำดับความสำคัญ: กลาง (Phase 2+)
+
+**ความต้องการ:**
+- ผู้ใช้ที่เป็น Guide ต้องผ่านกระบวนการ verify ก่อนจึงจะรับงานพาเที่ยวได้
+- มีเครื่องหมาย verified badge แสดงบน profile และ avatar อย่างชัดเจน
+
+| # | Feature | รายละเอียด | Status |
+|---|---------|------------|--------|
+| BV-1 | **Guide role + badge** | เพิ่ม field `isGuide` + `isVerifiedGuide` ใน User model, แสดง badge ✓ บน avatar + profile | ⬜ |
+| BV-2 | **Verification flow** | หน้า apply เป็น guide → upload หลักฐาน (ID card / ใบอนุญาต) → pending review | ⬜ |
+| BV-3 | **Admin review** | admin dashboard อนุมัติ/ปฏิเสธ คำขอ guide verification | ⬜ |
+| BV-4 | **Accept job guard** | guard ใน /buddy → ถ้า isGuide แต่ isVerifiedGuide=false → block รับงาน + แสดง "รอการยืนยัน" | ⬜ |
+
+**Badge design:**
+- Avatar: เครื่องหมาย ✓ สีทอง (verified guide) หรือ สีน้ำเงิน (regular verified) ที่มุมล่างขวา
+- Profile: badge "มัคคุเทศก์ที่ได้รับการรับรอง" ใต้ชื่อ
+
+**Depends on:** Supabase Storage (upload หลักฐาน) + admin role
+
