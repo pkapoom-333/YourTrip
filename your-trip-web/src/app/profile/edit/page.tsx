@@ -176,7 +176,7 @@ export default function EditProfilePage() {
                 disabled={uploading}
                 className="absolute -bottom-1 -right-1 w-8 h-8 bg-white dark:bg-slate-700 border-2 border-gray-200 dark:border-slate-600 rounded-full flex items-center justify-center shadow-sm hover:bg-gray-50 dark:hover:bg-slate-600 transition disabled:opacity-50"
               >
-                <Camera className="w-4 h-4 text-gray-500" />
+                <Camera className="w-4 h-4 text-gray-500 dark:text-slate-400" />
               </button>
               <input
                 ref={fileRef}
@@ -193,7 +193,7 @@ export default function EditProfilePage() {
             >
               {uploading ? "กำลังอัพโหลด..." : "เปลี่ยนรูปโปรไฟล์"}
             </button>
-            <p className="text-[11px] text-gray-400 mt-1">JPEG, PNG, WebP · สูงสุด 10 MB</p>
+            <p className="text-[11px] text-gray-400 dark:text-slate-500 mt-1">JPEG, PNG, WebP · สูงสุด 10 MB</p>
           </div>
 
           {/* Form fields */}
@@ -217,7 +217,7 @@ export default function EditProfilePage() {
                 @ Username
               </label>
               <div className="relative">
-                <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 text-sm">@</span>
+                <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 dark:text-slate-500 text-sm">@</span>
                 <input
                   value={form.username}
                   onChange={set("username")}
@@ -240,7 +240,7 @@ export default function EditProfilePage() {
                 maxLength={200}
                 className="w-full px-4 py-3 border border-gray-200 dark:border-slate-600 rounded-xl text-sm focus:outline-none focus:border-[#398AB9] resize-none bg-white dark:bg-slate-700/50 text-gray-800 dark:text-slate-200 placeholder:text-gray-400 dark:placeholder:text-slate-500"
               />
-              <p className="text-right text-xs text-gray-400 mt-1">{form.bio.length}/200</p>
+              <p className="text-right text-xs text-gray-400 dark:text-slate-500 mt-1">{form.bio.length}/200</p>
             </div>
 
             {/* Location */}

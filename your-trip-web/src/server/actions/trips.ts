@@ -123,7 +123,7 @@ export async function addItineraryItem(tripId: string, input: ItineraryItemInput
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return { error: { message: "กรุณาเข้าสู่ระบบ" } };
 
-    const { day, title, time, notes, placeId, duration, travelTimeTo, cost } = parsed.data;
+    const { day, title, time, notes, placeId, googlePlaceId, lat, lng, duration, travelTimeTo, cost } = parsed.data;
 
     // Find or create TripDay
     let tripDay = await prisma.tripDay.findUnique({
@@ -145,6 +145,9 @@ export async function addItineraryItem(tripId: string, input: ItineraryItemInput
         time: time ?? undefined,
         note: notes ?? undefined,
         placeId: placeId ?? undefined,
+        googlePlaceId: googlePlaceId ?? undefined,
+        lat: lat ?? undefined,
+        lng: lng ?? undefined,
         duration: duration ?? undefined,
         travelTimeTo: travelTimeTo ?? undefined,
         cost: cost ?? undefined,
@@ -273,12 +276,16 @@ export async function duplicateTrip(tripId: string): Promise<{ data?: { id: stri
             items: {
               create: d.items.map((item) => ({
                 placeId: item.placeId,
+                googlePlaceId: item.googlePlaceId,
                 name: item.name,
                 note: item.note,
                 time: item.time,
                 duration: item.duration,
+                travelTimeTo: item.travelTimeTo,
                 cost: item.cost,
                 order: item.order,
+                lat: item.lat,
+                lng: item.lng,
               })),
             },
           })),

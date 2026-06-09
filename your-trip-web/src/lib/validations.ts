@@ -67,6 +67,9 @@ export const itineraryItemSchema = z.object({
   location: z.string().max(100).optional(),
   notes: z.string().max(300).optional(),
   placeId: z.string().optional(),
+  googlePlaceId: z.string().optional(), // Google Maps place_id
+  lat: z.number().optional(),
+  lng: z.number().optional(),
   duration: z.number().int().nonnegative().optional(),    // minutes at this place
   travelTimeTo: z.number().int().nonnegative().optional(), // minutes to travel here
   cost: z.number().nonnegative().optional(),              // THB
