@@ -40,7 +40,7 @@ function Section({ title, children }: { title: string; children: React.ReactNode
       <h2 className="text-xs font-semibold text-gray-400 uppercase tracking-wide px-4 mb-2">
         {title}
       </h2>
-      <div className="bg-white rounded-2xl overflow-hidden border border-gray-100">
+      <div className="bg-white dark:bg-slate-800 rounded-2xl overflow-hidden border border-gray-100 dark:border-slate-700">
         {children}
       </div>
     </div>
@@ -64,17 +64,17 @@ function RowLink({
   danger?: boolean;
   onClick?: () => void;
 }) {
-  const cls = "flex items-center gap-3 px-4 py-3.5 hover:bg-gray-50 transition border-b border-gray-50 last:border-0 w-full text-left";
+  const cls = "flex items-center gap-3 px-4 py-3.5 hover:bg-gray-50 dark:hover:bg-slate-700 transition border-b border-gray-50 dark:border-slate-700 last:border-0 w-full text-left";
   const inner = (
     <>
       <div className={`w-8 h-8 rounded-xl flex items-center justify-center ${iconBg}`}>
         <Icon className="w-4 h-4 text-white" />
       </div>
       <div className="flex-1 min-w-0">
-        <p className={`text-sm font-medium ${danger ? "text-red-500" : "text-gray-800"}`}>{label}</p>
-        {description && <p className="text-xs text-gray-400 mt-0.5">{description}</p>}
+        <p className={`text-sm font-medium ${danger ? "text-red-500" : "text-gray-800 dark:text-slate-200"}`}>{label}</p>
+        {description && <p className="text-xs text-gray-400 dark:text-slate-500 mt-0.5">{description}</p>}
       </div>
-      <ChevronRight className="w-4 h-4 text-gray-300" />
+      <ChevronRight className="w-4 h-4 text-gray-300 dark:text-slate-600" />
     </>
   );
   if (onClick) {
@@ -99,13 +99,13 @@ function RowToggle({
   onChange: (v: boolean) => void;
 }) {
   return (
-    <div className="flex items-center gap-3 px-4 py-3.5 border-b border-gray-50 last:border-0">
+    <div className="flex items-center gap-3 px-4 py-3.5 border-b border-gray-50 dark:border-slate-700 last:border-0">
       <div className={`w-8 h-8 rounded-xl flex items-center justify-center ${iconBg}`}>
         <Icon className="w-4 h-4 text-white" />
       </div>
       <div className="flex-1 min-w-0">
-        <p className="text-sm font-medium text-gray-800">{label}</p>
-        {description && <p className="text-xs text-gray-400 mt-0.5">{description}</p>}
+        <p className="text-sm font-medium text-gray-800 dark:text-slate-200">{label}</p>
+        {description && <p className="text-xs text-gray-400 dark:text-slate-500 mt-0.5">{description}</p>}
       </div>
       <Toggle enabled={value} onChange={onChange} />
     </div>
@@ -123,6 +123,11 @@ export default function SettingsPage() {
   const [privateAccount, setPrivateAccount] = useLocalStorage("settings_private", false);
   const [darkMode, setDarkMode] = useLocalStorage("settings_dark_mode", false);
 
+  function handleDarkMode(v: boolean) {
+    setDarkMode(v);
+    document.documentElement.classList.toggle("dark", v);
+  }
+
   async function handleSignOut() {
     const supabase = createClient();
     await supabase.auth.signOut();
@@ -136,21 +141,21 @@ export default function SettingsPage() {
     <AppShell>
       <div className="max-w-2xl mx-auto px-4 py-6">
         {/* Header */}
-        <h1 className="text-2xl font-bold text-gray-900 mb-6 px-0">ตั้งค่า</h1>
+        <h1 className="text-2xl font-bold text-gray-900 dark:text-slate-100 mb-6 px-0">ตั้งค่า</h1>
 
         {/* Profile preview */}
-        <div className="bg-white rounded-2xl border border-gray-100 p-4 mb-6 flex items-center gap-4">
+        <div className="bg-white dark:bg-slate-800 rounded-2xl border border-gray-100 dark:border-slate-700 p-4 mb-6 flex items-center gap-4">
           <div className="relative">
             <div className="w-16 h-16 bg-[#398AB9] rounded-full flex items-center justify-center text-white text-xl font-bold">
               YT
             </div>
-            <button className="absolute -bottom-1 -right-1 w-6 h-6 bg-white border border-gray-200 rounded-full flex items-center justify-center shadow-sm">
-              <Camera className="w-3 h-3 text-gray-500" />
+            <button className="absolute -bottom-1 -right-1 w-6 h-6 bg-white dark:bg-slate-700 border border-gray-200 dark:border-slate-600 rounded-full flex items-center justify-center shadow-sm">
+              <Camera className="w-3 h-3 text-gray-500 dark:text-slate-400" />
             </button>
           </div>
           <div className="flex-1">
-            <p className="font-semibold text-gray-900">{displayName}</p>
-            <p className="text-sm text-gray-400">@{username}</p>
+            <p className="font-semibold text-gray-900 dark:text-slate-100">{displayName}</p>
+            <p className="text-sm text-gray-400 dark:text-slate-500">@{username}</p>
           </div>
           <a
             href="/profile/edit"
@@ -227,9 +232,9 @@ export default function SettingsPage() {
             icon={Moon}
             iconBg="bg-slate-700"
             label="Dark Mode"
-            description="ธีมสีเข้ม (เร็วๆ นี้)"
+            description="ธีมสีเข้ม"
             value={darkMode}
-            onChange={setDarkMode}
+            onChange={handleDarkMode}
           />
           <RowLink icon={Smartphone} iconBg="bg-[#398AB9]" label="ติดตั้งแอป (PWA)" description="บันทึกลงหน้าจอหลัก" />
         </Section>

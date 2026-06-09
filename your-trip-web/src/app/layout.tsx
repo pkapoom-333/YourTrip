@@ -49,7 +49,7 @@ export const metadata: Metadata = {
   },
   icons: {
     apple: "/icon-192.png",
-    icon: "/icon-192.png",
+    icon: "/icon.svg",
   },
   robots: {
     index: true,
@@ -70,7 +70,15 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="th">
+    <html lang="th" suppressHydrationWarning>
+      <head>
+        {/* Apply dark class before first paint to prevent flash */}
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `try{if(JSON.parse(localStorage.getItem('settings_dark_mode')||'false'))document.documentElement.classList.add('dark')}catch(e){}`,
+          }}
+        />
+      </head>
       <body>
         <Providers>{children}</Providers>
       </body>

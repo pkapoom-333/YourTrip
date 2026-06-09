@@ -72,7 +72,7 @@ function Sidebar() {
   const initials = getInitials(user?.user_metadata?.full_name as string | undefined, user?.email);
 
   return (
-    <aside className="hidden md:flex flex-col fixed left-0 top-0 h-full w-64 bg-white border-r border-gray-100 z-40 px-4 py-6">
+    <aside className="hidden md:flex flex-col fixed left-0 top-0 h-full w-64 bg-white dark:bg-slate-800 border-r border-gray-100 dark:border-slate-700 z-40 px-4 py-6">
       {/* Logo */}
       <Link href="/" className="text-2xl font-bold text-[#398AB9] px-3 mb-8 inline-block">
         Your Trip
@@ -87,7 +87,7 @@ function Sidebar() {
               className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all ${
                 active
                   ? "bg-[#398AB9]/10 text-[#398AB9]"
-                  : "text-gray-500 hover:bg-gray-50 hover:text-gray-800"
+                  : "text-gray-500 dark:text-slate-400 hover:bg-gray-50 dark:hover:bg-slate-700 hover:text-gray-800 dark:hover:text-slate-100"
               }`}>
               <Icon className="w-5 h-5" strokeWidth={active ? 2.5 : 1.8} />
               {label}
@@ -104,10 +104,12 @@ function Sidebar() {
       </nav>
 
       {/* Bottom utilities */}
-      <div className="space-y-1 pt-4 border-t border-gray-100">
+      <div className="space-y-1 pt-4 border-t border-gray-100 dark:border-slate-700">
         <Link href="/notifications"
           className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm transition ${
-            path === "/notifications" ? "bg-[#398AB9]/10 text-[#398AB9]" : "text-gray-500 hover:bg-gray-50"
+            path === "/notifications"
+              ? "bg-[#398AB9]/10 text-[#398AB9]"
+              : "text-gray-500 dark:text-slate-400 hover:bg-gray-50 dark:hover:bg-slate-700"
           }`}>
           <div className="relative">
             <Bell className="w-5 h-5" strokeWidth={1.8} />
@@ -126,7 +128,9 @@ function Sidebar() {
         </Link>
         <Link href="/settings"
           className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm transition ${
-            path === "/settings" ? "bg-[#398AB9]/10 text-[#398AB9]" : "text-gray-500 hover:bg-gray-50"
+            path === "/settings"
+              ? "bg-[#398AB9]/10 text-[#398AB9]"
+              : "text-gray-500 dark:text-slate-400 hover:bg-gray-50 dark:hover:bg-slate-700"
           }`}>
           <Settings className="w-5 h-5" strokeWidth={1.8} />
           ตั้งค่า
@@ -134,22 +138,22 @@ function Sidebar() {
       </div>
 
       {/* User card */}
-      <div className="mt-4 pt-4 border-t border-gray-100">
+      <div className="mt-4 pt-4 border-t border-gray-100 dark:border-slate-700">
         <div className="flex items-center gap-3 px-2">
           <div className="w-9 h-9 bg-[#398AB9] rounded-full flex items-center justify-center text-white text-xs font-bold flex-shrink-0">
             {initials}
           </div>
           <div className="flex-1 min-w-0">
-            <p className="text-sm font-semibold text-gray-900 truncate">{displayName}</p>
+            <p className="text-sm font-semibold text-gray-900 dark:text-slate-100 truncate">{displayName}</p>
             {user?.email && (
-              <p className="text-[10px] text-gray-400 truncate">{user.email}</p>
+              <p className="text-[10px] text-gray-400 dark:text-slate-500 truncate">{user.email}</p>
             )}
           </div>
           {user && (
             <button
               onClick={handleSignOut}
               title="ออกจากระบบ"
-              className="text-gray-300 hover:text-red-400 transition p-1"
+              className="text-gray-300 dark:text-slate-500 hover:text-red-400 transition p-1"
             >
               <LogOut className="w-4 h-4" />
             </button>
@@ -179,7 +183,7 @@ function BottomNav() {
   }, [path]);
 
   return (
-    <nav className="md:hidden fixed bottom-0 left-0 right-0 z-50 bg-white border-t border-gray-100">
+    <nav className="md:hidden fixed bottom-0 left-0 right-0 z-50 bg-white dark:bg-slate-800 border-t border-gray-100 dark:border-slate-700">
       <div className="flex items-center justify-around px-2 py-2">
         {mobileNavItems.map(({ href, icon: Icon, label }) => {
           const active = path === href || path.startsWith(href + "/");
@@ -188,7 +192,7 @@ function BottomNav() {
             <Link key={href} href={href}
               className="flex flex-col items-center gap-0.5 px-3 py-1 min-w-0">
               <div className="relative">
-                <Icon className={`w-5 h-5 ${active ? "text-[#398AB9]" : "text-gray-400"}`}
+                <Icon className={`w-5 h-5 ${active ? "text-[#398AB9]" : "text-gray-400 dark:text-slate-500"}`}
                   strokeWidth={active ? 2.5 : 1.8} />
                 {isNotif && unread > 0 && (
                   <span className="absolute -top-1.5 -right-1.5 min-w-[14px] h-3.5 bg-red-500 text-white text-[9px] font-bold rounded-full flex items-center justify-center px-0.5">
@@ -196,7 +200,7 @@ function BottomNav() {
                   </span>
                 )}
               </div>
-              <span className={`text-[10px] ${active ? "text-[#398AB9] font-semibold" : "text-gray-400"}`}>
+              <span className={`text-[10px] ${active ? "text-[#398AB9] font-semibold" : "text-gray-400 dark:text-slate-500"}`}>
                 {label}
               </span>
             </Link>
@@ -216,7 +220,7 @@ function BottomNav() {
 /** Wrap app pages with this */
 export default function AppShell({ children }: { children: React.ReactNode }) {
   return (
-    <div className="min-h-screen bg-[#F8FAFC]">
+    <div className="min-h-screen bg-[#F8FAFC] dark:bg-slate-900">
       <Sidebar />
       {/* main content shifts right on desktop */}
       <main className="md:pl-64 pb-20 md:pb-0 min-h-screen">

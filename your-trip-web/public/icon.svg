@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <rect width="512" height="512" rx="96" fill="#398AB9"/>
+  <!-- Airplane silhouette -->
+  <path d="M320 152 L192 256 L160 352 L192 320 L256 352 L224 256 L352 192 Z" fill="none"/>
+  <!-- YT letters -->
+  <text
+    x="256"
+    y="310"
+    font-family="Arial, Helvetica, sans-serif"
+    font-weight="800"
+    font-size="196"
+    fill="white"
+    text-anchor="middle"
+    dominant-baseline="auto"
+    letter-spacing="-8"
+  >YT</text>
+  <!-- Decorative dots (travel stars) -->
+  <circle cx="128" cy="128" r="12" fill="white" opacity="0.4"/>
+  <circle cx="384" cy="128" r="8" fill="white" opacity="0.3"/>
+  <circle cx="384" cy="384" r="10" fill="white" opacity="0.3"/>
+  <circle cx="128" cy="384" r="6" fill="white" opacity="0.25"/>
+</svg>
