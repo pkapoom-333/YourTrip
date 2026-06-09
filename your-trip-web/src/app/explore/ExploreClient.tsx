@@ -601,10 +601,18 @@ export default function ExploreClient({ initialPlaces, initialSaved = [] }: { in
           </div>
         )
       ) : (
-        <div className="flex flex-col items-center justify-center py-20 text-center">
-          <div className="text-5xl mb-4">🔍</div>
-          <p className="text-gray-500 font-medium">ไม่พบสถานที่ที่ค้นหา</p>
-          <p className="text-sm text-gray-400 mt-1">ลองเปลี่ยนคำค้นหาหรือตัวกรอง</p>
+        <div className="flex flex-col items-center justify-center py-20 text-center px-6">
+          <div className="w-16 h-16 bg-gray-100 dark:bg-slate-700 rounded-full flex items-center justify-center mb-4 text-3xl">
+            🔍
+          </div>
+          <p className="font-semibold text-gray-700 dark:text-slate-200 mb-1">ไม่พบสถานที่ที่ค้นหา</p>
+          <p className="text-sm text-gray-400 dark:text-slate-500 mb-5">ลองเปลี่ยนคำค้นหาหรือล้างตัวกรอง</p>
+          <button
+            onClick={() => { setQuery(""); setActiveCategory("all"); setActiveRegion("all"); setActiveTags([]); }}
+            className="text-sm text-[#398AB9] font-medium border border-[#398AB9]/30 px-4 py-2 rounded-xl hover:bg-[#398AB9]/5 transition"
+          >
+            ล้างตัวกรองทั้งหมด
+          </button>
         </div>
       )}
 

@@ -240,11 +240,26 @@ export default function NotificationsPage() {
 
         {/* Notification list */}
         {displayed.length === 0 ? (
-          <div className="flex flex-col items-center justify-center py-24 text-center px-4">
-            <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mb-4">
-              <Bell className="w-7 h-7 text-gray-400" />
+          <div className="flex flex-col items-center justify-center py-24 text-center px-6">
+            <div className="w-20 h-20 bg-[#398AB9]/8 rounded-full flex items-center justify-center mb-5">
+              <Bell className="w-9 h-9 text-[#398AB9]/40" />
             </div>
-            <p className="text-gray-500 text-sm">ไม่มีการแจ้งเตือนใหม่</p>
+            <p className="font-semibold text-gray-700 mb-1">
+              {filter === "unread" ? "ไม่มีการแจ้งเตือนที่ยังไม่ได้อ่าน" : "ยังไม่มีการแจ้งเตือน"}
+            </p>
+            <p className="text-sm text-gray-400 max-w-xs">
+              {filter === "unread"
+                ? "คุณอ่านทุกอย่างหมดแล้ว 🎉"
+                : "เมื่อมีคนถูกใจโพสต์ คอมเมนต์ หรือติดตามคุณ จะแสดงที่นี่"}
+            </p>
+            {filter === "unread" && (
+              <button
+                onClick={() => setFilter("all")}
+                className="mt-4 text-sm text-[#398AB9] font-medium hover:underline"
+              >
+                ดูทั้งหมด
+              </button>
+            )}
           </div>
         ) : (
           <div>

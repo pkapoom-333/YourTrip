@@ -273,10 +273,12 @@ export default function BuddyPage() {
         {activeTab === "discover" && (
           <div className="px-4 py-4 space-y-4">
             {visible.length === 0 ? (
-              <div className="text-center py-16">
-                <Users className="w-12 h-12 mx-auto text-gray-300 mb-3" />
-                <p className="text-gray-500 text-sm font-medium">ไม่พบ Buddy</p>
-                <p className="text-gray-400 text-xs mt-1">ลองเปลี่ยนตัวกรองดู</p>
+              <div className="flex flex-col items-center justify-center text-center py-16 px-6">
+                <div className="w-16 h-16 bg-violet-50 rounded-full flex items-center justify-center mb-4">
+                  <Users className="w-7 h-7 text-violet-400" />
+                </div>
+                <p className="font-semibold text-gray-700 mb-1">ไม่พบ Travel Buddy</p>
+                <p className="text-sm text-gray-400">ลองเปลี่ยนตัวกรองการค้นหา</p>
               </div>
             ) : (
               visible.map((buddy) => (
@@ -296,10 +298,12 @@ export default function BuddyPage() {
         {activeTab === "requests" && (
           <div className="px-4 py-4 space-y-3">
             {requests.length === 0 ? (
-              <div className="text-center py-16">
-                <Users className="w-12 h-12 mx-auto text-gray-300 mb-3" />
-                <p className="text-gray-500 text-sm font-medium">ไม่มีคำขอใหม่</p>
-                <p className="text-gray-400 text-xs mt-1">เมื่อมีคนส่งคำขอจะแสดงที่นี่</p>
+              <div className="flex flex-col items-center justify-center text-center py-16 px-6">
+                <div className="w-16 h-16 bg-[#398AB9]/8 rounded-full flex items-center justify-center mb-4">
+                  <Users className="w-7 h-7 text-[#398AB9]/40" />
+                </div>
+                <p className="font-semibold text-gray-700 mb-1">ยังไม่มีคำขอใหม่</p>
+                <p className="text-sm text-gray-400">เมื่อมีคนส่งคำขอร่วมทริป จะแสดงที่นี่</p>
               </div>
             ) : (
               requests.map((req) => {
@@ -354,10 +358,12 @@ export default function BuddyPage() {
           <div className="px-4 py-4 space-y-3">
             {/* Optimistic liked (local) + real DB matched */}
             {matchedBuddies.length === 0 && matched.length === 0 ? (
-              <div className="text-center py-16">
-                <Heart className="w-12 h-12 mx-auto text-gray-300 mb-3" />
-                <p className="text-gray-500 text-sm font-medium">ยังไม่มี Buddy</p>
-                <p className="text-gray-400 text-xs mt-1">กด ❤️ หรือส่งคำขอใน Discover</p>
+              <div className="flex flex-col items-center justify-center text-center py-16 px-6">
+                <div className="w-16 h-16 bg-red-50 rounded-full flex items-center justify-center mb-4">
+                  <Heart className="w-7 h-7 text-red-300" />
+                </div>
+                <p className="font-semibold text-gray-700 mb-1">ยังไม่มี Buddy</p>
+                <p className="text-sm text-gray-400 mb-4">กด ❤️ หรือส่งคำขอในแท็บ Discover</p>
               </div>
             ) : (
               <>

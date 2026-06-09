@@ -4,10 +4,26 @@ import { MapPin, Users, Compass, ChevronDown, Star, CheckCircle } from "lucide-r
 import type { Metadata } from "next";
 import { getPlaces } from "@/server/actions/places";
 
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? "https://your-trip-nu.vercel.app";
+
 export const metadata: Metadata = {
   title: "Your Trip — สังคมนักเดินทาง | ค้นพบ แบ่งปัน วางแผน",
   description:
     "แพลตฟอร์มสังคมสำหรับนักเดินทาง ค้นพบสถานที่ใหม่ แบ่งปันประสบการณ์ วางแผนทริป และหาเพื่อนร่วมทาง",
+  alternates: { canonical: SITE_URL },
+};
+
+const websiteJsonLd = {
+  "@context": "https://schema.org",
+  "@type": "WebSite",
+  name: "Your Trip",
+  url: SITE_URL,
+  description: "แพลตฟอร์มสังคมสำหรับนักเดินทาง ค้นพบสถานที่ใหม่ แบ่งปันประสบการณ์ วางแผนทริป",
+  potentialAction: {
+    "@type": "SearchAction",
+    target: `${SITE_URL}/explore?q={search_term_string}`,
+    "query-input": "required name=search_term_string",
+  },
 };
 
 const destinations = [
@@ -59,6 +75,10 @@ export default async function LandingPage() {
 
   return (
     <div className="min-h-screen bg-white">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(websiteJsonLd) }}
+      />
       {/* ─── HERO ─── */}
       <section className="relative h-screen min-h-[600px] bg-gradient-to-br from-[#0f2942] via-[#1C658C] to-[#398AB9]">
         {/* Subtle pattern overlay */}
