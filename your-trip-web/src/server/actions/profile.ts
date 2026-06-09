@@ -466,6 +466,38 @@ export async function getSuggestedUsers(take = 5): Promise<{ data: UserCard[] }>
 }
 
 
+export interface FeaturedGuide {
+  id: string;
+  name: string | null;
+  username: string | null;
+  avatarUrl: string | null;
+  bio: string | null;
+  location: string | null;
+  tripsCount: number;
+}
+
+export async function getVerifiedGuides(take = 6): Promise<{ data: FeaturedGuide[] }> {
+  try {
+    const guides = await prisma.user.findMany({
+      where: { isVerifiedGuide: true },
+      take,
+      orderBy: [{ trips: { _count: "desc" } }, { followers: { _count: "desc" } }],
+      select: {
+        id: true, name: true, username: true, avatarUrl: true, bio: true, location: true,
+        _count: { select: { trips: true } },
+      },
+    });
+    return {
+      data: guides.map((g) => ({
+        id: g.id, name: g.name, username: g.username, avatarUrl: g.avatarUrl,
+        bio: g.bio, location: g.location, tripsCount: g._count.trips,
+      })),
+    };
+  } catch {
+    return { data: [] };
+  }
+}
+
 // TODO Phase 2: create GuideApplication model to store full application + file uploads + admin review
 export async function applyAsGuide(): Promise<{ data?: { success: boolean }; error?: { message: string } }> {
   try {

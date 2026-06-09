@@ -1,8 +1,10 @@
 import Link from "next/link";
 import Image from "next/image";
-import { MapPin, Users, Compass, ChevronDown, Star, CheckCircle } from "lucide-react";
+import { MapPin, Users, Compass, ChevronDown, Star, CheckCircle, Shield } from "lucide-react";
 import type { Metadata } from "next";
 import { getPlaces } from "@/server/actions/places";
+import { getVerifiedGuides } from "@/server/actions/profile";
+import { Avatar } from "@/components/shared/Avatar";
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? "https://your-trip-nu.vercel.app";
 
@@ -66,8 +68,15 @@ const steps = [
   { n: "03", title: "วางแผนและไป!",   desc: "สร้าง itinerary หาเพื่อนร่วมทริป แล้วออกเดินทาง" },
 ];
 
+const MOCK_GUIDES = [
+  { id: "g1", name: "ณัฐพล วงค์ใจ", username: "natthapol_guide", avatarUrl: null, bio: "ไกด์เชียงใหม่มืออาชีพ 8 ปี เชี่ยวชาญวัฒนธรรมล้านนา + ป่าเขา", location: "เชียงใหม่", tripsCount: 47 },
+  { id: "g2", name: "ภาณุวัฒน์ รัตนชาติ", username: "phanuwat_guide", avatarUrl: null, bio: "ไกด์กรุงเทพฯ ย่านเก่า ตลาด วัด ชุมชน 5 ปีประสบการณ์", location: "กรุงเทพฯ", tripsCount: 35 },
+  { id: "g3", name: "มินตรา พลเยี่ยม", username: "mintra_guide", avatarUrl: null, bio: "ไกด์ภาคใต้ ทะเล เกาะ ดำน้ำ ขนมจีน และอาหารใต้แท้", location: "สุราษฎร์ธานี", tripsCount: 28 },
+];
+
 export default async function LandingPage() {
   const { data: featuredPlaces } = await getPlaces({ featured: true, take: 4 });
+  const { data: verifiedGuides } = await getVerifiedGuides(3);
   // Fallback if DB is empty
   const displayDestinations = featuredPlaces.length >= 4
     ? featuredPlaces
@@ -290,6 +299,60 @@ export default async function LandingPage() {
           </div>
         </div>
       </section>
+
+      {/* ─── FEATURED GUIDES ─── */}
+      {(() => {
+        const guides = verifiedGuides.length >= 1 ? verifiedGuides : MOCK_GUIDES;
+        return (
+          <section className="px-6 py-20 bg-white dark:bg-slate-900">
+            <div className="max-w-5xl mx-auto">
+              <div className="flex items-center justify-between mb-2">
+                <div className="flex items-center gap-2">
+                  <Shield className="w-4 h-4 text-amber-500" />
+                  <span className="text-amber-500 text-xs font-semibold uppercase tracking-widest">Verified Guides</span>
+                </div>
+                <Link href="/buddy" className="text-xs text-[#398AB9] font-medium hover:underline">ดูทั้งหมด →</Link>
+              </div>
+              <h2 className="text-3xl md:text-4xl font-bold text-[#1F1F1F] dark:text-white mb-2">มัคคุเทศก์ที่ผ่านการรับรอง</h2>
+              <p className="text-gray-400 dark:text-slate-500 text-sm mb-10">ไกด์ที่ได้รับการตรวจสอบและรับรองโดย Your Trip — ท่องเที่ยวมั่นใจ ปลอดภัย</p>
+
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-5 mb-8">
+                {guides.map((g) => (
+                  <Link key={g.id} href={`/profile/${g.id}`}
+                    className="group flex flex-col items-center text-center bg-[#FAFBFC] dark:bg-slate-800 rounded-2xl p-6 border border-gray-100 dark:border-slate-700 hover:shadow-md hover:-translate-y-1 transition-all duration-200">
+                    <div className="relative mb-3">
+                      <Avatar src={g.avatarUrl} name={g.name ?? "G"} className="w-16 h-16 text-xl" />
+                      <span className="absolute -bottom-1 -right-1 text-base leading-none">🏅</span>
+                    </div>
+                    <p className="font-bold text-gray-900 dark:text-slate-100 text-sm">{g.name}</p>
+                    {g.username && <p className="text-xs text-gray-400 dark:text-slate-500 mb-1">@{g.username}</p>}
+                    {g.location && (
+                      <div className="flex items-center gap-1 text-[10px] text-gray-400 dark:text-slate-500 mb-2">
+                        <MapPin className="w-2.5 h-2.5 flex-shrink-0" />
+                        <span>{g.location}</span>
+                      </div>
+                    )}
+                    {g.bio && (
+                      <p className="text-xs text-gray-500 dark:text-slate-400 leading-relaxed line-clamp-2 mb-3">{g.bio}</p>
+                    )}
+                    <div className="mt-auto flex items-center gap-1 text-[10px] text-[#398AB9] font-semibold bg-[#398AB9]/10 px-2.5 py-1 rounded-full">
+                      <span>{g.tripsCount} ทริป</span>
+                    </div>
+                  </Link>
+                ))}
+              </div>
+
+              <div className="text-center">
+                <Link href="/guide/apply"
+                  className="inline-flex items-center gap-2 border border-amber-400 text-amber-600 dark:text-amber-400 dark:border-amber-500 text-sm font-semibold px-6 py-3 rounded-xl hover:bg-amber-50 dark:hover:bg-amber-900/20 transition">
+                  <Shield className="w-4 h-4" />
+                  สมัครเป็นมัคคุเทศก์
+                </Link>
+              </div>
+            </div>
+          </section>
+        );
+      })()}
 
       {/* ─── CTA STRIP ─── */}
       <section className="relative py-24 overflow-hidden bg-gradient-to-br from-[#1C658C] via-[#398AB9] to-[#5BA3C9]">
