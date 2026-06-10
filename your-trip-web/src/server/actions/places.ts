@@ -170,30 +170,35 @@ export async function getPlaces(params?: {
 
 export async function getPlaceBySlug(slug: string): Promise<{ data: PlaceDetail | null }> {
   try {
-    const p = await prisma.place.findUnique({
-      where: { slug },
-      include: {
-        images: { orderBy: { order: "asc" } },
-        reviews: {
-          include: { user: { select: { name: true, avatarUrl: true } } },
-          orderBy: { createdAt: "desc" },
-          take: 10,
+    // Fetch display reviews (10 most recent) and all ratings separately
+    const [p, allRatings] = await Promise.all([
+      prisma.place.findUnique({
+        where: { slug },
+        include: {
+          images: { orderBy: { order: "asc" } },
+          reviews: {
+            include: { user: { select: { name: true, avatarUrl: true } } },
+            orderBy: { createdAt: "desc" },
+            take: 10,
+          },
         },
-      },
-    });
+      }),
+      prisma.review.aggregate({
+        where: { place: { slug } },
+        _avg: { rating: true },
+        _count: { rating: true },
+      }),
+    ]);
 
     if (!p) return { data: null };
 
-    const avgRating =
-      p.reviews.length > 0
-        ? p.reviews.reduce((sum, r) => sum + r.rating, 0) / p.reviews.length
-        : 0;
+    const avgRating = allRatings._avg.rating ?? 0;
 
     return {
       data: {
         ...p,
         rating: Math.round(avgRating * 10) / 10,
-        reviewCount: p.reviews.length,
+        reviewCount: allRatings._count.rating,
       },
     };
   } catch {

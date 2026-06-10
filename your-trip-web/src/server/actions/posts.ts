@@ -194,15 +194,30 @@ export async function createComment(
   }
 }
 
-export async function getFeed(cursor?: string) {
+export async function getFeed(cursor?: string, followingOnly = false) {
   try {
     const supabase = await createServerClient();
     const { data: { user: me } } = await supabase.auth.getUser();
 
+    // If followingOnly, get IDs of users I follow
+    let followingIds: string[] | undefined;
+    if (followingOnly && me) {
+      const follows = await prisma.follow.findMany({
+        where: { followerId: me.id },
+        select: { followingId: true },
+      });
+      followingIds = follows.map((f) => f.followingId);
+    }
+
     const posts = await prisma.post.findMany({
       take: 10,
       ...(cursor ? { skip: 1, cursor: { id: cursor } } : {}),
-      where: { isPublic: true },
+      where: {
+        isPublic: true,
+        ...(followingOnly && followingIds !== undefined
+          ? { userId: { in: followingIds } }
+          : {}),
+      },
       orderBy: { createdAt: "desc" },
       include: {
         user: { select: { id: true, name: true, username: true, avatarUrl: true } },

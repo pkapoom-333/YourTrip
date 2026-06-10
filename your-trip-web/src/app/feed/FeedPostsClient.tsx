@@ -103,7 +103,36 @@ interface FeedPostsClientProps {
 
 const PULL_THRESHOLD = 70;
 
+type FeedTab = "forYou" | "following";
+
+function mapPost(p: {
+  id: string; content: string; images: string[]; location: string | null;
+  tags: string[]; createdAt: Date; user: { id: string; name: string | null; username: string | null; avatarUrl: string | null };
+  likesCount: number; commentsCount: number; likedByMe: boolean; savedByMe: boolean;
+  place: { id: string; slug: string; name: string } | null;
+}): PostCardData {
+  return {
+    id: p.id,
+    caption: p.content,
+    img: p.images?.[0] ?? undefined,
+    user: {
+      id: p.user?.id ?? undefined,
+      name: p.user?.name ?? "YourTrip User",
+      avatarUrl: p.user?.avatarUrl ?? undefined,
+      location: p.location ?? undefined,
+    },
+    likes: p.likesCount,
+    comments: p.commentsCount,
+    liked: p.likedByMe ?? false,
+    saved: p.savedByMe ?? false,
+    time: fmtTime(p.createdAt),
+    tags: p.tags ?? [],
+    place: p.place ?? null,
+  };
+}
+
 export function FeedPostsClient({ initialPosts, initialCursor, initialHasMore = false }: FeedPostsClientProps) {
+  const [activeTab, setActiveTab] = useState<FeedTab>("forYou");
   const [posts, setPosts] = useState<PostCardData[]>(initialPosts);
   const [cursor, setCursor] = useState<string | undefined>(initialCursor);
   const [hasMore, setHasMore] = useState(initialHasMore);
@@ -122,53 +151,33 @@ export function FeedPostsClient({ initialPosts, initialCursor, initialHasMore = 
   const loadMore = useCallback(async () => {
     if (loading || !hasMore) return;
     setLoading(true);
-
     try {
-      const { data, nextCursor, hasMore: more } = await getFeed(cursor);
-      const newPosts: PostCardData[] = data.map((p) => ({
-        id: p.id,
-        caption: p.content,
-        img: p.images?.[0] ?? undefined,
-        user: {
-          id: p.user?.id ?? undefined,
-          name: p.user?.name ?? "YourTrip User",
-          avatarUrl: p.user?.avatarUrl ?? undefined,
-          location: p.location ?? undefined,
-        },
-        likes: p.likesCount,
-        comments: p.commentsCount,
-        liked: p.likedByMe ?? false,
-        saved: p.savedByMe ?? false,
-        time: fmtTime(p.createdAt),
-        tags: p.tags ?? [],
-        place: p.place ?? null,
-      }));
-
-      setPosts((prev) => [...prev, ...newPosts]);
+      const { data, nextCursor, hasMore: more } = await getFeed(cursor, activeTab === "following");
+      setPosts((prev) => [...prev, ...data.map(mapPost)]);
       setCursor(nextCursor);
       setHasMore(more);
-    } catch {
-      // silently fail
-    } finally {
-      setLoading(false);
-    }
-  }, [cursor, hasMore, loading]);
+    } catch { /* silent */ } finally { setLoading(false); }
+  }, [cursor, hasMore, loading, activeTab]);
+
+  async function switchTab(tab: FeedTab) {
+    if (tab === activeTab || loading) return;
+    setActiveTab(tab);
+    setActiveTag("ทั้งหมด");
+    setLoading(true);
+    try {
+      const { data, nextCursor, hasMore: more } = await getFeed(undefined, tab === "following");
+      setPosts(data.map(mapPost));
+      setCursor(nextCursor);
+      setHasMore(more);
+    } catch { /* silent */ } finally { setLoading(false); }
+  }
 
   async function refreshFeed() {
     if (refreshing || loading) return;
     setRefreshing(true);
     try {
-      const { data, nextCursor, hasMore: more } = await getFeed(undefined);
-      const newPosts: PostCardData[] = data.map((p) => ({
-        id: p.id,
-        caption: p.content,
-        img: p.images?.[0] ?? undefined,
-        user: { id: p.user?.id ?? undefined, name: p.user?.name ?? "YourTrip User", avatarUrl: p.user?.avatarUrl ?? undefined, location: p.location ?? undefined },
-        likes: p.likesCount, comments: p.commentsCount,
-        liked: p.likedByMe ?? false, saved: p.savedByMe ?? false,
-        time: fmtTime(p.createdAt), tags: p.tags ?? [], place: p.place ?? null,
-      }));
-      setPosts(newPosts);
+      const { data, nextCursor, hasMore: more } = await getFeed(undefined, activeTab === "following");
+      setPosts(data.map(mapPost));
       setCursor(nextCursor);
       setHasMore(more);
     } catch { /* silent */ } finally { setRefreshing(false); }
@@ -231,6 +240,23 @@ export function FeedPostsClient({ initialPosts, initialCursor, initialHasMore = 
         </div>
       )}
 
+      {/* Feed tabs: For You / Following */}
+      <div className="bg-white dark:bg-slate-800 md:rounded-2xl border border-gray-100 dark:border-slate-700 flex overflow-hidden">
+        {(["forYou", "following"] as FeedTab[]).map((tab) => (
+          <button
+            key={tab}
+            onClick={() => switchTab(tab)}
+            className={`flex-1 py-3 text-sm font-semibold transition-colors border-b-2 ${
+              activeTab === tab
+                ? "border-[#398AB9] text-[#398AB9]"
+                : "border-transparent text-gray-400 dark:text-slate-500 hover:text-gray-600 dark:hover:text-slate-300"
+            }`}
+          >
+            {tab === "forYou" ? "สำหรับคุณ" : "ติดตาม"}
+          </button>
+        ))}
+      </div>
+
       {/* Compose box */}
       <ComposeBox />
 
@@ -238,7 +264,17 @@ export function FeedPostsClient({ initialPosts, initialCursor, initialHasMore = 
       <TagFilterBar active={activeTag} onChange={setActiveTag} />
 
       {/* Empty state */}
-      {posts.length === 0 && !loading && <FeedEmptyState />}
+      {posts.length === 0 && !loading && activeTab === "following" && (
+        <div className="bg-white dark:bg-slate-800 md:rounded-2xl border border-gray-100 dark:border-slate-700 py-16 flex flex-col items-center gap-3 text-center px-6">
+          <span className="text-4xl">👥</span>
+          <p className="text-sm font-bold text-gray-900 dark:text-slate-100">ยังไม่มีโพสต์จากคนที่คุณติดตาม</p>
+          <p className="text-xs text-gray-400 dark:text-slate-500 max-w-xs">ติดตามนักเดินทางเพื่อดูโพสต์ของพวกเขาที่นี่</p>
+          <a href="/search/users" className="mt-1 bg-[#398AB9] text-white text-sm font-medium px-5 py-2 rounded-xl hover:bg-[#1C658C] transition">
+            ค้นหาคน
+          </a>
+        </div>
+      )}
+      {posts.length === 0 && !loading && activeTab === "forYou" && <FeedEmptyState />}
 
       {filteredPosts.length === 0 && posts.length > 0 && !loading && (
         <div className="bg-white dark:bg-slate-800 md:rounded-2xl border border-gray-100 dark:border-slate-700 py-12 text-center text-sm text-gray-400 dark:text-slate-500">
