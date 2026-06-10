@@ -19,20 +19,20 @@ PROGRESS ████████████████████ 93%  (Day 
 
 | # | Quest | XP | Status |
 |---|-------|----|--------|
-| S7-1 | **User Search** — /search/users หน้าค้นหาคน + follow ได้เลย | 300 | ⬜ |
-| S7-2 | **Trending Places** — algorithm: sort by (saves×2 + reviews×3 + 7-day recency boost) | 200 | ⬜ |
+| S7-1 | **User Search** — /search/users หน้าค้นหาคน + follow ได้เลย | 300 | ✅ |
+| S7-2 | **Trending Places** — algorithm: sort by (saves×2 + reviews×3 + 7-day recency boost) | 200 | ✅ |
 | S7-3 | **Onboarding wizard** — first-time user: choose interests + follow 3 suggested users | 250 | ⬜ |
-| S7-4 | **Place Collections** — user-curated lists ("/เที่ยวเชียงใหม่ weekend") like a listicle | 300 | ⬜ |
+| S7-4 | **Place Collections** — user-curated lists ("/เที่ยวเชียงใหม่ weekend") like a listicle | 300 | ✅ |
 
 ### 🛡️ TIER A — Social + Quality
 
 | # | Quest | XP | Status |
 |---|-------|----|--------|
-| A6 | **Hashtag browsing** — /tags/[tag] page แสดง posts + places ที่มี tag นั้น | 200 | ⬜ |
+| A6 | **Hashtag browsing** — /tags/[tag] page แสดง posts + places ที่มี tag นั้น | 200 | ✅ |
 | A7 | **Admin guide review** — /admin/guides: approve/reject guide applications | 250 | ⬜ |
 | A8 | **Post mentions** — @username ใน caption → link to profile | 150 | ⬜ |
-| A9 | **Place rating aggregate** — คำนวณ avg rating จาก reviews จริง (ตอนนี้ไม่ได้อัปเดต) | 200 | ⬜ |
-| A10 | **Feed Following tab** — filter feed เฉพาะ posts จากคนที่ follow | 250 | ⬜ |
+| A9 | **Place rating aggregate** — คำนวณ avg rating จาก reviews จริง (ตอนนี้ไม่ได้อัปเดต) | 200 | ✅ |
+| A10 | **Feed Following tab** — filter feed เฉพาะ posts จากคนที่ follow | 250 | ✅ |
 
 ### 🏹 TIER B — Performance + PWA
 

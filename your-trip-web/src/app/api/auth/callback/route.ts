@@ -34,17 +34,26 @@ export async function GET(request: NextRequest) {
     },
   });
 
-  const { error } = await supabase.auth.exchangeCodeForSession(code);
+  const { data: sessionData, error } = await supabase.auth.exchangeCodeForSession(code);
 
   if (error) {
     console.error("[auth/callback] error:", error.message);
     return NextResponse.redirect(`${origin}/login?error=auth_failed`);
   }
 
+  // Detect new user: created_at within last 2 minutes → redirect to onboarding
+  let destination = next;
+  const authUser = sessionData?.user;
+  if (authUser?.created_at) {
+    const createdMs = new Date(authUser.created_at).getTime();
+    const isNewUser = Date.now() - createdMs < 2 * 60 * 1000;
+    if (isNewUser) destination = "/onboarding";
+  }
+
   // Successful OAuth — redirect to intended page
   const forwardedHost = request.headers.get("x-forwarded-host");
   if (process.env.NODE_ENV !== "development" && forwardedHost) {
-    return NextResponse.redirect(`https://${forwardedHost}${next}`);
+    return NextResponse.redirect(`https://${forwardedHost}${destination}`);
   }
-  return NextResponse.redirect(`${origin}${next}`);
+  return NextResponse.redirect(`${origin}${destination}`);
 }
