@@ -168,7 +168,12 @@ export default async function LandingPage() {
             <MapPin className="w-4 h-4 text-[#398AB9]" />
             <span className="text-[#398AB9] text-xs font-semibold uppercase tracking-widest">Trending Now</span>
           </div>
-          <h2 className="text-3xl md:text-4xl font-bold text-[#1F1F1F] dark:text-white mb-10">จุดหมายยอดนิยม</h2>
+          <div className="flex items-end justify-between mb-10">
+            <h2 className="text-3xl md:text-4xl font-bold text-[#1F1F1F] dark:text-white">จุดหมายยอดนิยม</h2>
+            <Link href="/trending/places" className="text-sm text-[#398AB9] font-semibold hover:underline flex items-center gap-1">
+              ดูอันดับทั้งหมด 🔥
+            </Link>
+          </div>
 
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             {displayDestinations
@@ -385,7 +390,7 @@ export default async function LandingPage() {
             <div>
               <p className="text-white/70 font-semibold text-sm mb-3">สำรวจ</p>
               <div className="space-y-2">
-                {[["สถานที่", "/explore"], ["ทริปยอดนิยม", "/explore"], ["คาเฟ่แนะนำ", "/explore?cat=cafe"]].map(([l, h]) => (
+                {[["สถานที่", "/explore"], ["สถานที่ยอดนิยม 🔥", "/trending/places"], ["คาเฟ่แนะนำ", "/explore?cat=cafe"]].map(([l, h]) => (
                   <Link key={l} href={h} className="block text-sm text-white/40 hover:text-white/70 transition">{l}</Link>
                 ))}
               </div>

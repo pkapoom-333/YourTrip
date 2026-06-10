@@ -278,3 +278,70 @@ export async function searchPlacesForTrip(query: string, take = 8): Promise<{ da
     return { data: [] };
   }
 }
+
+// ─── getTrendingPlaces ────────────────────────────────────────────────────────
+// Score = saves×2 + reviews×3 + featured×5 + 7-day-review-bonus×4
+
+export async function getTrendingPlaces(take = 20): Promise<{ data: PlaceListItem[] }> {
+  try {
+    const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
+
+    const places = await prisma.place.findMany({
+      where: { isPublished: true },
+      take: 100, // fetch more, then rank in JS
+      include: {
+        images: { orderBy: { order: "asc" }, take: 1 },
+        _count: { select: { reviews: true, savedBy: true } },
+        reviews: {
+          select: { rating: true, createdAt: true },
+        },
+      },
+    });
+
+    const scored = places.map((p) => {
+      const avgRating =
+        p.reviews.length > 0
+          ? p.reviews.reduce((sum, r) => sum + r.rating, 0) / p.reviews.length
+          : 0;
+
+      const recentReviews = p.reviews.filter((r) => r.createdAt >= sevenDaysAgo).length;
+
+      const score =
+        p._count.savedBy * 2 +
+        p._count.reviews * 3 +
+        (p.isFeatured ? 5 : 0) +
+        recentReviews * 4;
+
+      return {
+        item: {
+          id: p.id,
+          slug: p.slug,
+          name: p.name,
+          nameEn: p.nameEn,
+          category: p.category,
+          region: p.region,
+          province: p.province,
+          country: p.country,
+          priceRange: p.priceRange,
+          hasWifi: p.hasWifi,
+          hasParking: p.hasParking,
+          isAccessible: p.isAccessible,
+          isFeatured: p.isFeatured,
+          coverImage: p.images[0]?.url ?? null,
+          rating: Math.round(avgRating * 10) / 10,
+          reviewCount: p._count.reviews,
+          lat: p.lat,
+          lng: p.lng,
+          tags: deriveTags(p),
+        } satisfies PlaceListItem,
+        score,
+      };
+    });
+
+    scored.sort((a, b) => b.score - a.score);
+
+    return { data: scored.slice(0, take).map((s) => s.item) };
+  } catch {
+    return { data: [] };
+  }
+}
