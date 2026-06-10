@@ -112,9 +112,10 @@ export default async function LandingPage() {
 
         {/* Hero content */}
         <div className="relative z-10 flex flex-col items-center justify-center h-full px-6 text-center">
-          <div className="flex items-center gap-2 mb-4">
-            <Compass className="w-5 h-5 text-white/70" />
-            <span className="text-white/60 text-xs tracking-[0.2em] uppercase">Travel Community</span>
+          {/* Live badge */}
+          <div className="flex items-center gap-2 mb-6 bg-white/10 backdrop-blur-sm border border-white/20 rounded-full px-4 py-2">
+            <span className="w-2 h-2 bg-green-400 rounded-full animate-pulse flex-shrink-0" />
+            <span className="text-white/80 text-xs font-medium">234 คนกำลังวางแผนทริปอยู่ตอนนี้</span>
           </div>
 
           <h1 className="text-5xl md:text-7xl font-bold text-white leading-tight mb-4">
@@ -269,6 +270,78 @@ export default async function LandingPage() {
                 <p className="text-gray-400 dark:text-slate-500 text-sm leading-relaxed">{s.desc}</p>
               </div>
             ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ─── AI TRIP PLANNER HIGHLIGHT ─── */}
+      <section className="px-6 py-20 bg-gradient-to-br from-[#0f2942] to-[#1C658C] relative overflow-hidden">
+        <div className="absolute inset-0 opacity-5"
+          style={{ backgroundImage: "radial-gradient(circle at 60% 40%, white 1px, transparent 1px)", backgroundSize: "50px 50px" }} />
+        <div className="max-w-4xl mx-auto relative z-10">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-12 items-center">
+            <div>
+              <div className="inline-flex items-center gap-2 bg-white/10 border border-white/20 rounded-full px-3 py-1.5 mb-4">
+                <span className="text-sm">✨</span>
+                <span className="text-white/80 text-xs font-semibold uppercase tracking-wider">AI-Powered</span>
+              </div>
+              <h2 className="text-3xl md:text-4xl font-bold text-white mb-4 leading-tight">
+                ให้ AI ช่วย<br />วางแผนทริปให้คุณ
+              </h2>
+              <p className="text-white/60 text-sm leading-relaxed mb-6">
+                บอกจุดหมาย วันที่ และงบประมาณ — AI จะสร้าง itinerary รายวันพร้อมสถานที่แนะนำ
+                ร้านอาหาร และเส้นทางที่เหมาะกับสไตล์การเดินทางของคุณโดยเฉพาะ
+              </p>
+              <div className="space-y-3 mb-8">
+                {[
+                  "สร้าง itinerary รายวันอัตโนมัติ",
+                  "แนะนำสถานที่ตามสไตล์คุณ",
+                  "ปรับแผนได้ตามต้องการ",
+                ].map((f) => (
+                  <div key={f} className="flex items-center gap-2.5">
+                    <div className="w-5 h-5 rounded-full bg-[#7EC8E3]/20 border border-[#7EC8E3]/40 flex items-center justify-center flex-shrink-0">
+                      <CheckCircle className="w-3 h-3 text-[#7EC8E3]" />
+                    </div>
+                    <span className="text-white/80 text-sm">{f}</span>
+                  </div>
+                ))}
+              </div>
+              <Link href="/trips/ai-plan"
+                className="inline-flex items-center gap-2 bg-white text-[#1C658C] font-bold px-6 py-3 rounded-2xl hover:bg-white/90 transition shadow-lg text-sm">
+                ✨ ลอง AI วางแผนให้ฟรี
+              </Link>
+            </div>
+
+            {/* Visual mockup */}
+            <div className="bg-white/10 backdrop-blur-sm border border-white/20 rounded-2xl p-4 shadow-2xl">
+              <div className="flex items-center gap-2 mb-3 px-1">
+                <div className="w-2.5 h-2.5 rounded-full bg-red-400" />
+                <div className="w-2.5 h-2.5 rounded-full bg-yellow-400" />
+                <div className="w-2.5 h-2.5 rounded-full bg-green-400" />
+                <span className="text-white/40 text-[10px] ml-2">AI Trip Planner</span>
+              </div>
+              <div className="space-y-2.5">
+                {[
+                  { day: "วันที่ 1", icon: "🏔️", place: "ดอยอินทนนท์", time: "08:00 - 12:00" },
+                  { day: "วันที่ 1", icon: "🍜", place: "ข้าวซอยแม่สาย", time: "12:30 - 13:30" },
+                  { day: "วันที่ 1", icon: "🏛️", place: "วัดพระธาตุดอยสุเทพ", time: "14:00 - 16:00" },
+                  { day: "วันที่ 2", icon: "☕", place: "คาเฟ่ริมน้ำปิง", time: "09:00 - 10:30" },
+                  { day: "วันที่ 2", icon: "🌸", place: "ตลาดวโรรส", time: "11:00 - 12:30" },
+                ].map((item, i) => (
+                  <div key={i} className={`flex items-center gap-3 rounded-xl px-3 py-2.5 ${i === 0 ? "bg-[#7EC8E3]/20 border border-[#7EC8E3]/30" : "bg-white/5"}`}>
+                    <span className="text-lg flex-shrink-0">{item.icon}</span>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-white text-xs font-semibold truncate">{item.place}</p>
+                      <p className="text-white/40 text-[10px]">{item.time}</p>
+                    </div>
+                    <span className="text-[9px] text-white/30 flex-shrink-0">{item.day}</span>
+                  </div>
+                ))}
+              </div>
+              <div className="mt-3 text-center">
+                <span className="text-[10px] text-white/30">✨ สร้างโดย AI · แก้ไขได้ตามใจ</span>
+              </div>
+            </div>
           </div>
         </div>
       </section>
