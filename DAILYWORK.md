@@ -21,7 +21,7 @@ PROGRESS ████████████████████ 93%  (Day 
 |---|-------|----|--------|
 | S7-1 | **User Search** — /search/users หน้าค้นหาคน + follow ได้เลย | 300 | ✅ |
 | S7-2 | **Trending Places** — algorithm: sort by (saves×2 + reviews×3 + 7-day recency boost) | 200 | ✅ |
-| S7-3 | **Onboarding wizard** — first-time user: choose interests + follow 3 suggested users | 250 | ⬜ |
+| S7-3 | **Onboarding wizard** — first-time user: choose interests + follow 3 suggested users | 250 | ✅ |
 | S7-4 | **Place Collections** — user-curated lists ("/เที่ยวเชียงใหม่ weekend") like a listicle | 300 | ✅ |
 
 ### 🛡️ TIER A — Social + Quality
@@ -38,10 +38,10 @@ PROGRESS ████████████████████ 93%  (Day 
 
 | # | Quest | XP | Status |
 |---|-------|----|--------|
-| B18 | **Bundle analysis** — รัน @next/bundle-analyzer แล้ว optimize chunk ใหญ่สุด | 150 | ⬜ |
-| B19 | **Core Web Vitals** — ตรวจ LCP/FID/CLS ด้วย Lighthouse แล้วแก้ | 200 | ⬜ |
-| B20 | **Offline support** — sw.js cache: /feed, place images (stale-while-revalidate) | 150 | ⬜ |
-| B21 | **Share open graph preview** — og:image ดึง place photo จริง (ตอนนี้ใช้ fallback) | 100 | ⬜ |
+| B18 | **Bundle analysis** — รัน @next/bundle-analyzer แล้ว optimize chunk ใหญ่สุด | 150 | ✅ |
+| B19 | **Core Web Vitals** — ตรวจ LCP/FID/CLS ด้วย Lighthouse แล้วแก้ | 200 | ✅ |
+| B20 | **Offline support** — sw.js cache: /feed, place images (stale-while-revalidate) | 150 | ✅ |
+| B21 | **Share open graph preview** — og:image ดึง place photo จริง (ตอนนี้ใช้ fallback) | 100 | ✅ |
 
 ---
 

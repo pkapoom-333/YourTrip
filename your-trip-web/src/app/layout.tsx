@@ -1,6 +1,22 @@
 import type { Metadata, Viewport } from "next";
+import { Sarabun, Inter } from "next/font/google";
 import { Providers } from "@/components/providers";
 import "./globals.css";
+
+const sarabun = Sarabun({
+  subsets: ["thai", "latin"],
+  weight: ["400", "500", "600", "700"],
+  variable: "--font-sarabun",
+  display: "swap",
+  preload: true,
+});
+
+const inter = Inter({
+  subsets: ["latin"],
+  variable: "--font-inter",
+  display: "swap",
+  preload: true,
+});
 
 // Force all pages to be dynamically rendered — this app requires auth so no static prerender
 export const dynamic = "force-dynamic";
@@ -73,7 +89,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="th" suppressHydrationWarning>
+    <html lang="th" suppressHydrationWarning className={`${sarabun.variable} ${inter.variable}`}>
       <head>
         {/* Apply dark class before first paint to prevent flash */}
         <script
