@@ -13,13 +13,44 @@ PROGRESS ██████████████████████ 98% 
 
 ---
 
+## 🔥 QUEST BOARD — Sprint S10 "LAUNCH READY"
+**ช่วง:** 10–30 มิ.ย. 2026 | **MVP deadline:** 14 ก.ค. 2026
+
+### ⚔️ TIER S — ทำก่อนเลย
+
+| # | Quest | XP | Status |
+|---|-------|----|--------|
+| S10-1 | **Collections CRUD** — Create/edit/delete collection, add/remove places from collection | 300 | ⬜ |
+| S10-2 | **Blocked users settings page** — /settings/blocked list with unblock buttons | 150 | ⬜ |
+| S10-3 | **@mention notifications** — when tagged in post/comment, create Notification row | 200 | ⬜ |
+
+### 🛡️ TIER A — Polish Before Launch
+
+| # | Quest | XP | Status |
+|---|-------|----|--------|
+| A19 | **Landing page polish** — add hero animation, features section, CTA, screenshots | 200 | ⬜ |
+| A20 | **PWA offline page** — custom /offline.html + better SW error fallback | 100 | ⬜ |
+| A21 | **Feed infinite scroll** — replace "load more" button with IntersectionObserver | 200 | ⬜ |
+| A22 | **Place categories filter** — filter by category chips in Explore (ร้านอาหาร/คาเฟ่/ธรรมชาติ) | 100 | ✅ |
+
+### 🏹 TIER B — UX Details
+
+| # | Quest | XP | Status |
+|---|-------|----|--------|
+| B30 | **Trip day drag-reorder** — drag items within a day to reorder (HTML5 drag or @dnd-kit) | 150 | ⬜ |
+| B31 | **Post creation preview** — show image preview before posting | 100 | ⬜ |
+| B32 | **Dark mode user setting** — remember dark/light preference via localStorage (not just system) | 50 | ⬜ |
+| B33 | **Notification mark all read** — "อ่านทั้งหมด" button on /notifications page | 50 | ⬜ |
+
+---
+
 ## 🔥 QUEST BOARD — Sprint S9 FINAL MILE
 
 ### ⚔️ TIER S — ทำก่อนเลย
 
 | # | Quest | XP | Status |
 |---|-------|----|--------|
-| S9-1 | **Notification push real** — Supabase Realtime subscribe to new likes/follows/comments | 300 | ⬜ |
+| S9-1 | **Notification push real** — Supabase Realtime subscribe to new likes/follows/comments | 300 | ✅ |
 | S9-2 | **Explore search bar** — search places by name/province with debounce in ExploreClient | 200 | ✅ |
 | S9-3 | **Post image carousel in feed** — swipeable multi-image support in PostCard | 200 | ✅ |
 
@@ -27,18 +58,18 @@ PROGRESS ██████████████████████ 98% 
 
 | # | Quest | XP | Status |
 |---|-------|----|--------|
-| A15 | **Block user** — /settings block list, block blocks follow + hides posts | 200 | ⬜ |
-| A16 | **Report post** — report button → logs to DB, admin can view | 150 | ⬜ |
+| A15 | **Block user** — /settings block list, block blocks follow + hides posts | 200 | ✅ |
+| A16 | **Report post** — report button → logs to DB, admin can view | 150 | ✅ |
 | A17 | **Profile stats** — trips count, places visited, total km traveled (from itinerary) | 150 | ✅ |
-| A18 | **Place save from feed** — save button on place card in Explore shows saved state | 100 | ⬜ |
+| A18 | **Place save from feed** — save button on place card in Explore shows saved state | 100 | ✅ |
 
 ### 🏹 TIER B — Polish
 
 | # | Quest | XP | Status |
 |---|-------|----|--------|
 | B26 | **Guide badge on profile** — ✓ verified badge next to name for isVerifiedGuide users | 100 | ✅ |
-| B27 | **Copy link to post** — share button in PostCard also copies to clipboard + toast | 50 | ⬜ |
-| B28 | **Trips calendar view** — /trips monthly calendar showing trip start/end dates | 200 | ⬜ |
+| B27 | **Copy link to post** — share button in PostCard also copies to clipboard + toast | 50 | ✅ |
+| B28 | **Trips calendar view** — /trips monthly calendar showing trip start/end dates | 200 | ✅ |
 | B29 | **Search history** — localStorage-based recent searches on /search/posts + /search/users | 100 | ✅ |
 
 ---

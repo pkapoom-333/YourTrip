@@ -4,10 +4,12 @@ import { useState, useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
 import AppShell from "@/components/AppShell";
 import Link from "next/link";
-import { ArrowLeft, Star, MapPin, Trash2, Globe, Lock, BookMarked } from "lucide-react";
-import { getCollectionById, removeFromCollection, type CollectionDetail } from "@/server/actions/collections";
+import { ArrowLeft, Star, MapPin, Trash2, Globe, Lock, BookMarked, Pencil, X } from "lucide-react";
+import { getCollectionById, removeFromCollection, updateCollection, type CollectionDetail } from "@/server/actions/collections";
 import { useToast } from "@/components/shared/Toast";
 import { Avatar } from "@/components/shared/Avatar";
+
+const EMOJIS = ["📍", "🏔️", "🍜", "☕", "🏖️", "🌿", "🏛️", "🎭", "🚣", "🛍️", "🌸", "🌄"];
 
 const CATEGORY_EMOJI: Record<string, string> = {
   attraction: "🏔️", restaurant: "🍜", cafe: "☕", hotel: "🏨", activity: "🤿",
@@ -16,14 +18,37 @@ const CATEGORY_EMOJI: Record<string, string> = {
 export default function CollectionDetailPage() {
   const { id } = useParams<{ id: string }>();
   const router = useRouter();
-  const { success: showSuccess } = useToast();
+  const { success: showSuccess, error: showError } = useToast();
   const [col, setCol] = useState<CollectionDetail | null>(null);
   const [loading, setLoading] = useState(true);
   const [removing, setRemoving] = useState<string | null>(null);
 
+  // Edit modal state
+  const [editing, setEditing] = useState(false);
+  const [editTitle, setEditTitle] = useState("");
+  const [editEmoji, setEditEmoji] = useState("📍");
+  const [editPublic, setEditPublic] = useState(true);
+  const [editSaving, setEditSaving] = useState(false);
+
   useEffect(() => {
-    getCollectionById(id).then((r) => { setCol(r.data); setLoading(false); });
+    getCollectionById(id).then((r) => {
+      setCol(r.data);
+      if (r.data) { setEditTitle(r.data.title); setEditEmoji(r.data.emoji ?? "📍"); setEditPublic(r.data.isPublic); }
+      setLoading(false);
+    });
   }, [id]);
+
+  async function handleSaveEdit(e: React.FormEvent) {
+    e.preventDefault();
+    if (!editTitle.trim()) return;
+    setEditSaving(true);
+    const result = await updateCollection(id, { title: editTitle, emoji: editEmoji, isPublic: editPublic });
+    setEditSaving(false);
+    if (result.error) { showError(result.error); return; }
+    setCol((prev) => prev ? { ...prev, title: editTitle, emoji: editEmoji, isPublic: editPublic } : prev);
+    setEditing(false);
+    showSuccess("แก้ไขคอลเลกชันแล้ว ✓");
+  }
 
   async function handleRemove(placeId: string) {
     if (removing) return;
@@ -79,7 +104,14 @@ export default function CollectionDetailPage() {
         <div className="mb-6">
           <div className="flex items-center gap-2 mb-1">
             <span className="text-3xl">{col.emoji ?? "📍"}</span>
-            <h1 className="text-xl font-bold text-gray-900 dark:text-slate-100">{col.title}</h1>
+            <h1 className="text-xl font-bold text-gray-900 dark:text-slate-100 flex-1">{col.title}</h1>
+            <button
+              onClick={() => setEditing(true)}
+              className="flex items-center gap-1.5 text-xs text-[#398AB9] font-medium px-2.5 py-1.5 rounded-lg hover:bg-[#398AB9]/10 transition flex-shrink-0"
+            >
+              <Pencil className="w-3.5 h-3.5" />
+              แก้ไข
+            </button>
           </div>
           <div className="flex items-center gap-3 mt-2">
             <div className="flex items-center gap-1.5">
@@ -153,6 +185,60 @@ export default function CollectionDetailPage() {
           </div>
         )}
       </div>
+
+      {/* Edit modal */}
+      {editing && (
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-end sm:items-center justify-center p-4">
+          <div className="bg-white dark:bg-slate-800 rounded-2xl w-full max-w-sm p-5 shadow-2xl">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-base font-bold text-gray-900 dark:text-slate-100">แก้ไขคอลเลกชัน</h3>
+              <button onClick={() => setEditing(false)} className="text-gray-400 dark:text-slate-500 hover:text-gray-600 dark:hover:text-slate-300 transition">
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+            <form onSubmit={handleSaveEdit} className="space-y-3">
+              <div>
+                <p className="text-xs text-gray-500 dark:text-slate-400 mb-1.5 font-medium">ไอคอน</p>
+                <div className="flex flex-wrap gap-2">
+                  {EMOJIS.map((e) => (
+                    <button key={e} type="button" onClick={() => setEditEmoji(e)}
+                      className={`w-9 h-9 text-xl rounded-xl flex items-center justify-center transition ${editEmoji === e ? "bg-[#398AB9]/20 ring-2 ring-[#398AB9]" : "bg-gray-100 dark:bg-slate-700 hover:bg-gray-200 dark:hover:bg-slate-600"}`}>
+                      {e}
+                    </button>
+                  ))}
+                </div>
+              </div>
+              <div>
+                <label className="text-xs text-gray-500 dark:text-slate-400 font-medium block mb-1">ชื่อคอลเลกชัน *</label>
+                <input
+                  autoFocus
+                  value={editTitle}
+                  onChange={(e) => setEditTitle(e.target.value)}
+                  maxLength={60}
+                  className="w-full px-3 py-2 rounded-xl border border-gray-200 dark:border-slate-600 bg-white dark:bg-slate-700 text-sm text-gray-900 dark:text-slate-100 outline-none focus:ring-2 focus:ring-[#398AB9]/40"
+                />
+              </div>
+              <div className="flex items-center justify-between">
+                <span className="text-sm text-gray-700 dark:text-slate-300">สาธารณะ</span>
+                <button type="button" onClick={() => setEditPublic(!editPublic)}
+                  className={`w-11 h-6 rounded-full transition-colors flex items-center px-0.5 ${editPublic ? "bg-[#398AB9]" : "bg-gray-200 dark:bg-slate-600"}`}>
+                  <div className={`w-5 h-5 rounded-full bg-white shadow-sm transition-transform ${editPublic ? "translate-x-5" : "translate-x-0"}`} />
+                </button>
+              </div>
+              <div className="flex gap-2 pt-1">
+                <button type="button" onClick={() => setEditing(false)}
+                  className="flex-1 py-2.5 text-sm font-medium text-gray-600 dark:text-slate-400 border border-gray-200 dark:border-slate-600 rounded-xl hover:border-gray-300 transition">
+                  ยกเลิก
+                </button>
+                <button type="submit" disabled={!editTitle.trim() || editSaving}
+                  className="flex-1 py-2.5 text-sm font-semibold bg-[#398AB9] text-white rounded-xl hover:bg-[#1C658C] disabled:opacity-50 transition">
+                  {editSaving ? "กำลังบันทึก…" : "บันทึก"}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </AppShell>
   );
 }

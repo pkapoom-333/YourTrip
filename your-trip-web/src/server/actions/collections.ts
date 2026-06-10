@@ -176,6 +176,33 @@ export async function createCollection(input: {
   }
 }
 
+// ─── updateCollection ────────────────────────────────────────────────────────
+
+export async function updateCollection(
+  id: string,
+  input: { title?: string; description?: string; emoji?: string; isPublic?: boolean }
+): Promise<{ error?: string }> {
+  if (input.title !== undefined && !input.title.trim()) return { error: "กรุณาใส่ชื่อคอลเลกชัน" };
+  try {
+    const supabase = await createServerClient();
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return { error: "กรุณาเข้าสู่ระบบ" };
+
+    await prisma.collection.update({
+      where: { id, userId: user.id },
+      data: {
+        ...(input.title !== undefined && { title: input.title.trim() }),
+        ...(input.description !== undefined && { description: input.description.trim() || null }),
+        ...(input.emoji !== undefined && { emoji: input.emoji }),
+        ...(input.isPublic !== undefined && { isPublic: input.isPublic }),
+      },
+    });
+    return {};
+  } catch {
+    return { error: "ไม่สามารถแก้ไขคอลเลกชันได้" };
+  }
+}
+
 // ─── addToCollection ──────────────────────────────────────────────────────────
 
 export async function addToCollection(

@@ -184,7 +184,7 @@ export default function SettingsPage() {
             onChange={setPrivateAccount}
           />
           <RowLink icon={Shield} iconBg="bg-orange-500" label="คำขอติดตาม" description="จัดการคนที่ต้องการติดตามคุณ" />
-          <RowLink icon={User} iconBg="bg-gray-400" label="บล็อกผู้ใช้" description="รายชื่อที่ถูกบล็อก" />
+          <RowLink icon={User} iconBg="bg-gray-400" label="บล็อกผู้ใช้" description="รายชื่อที่ถูกบล็อก" href="/settings/blocked" />
         </Section>
 
         {/* Notifications */}

@@ -26,7 +26,29 @@ export async function createPost(input: CreatePostInput) {
         userId: user.id,
         placeId: parsed.data.placeId ?? null,
       },
+      include: { user: { select: { name: true, avatarUrl: true } } },
     });
+
+    // @mention notifications (fire and forget)
+    const mentions = [...new Set((parsed.data.content.match(/@(\w+)/g) ?? []).map((m) => m.slice(1)))];
+    if (mentions.length > 0) {
+      const mentionedUsers = await prisma.user.findMany({
+        where: { username: { in: mentions }, id: { not: user.id } },
+        select: { id: true },
+      }).catch(() => []);
+      await Promise.all(
+        mentionedUsers.map((u) =>
+          createNotification({
+            userId: u.id,
+            type: NotificationType.LIKE,
+            title: `${post.user.name ?? "ใครบางคน"} กล่าวถึงคุณในโพสต์`,
+            actionUrl: `/post/${post.id}`,
+            actorId: user.id,
+            imageUrl: post.user.avatarUrl ?? undefined,
+          }).catch(() => {})
+        )
+      );
+    }
 
     return { data: { id: post.id, ...parsed.data } };
   } catch (err) {
@@ -158,8 +180,8 @@ export async function createComment(
       },
     });
 
-    // Notify post owner (skip for replies — they get notified below)
-    if (comment.post && !parentId) {
+    // Notify post owner (skip self-comment)
+    if (comment.post && comment.post.userId !== user.id && !parentId) {
       await createNotification({
         userId: comment.post.userId,
         type: NotificationType.COMMENT,
@@ -168,7 +190,29 @@ export async function createComment(
         actionUrl: `/post/${postId}`,
         actorId: user.id,
         imageUrl: comment.user.avatarUrl ?? undefined,
-      });
+      }).catch(() => {});
+    }
+
+    // @mention notifications in comment (fire and forget)
+    const commentMentions = [...new Set((content.match(/@(\w+)/g) ?? []).map((m) => m.slice(1)))];
+    if (commentMentions.length > 0) {
+      const mentionedUsers = await prisma.user.findMany({
+        where: { username: { in: commentMentions }, id: { not: user.id } },
+        select: { id: true },
+      }).catch(() => []);
+      await Promise.all(
+        mentionedUsers.map((u) =>
+          createNotification({
+            userId: u.id,
+            type: NotificationType.COMMENT,
+            title: `${comment.user.name ?? "ใครบางคน"} กล่าวถึงคุณในความคิดเห็น`,
+            body: content.slice(0, 80),
+            actionUrl: `/post/${postId}`,
+            actorId: user.id,
+            imageUrl: comment.user.avatarUrl ?? undefined,
+          }).catch(() => {})
+        )
+      );
     }
 
     return {
