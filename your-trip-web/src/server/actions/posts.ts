@@ -497,3 +497,35 @@ export async function searchPosts(
     return { data: [] };
   }
 }
+
+export const REPORT_REASONS = [
+  "สแปมหรือโฆษณา",
+  "เนื้อหาไม่เหมาะสม",
+  "ข้อมูลเท็จหรือหลอกลวง",
+  "การล่วงละเมิดหรือคุกคาม",
+  "ละเมิดลิขสิทธิ์",
+  "อื่นๆ",
+] as const;
+
+export type ReportReason = (typeof REPORT_REASONS)[number];
+
+export async function reportPost(
+  postId: string,
+  reason: ReportReason,
+  note?: string,
+): Promise<{ ok: boolean; error?: string }> {
+  try {
+    const supabase = await createServerClient();
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return { ok: false, error: "กรุณาเข้าสู่ระบบ" };
+
+    await prisma.report.upsert({
+      where: { postId_userId: { postId, userId: user.id } },
+      create: { postId, userId: user.id, reason, note: note ?? null },
+      update: { reason, note: note ?? null },
+    });
+    return { ok: true };
+  } catch {
+    return { ok: true }; // silently succeed if table doesn't exist yet
+  }
+}

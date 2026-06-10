@@ -3,8 +3,8 @@
 import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Heart, MessageCircle, Send, Bookmark, MapPin, MoreHorizontal } from "lucide-react";
-import { toggleLike, toggleSave } from "@/server/actions/posts";
+import { Heart, MessageCircle, Send, Bookmark, MapPin, MoreHorizontal, Flag, Link2, X } from "lucide-react";
+import { toggleLike, toggleSave, reportPost, REPORT_REASONS, type ReportReason } from "@/server/actions/posts";
 import { CommentSection } from "./CommentSection";
 import { Avatar } from "@/components/shared/Avatar";
 import { useToast } from "@/components/shared/Toast";
@@ -60,6 +60,11 @@ export function PostCard({ post, onTagClick }: { post: PostCardData; onTagClick?
   const [saved, setSaved] = useState(post.saved);
   const [likeCount, setLikeCount] = useState(post.likes);
   const [isLiking, setIsLiking] = useState(false);
+  const [menuOpen, setMenuOpen] = useState(false);
+  const [reportOpen, setReportOpen] = useState(false);
+  const [reportReason, setReportReason] = useState<ReportReason | "">("");
+  const [reportSubmitting, setReportSubmitting] = useState(false);
+  const [reported, setReported] = useState(false);
   const { success, error, info } = useToast();
   const router = useRouter();
 
@@ -102,7 +107,25 @@ export function PostCard({ post, onTagClick }: { post: PostCardData; onTagClick?
     }
   }
 
+  async function handleCopyLink() {
+    const url = `${window.location.origin}/post/${post.id}`;
+    await navigator.clipboard.writeText(url).catch(() => {});
+    info("คัดลอกลิงก์แล้ว ✓");
+    setMenuOpen(false);
+  }
+
+  async function handleReport() {
+    if (!reportReason) return;
+    setReportSubmitting(true);
+    await reportPost(String(post.id), reportReason as ReportReason);
+    setReportSubmitting(false);
+    setReported(true);
+    setReportOpen(false);
+    success("ส่งรายงานแล้ว ขอบคุณ ✓");
+  }
+
   return (
+    <>
     <article className="bg-white dark:bg-slate-800 border border-gray-100 dark:border-slate-700 rounded-2xl overflow-hidden">
       {/* Post header */}
       <div className="flex items-center gap-3 p-3.5">
@@ -137,9 +160,37 @@ export function PostCard({ post, onTagClick }: { post: PostCardData; onTagClick?
         </div>
         <div className="flex items-center gap-2">
           <span className="text-[10px] text-gray-400 dark:text-slate-500">{post.time}</span>
-          <button className="text-gray-400 dark:text-slate-500 hover:text-gray-600 dark:hover:text-slate-300 transition">
-            <MoreHorizontal className="w-4 h-4" />
-          </button>
+          <div className="relative">
+            <button
+              onClick={() => setMenuOpen((o) => !o)}
+              className="text-gray-400 dark:text-slate-500 hover:text-gray-600 dark:hover:text-slate-300 transition p-1 -m-1 rounded-lg"
+            >
+              <MoreHorizontal className="w-4 h-4" />
+            </button>
+            {menuOpen && (
+              <>
+                <div className="fixed inset-0 z-40" onClick={() => setMenuOpen(false)} />
+                <div className="absolute right-0 top-6 z-50 bg-white dark:bg-slate-800 border border-gray-100 dark:border-slate-700 rounded-xl shadow-lg py-1 min-w-[140px]">
+                  <button
+                    onClick={handleCopyLink}
+                    className="flex items-center gap-2.5 w-full px-3.5 py-2 text-sm text-gray-700 dark:text-slate-300 hover:bg-gray-50 dark:hover:bg-slate-700/50 transition text-left"
+                  >
+                    <Link2 className="w-4 h-4 text-gray-400 dark:text-slate-500" />
+                    คัดลอกลิงก์
+                  </button>
+                  {!reported && (
+                    <button
+                      onClick={() => { setMenuOpen(false); setReportOpen(true); }}
+                      className="flex items-center gap-2.5 w-full px-3.5 py-2 text-sm text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 transition text-left"
+                    >
+                      <Flag className="w-4 h-4" />
+                      แจ้งปัญหา
+                    </button>
+                  )}
+                </div>
+              </>
+            )}
+          </div>
         </div>
       </div>
 
@@ -245,5 +296,43 @@ export function PostCard({ post, onTagClick }: { post: PostCardData; onTagClick?
       {/* Comments */}
       <CommentSection postId={post.id} initialCount={post.comments} />
     </article>
+
+    {/* Report modal */}
+    {reportOpen && (
+      <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/50 backdrop-blur-sm px-4 pb-4 sm:pb-0">
+        <div className="bg-white dark:bg-slate-800 rounded-2xl w-full max-w-sm p-5 shadow-xl">
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="text-base font-bold text-gray-900 dark:text-slate-100">แจ้งปัญหาโพสต์</h3>
+            <button onClick={() => setReportOpen(false)} className="text-gray-400 hover:text-gray-600 dark:text-slate-500 dark:hover:text-slate-300 transition">
+              <X className="w-5 h-5" />
+            </button>
+          </div>
+          <p className="text-xs text-gray-500 dark:text-slate-400 mb-3">เลือกเหตุผลที่ตรงที่สุด</p>
+          <div className="space-y-1.5 mb-4">
+            {REPORT_REASONS.map((r) => (
+              <button
+                key={r}
+                onClick={() => setReportReason(r)}
+                className={`w-full text-left px-3.5 py-2.5 rounded-xl text-sm transition ${
+                  reportReason === r
+                    ? "bg-[#398AB9] text-white font-medium"
+                    : "bg-gray-50 dark:bg-slate-700 text-gray-700 dark:text-slate-300 hover:bg-gray-100 dark:hover:bg-slate-600"
+                }`}
+              >
+                {r}
+              </button>
+            ))}
+          </div>
+          <button
+            onClick={handleReport}
+            disabled={!reportReason || reportSubmitting}
+            className="w-full bg-red-500 hover:bg-red-600 text-white font-semibold py-2.5 rounded-xl text-sm transition disabled:opacity-50"
+          >
+            {reportSubmitting ? "กำลังส่ง..." : "ส่งรายงาน"}
+          </button>
+        </div>
+      </div>
+    )}
+    </>
   );
 }

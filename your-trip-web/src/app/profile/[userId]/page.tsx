@@ -7,6 +7,7 @@ import Link from "next/link";
 import {
   ChevronLeft, MapPin, Grid3X3, Star,
   Heart, UserPlus, UserCheck, MessageCircle, Map,
+  MoreVertical, ShieldOff, Shield, X,
 } from "lucide-react";
 import {
   getProfile,
@@ -14,6 +15,8 @@ import {
   followUser,
   unfollowUser,
   checkIsFollowing,
+  blockUser,
+  unblockUser,
   type PostGridItem,
 } from "@/server/actions/profile";
 import { getUserPublicTrips, type PublicTripItem } from "@/server/actions/trips";
@@ -50,6 +53,10 @@ export default function UserProfilePage() {
   const [isFollowing, setIsFollowing] = useState(false);
   const [followerCount, setFollowerCount] = useState(0);
   const [loading, setLoading] = useState(true);
+  const [menuOpen, setMenuOpen] = useState(false);
+  const [isBlocked, setIsBlocked] = useState(false);
+  const [blockLoading, setBlockLoading] = useState(false);
+  const [confirmBlock, setConfirmBlock] = useState(false);
   const { user: currentUser } = useUser();
   const { success } = useToast();
 
@@ -85,6 +92,24 @@ export default function UserProfilePage() {
       setLoading(false);
     }).catch(() => setLoading(false));
   }, [userId]);
+
+  async function handleBlock() {
+    if (!profile) return;
+    setBlockLoading(true);
+    if (isBlocked) {
+      await unblockUser(profile.id);
+      setIsBlocked(false);
+      success(`เลิกบล็อก ${profile.name} แล้ว`);
+    } else {
+      await blockUser(profile.id);
+      setIsBlocked(true);
+      setIsFollowing(false);
+      success(`บล็อก ${profile.name} แล้ว`);
+    }
+    setBlockLoading(false);
+    setConfirmBlock(false);
+    setMenuOpen(false);
+  }
 
   async function handleFollow() {
     if (!profile) return;
@@ -162,7 +187,73 @@ export default function UserProfilePage() {
         <span className="text-sm font-semibold text-gray-900 dark:text-slate-100 flex-1 truncate">
           {profile.username ? `@${profile.username}` : profile.name}
         </span>
+        {!isOwnProfile && (
+          <div className="relative">
+            <button
+              onClick={() => setMenuOpen((o) => !o)}
+              className="text-gray-400 dark:text-slate-500 hover:text-gray-600 dark:hover:text-slate-300 p-1 -m-1 rounded-lg transition"
+            >
+              <MoreVertical className="w-4 h-4" />
+            </button>
+            {menuOpen && (
+              <>
+                <div className="fixed inset-0 z-40" onClick={() => setMenuOpen(false)} />
+                <div className="absolute right-0 top-6 z-50 bg-white dark:bg-slate-800 border border-gray-100 dark:border-slate-700 rounded-xl shadow-lg py-1 min-w-[150px]">
+                  <button
+                    onClick={() => { setMenuOpen(false); setConfirmBlock(true); }}
+                    className={`flex items-center gap-2.5 w-full px-3.5 py-2.5 text-sm transition text-left ${
+                      isBlocked
+                        ? "text-gray-700 dark:text-slate-300 hover:bg-gray-50 dark:hover:bg-slate-700/50"
+                        : "text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20"
+                    }`}
+                  >
+                    {isBlocked ? <Shield className="w-4 h-4" /> : <ShieldOff className="w-4 h-4" />}
+                    {isBlocked ? "เลิกบล็อก" : "บล็อกผู้ใช้"}
+                  </button>
+                </div>
+              </>
+            )}
+          </div>
+        )}
       </header>
+
+      {/* Block confirmation dialog */}
+      {confirmBlock && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm px-4">
+          <div className="bg-white dark:bg-slate-800 rounded-2xl w-full max-w-sm p-5 shadow-xl">
+            <div className="flex items-center justify-between mb-3">
+              <h3 className="font-bold text-gray-900 dark:text-slate-100">
+                {isBlocked ? "เลิกบล็อก" : "บล็อก"}{profile.name}?
+              </h3>
+              <button onClick={() => setConfirmBlock(false)} className="text-gray-400 dark:text-slate-500 hover:text-gray-600 dark:hover:text-slate-300 transition">
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+            <p className="text-sm text-gray-500 dark:text-slate-400 mb-5">
+              {isBlocked
+                ? "หลังจากเลิกบล็อก ผู้ใช้นี้จะสามารถดูโปรไฟล์และโพสต์ของคุณได้อีกครั้ง"
+                : "ผู้ใช้ที่ถูกบล็อกจะไม่เห็นโปรไฟล์ โพสต์ หรือติดตามคุณได้"}
+            </p>
+            <div className="flex gap-2">
+              <button
+                onClick={() => setConfirmBlock(false)}
+                className="flex-1 py-2.5 border border-gray-200 dark:border-slate-600 text-gray-600 dark:text-slate-300 text-sm font-semibold rounded-xl hover:bg-gray-50 dark:hover:bg-slate-700 transition"
+              >
+                ยกเลิก
+              </button>
+              <button
+                onClick={handleBlock}
+                disabled={blockLoading}
+                className={`flex-1 py-2.5 text-white text-sm font-semibold rounded-xl transition disabled:opacity-50 ${
+                  isBlocked ? "bg-[#398AB9] hover:bg-[#1C658C]" : "bg-red-500 hover:bg-red-600"
+                }`}
+              >
+                {blockLoading ? "กำลังดำเนินการ..." : isBlocked ? "เลิกบล็อก" : "บล็อก"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       <div className="max-w-2xl mx-auto">
         {/* Profile header */}
@@ -222,6 +313,12 @@ export default function UserProfilePage() {
               className="flex items-center justify-center gap-2 py-2 border border-gray-200 dark:border-slate-600 text-gray-600 dark:text-slate-300 text-sm font-semibold rounded-xl hover:bg-gray-50 dark:hover:bg-slate-700 transition w-full">
               แก้ไขโปรไฟล์
             </Link>
+          ) : isBlocked ? (
+            <div className="flex items-center gap-2 py-2 px-3 bg-gray-50 dark:bg-slate-700/50 rounded-xl">
+              <ShieldOff className="w-4 h-4 text-gray-400 dark:text-slate-500 flex-shrink-0" />
+              <p className="text-sm text-gray-500 dark:text-slate-400 flex-1">คุณบล็อกผู้ใช้นี้อยู่</p>
+              <button onClick={() => setConfirmBlock(true)} className="text-xs text-[#398AB9] font-medium hover:underline flex-shrink-0">เลิกบล็อก</button>
+            </div>
           ) : (
             <div className="flex gap-2">
               <button

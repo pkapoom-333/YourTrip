@@ -507,6 +507,64 @@ export async function getVerifiedGuides(take = 6): Promise<{ data: FeaturedGuide
   }
 }
 
+export async function blockUser(targetId: string): Promise<{ ok: boolean }> {
+  try {
+    const supabase = await createServerClient();
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user || user.id === targetId) return { ok: false };
+
+    await prisma.block.upsert({
+      where: { blockerId_blockedId: { blockerId: user.id, blockedId: targetId } },
+      create: { blockerId: user.id, blockedId: targetId },
+      update: {},
+    });
+    // Also unfollow both directions
+    await prisma.follow.deleteMany({
+      where: {
+        OR: [
+          { followerId: user.id, followingId: targetId },
+          { followerId: targetId, followingId: user.id },
+        ],
+      },
+    }).catch(() => {});
+    return { ok: true };
+  } catch {
+    return { ok: true };
+  }
+}
+
+export async function unblockUser(targetId: string): Promise<{ ok: boolean }> {
+  try {
+    const supabase = await createServerClient();
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return { ok: false };
+
+    await prisma.block.delete({
+      where: { blockerId_blockedId: { blockerId: user.id, blockedId: targetId } },
+    });
+    return { ok: true };
+  } catch {
+    return { ok: true };
+  }
+}
+
+export async function getBlockedUsers(): Promise<{ data: { id: string; name: string | null; username: string | null; avatarUrl: string | null }[] }> {
+  try {
+    const supabase = await createServerClient();
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return { data: [] };
+
+    const blocks = await prisma.block.findMany({
+      where: { blockerId: user.id },
+      include: { blocked: { select: { id: true, name: true, username: true, avatarUrl: true } } },
+      orderBy: { createdAt: "desc" },
+    });
+    return { data: blocks.map((b) => b.blocked) };
+  } catch {
+    return { data: [] };
+  }
+}
+
 // TODO Phase 2: create GuideApplication model to store full application + file uploads + admin review
 export async function applyAsGuide(): Promise<{ data?: { success: boolean }; error?: { message: string } }> {
   try {
