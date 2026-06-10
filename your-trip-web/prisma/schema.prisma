@@ -43,6 +43,7 @@ model User {
   following     Follow[]         @relation("Follower")
   followers     Follow[]         @relation("Following")
   savedPlaces   SavedPlace[]
+  collections   Collection[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -117,6 +118,7 @@ model Place {
   tripItems   TripItem[]
   savedBy     SavedPlace[]
   posts       Post[]
+  collections CollectionPlace[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -368,4 +370,38 @@ enum BuddyStatus {
   PENDING
   ACCEPTED
   DECLINED
+}
+
+// ─────────────────────────────────────────
+// COLLECTIONS — User-curated place lists
+// ─────────────────────────────────────────
+
+model Collection {
+  id          String   @id @default(uuid())
+  title       String
+  description String?
+  emoji       String?  @default("📍")
+  isPublic    Boolean  @default(true)
+  userId      String
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  places      CollectionPlace[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("collections")
+}
+
+model CollectionPlace {
+  id           String     @id @default(uuid())
+  collectionId String
+  collection   Collection @relation(fields: [collectionId], references: [id], onDelete: Cascade)
+  placeId      String
+  place        Place      @relation(fields: [placeId], references: [id], onDelete: Cascade)
+  note         String?
+  order        Int        @default(0)
+  createdAt    DateTime   @default(now())
+
+  @@unique([collectionId, placeId])
+  @@map("collection_places")
 }

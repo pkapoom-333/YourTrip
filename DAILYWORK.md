@@ -231,6 +231,31 @@ ALTER TABLE trip_items ADD COLUMN IF NOT EXISTS travel_time_to INTEGER;
 -- Guide Verification System (BV-1)
 ALTER TABLE users ADD COLUMN IF NOT EXISTS is_guide BOOLEAN NOT NULL DEFAULT FALSE;
 ALTER TABLE users ADD COLUMN IF NOT EXISTS is_verified_guide BOOLEAN NOT NULL DEFAULT FALSE;
+
+-- Place Collections (S7-4) — run after above
+CREATE TABLE IF NOT EXISTS collections (
+  id TEXT PRIMARY KEY DEFAULT gen_random_uuid()::text,
+  title TEXT NOT NULL,
+  description TEXT,
+  emoji TEXT DEFAULT '📍',
+  is_public BOOLEAN NOT NULL DEFAULT true,
+  user_id TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+
+CREATE TABLE IF NOT EXISTS collection_places (
+  id TEXT PRIMARY KEY DEFAULT gen_random_uuid()::text,
+  collection_id TEXT NOT NULL REFERENCES collections(id) ON DELETE CASCADE,
+  place_id TEXT NOT NULL REFERENCES places(id) ON DELETE CASCADE,
+  note TEXT,
+  "order" INTEGER NOT NULL DEFAULT 0,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+  UNIQUE(collection_id, place_id)
+);
+
+CREATE INDEX IF NOT EXISTS idx_collections_user_id ON collections(user_id);
+CREATE INDEX IF NOT EXISTS idx_collection_places_collection_id ON collection_places(collection_id);
 ```
 
 ### Vercel Environment Variables

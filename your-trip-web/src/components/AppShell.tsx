@@ -5,7 +5,7 @@ import { usePathname, useRouter } from "next/navigation";
 import { useState, useEffect } from "react";
 import {
   Home, PlusSquare, MapPin, User,
-  Compass, Bell, Settings, Users, LogOut, UserSearch,
+  Compass, Bell, Settings, Users, LogOut, UserSearch, BookMarked,
 } from "lucide-react";
 import { useUser } from "@/hooks/useUser";
 import { createClient } from "@/lib/supabase/client";
@@ -18,6 +18,7 @@ const sidebarItems = [
   { href: "/explore",       icon: Compass,    label: "สำรวจ" },
   { href: "/trips",         icon: MapPin,     label: "ทริป" },
   { href: "/search/users",  icon: UserSearch, label: "ค้นหาคน" },
+  { href: "/collections",   icon: BookMarked, label: "คอลเลกชัน" },
   { href: "/buddy",         icon: Users,      label: "Travel Buddy" },
   { href: "/profile",       icon: User,       label: "โปรไฟล์" },
 ];
