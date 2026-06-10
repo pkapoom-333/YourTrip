@@ -2,7 +2,7 @@
 
 import { use, useState, useEffect, useCallback, useRef } from "react";
 import AppShell from "@/components/AppShell";
-import { getTripById, addItineraryItem, deleteTripItem, updateTripItem, toggleTripPublic } from "@/server/actions/trips";
+import { getTripById, addItineraryItem, deleteTripItem, updateTripItem, toggleTripPublic, reorderItinerary } from "@/server/actions/trips";
 import {
   ChevronLeft, Plus, MapPin, Clock, Wallet,
   Trash2, GripVertical, Calendar, Share2,
@@ -508,6 +508,8 @@ export default function TripDetailPage({ params }: { params: Promise<{ id: strin
   const [togglingPublic, setTogglingPublic] = useState(false);
   const [showAddModal, setShowAddModal] = useState(false);
   const [showMap, setShowMap] = useState(false);
+  const [dragItemId, setDragItemId] = useState<string | null>(null);
+  const [dragOverItemId, setDragOverItemId] = useState<string | null>(null);
   const [routeSegments, setRouteSegments] = useState<Array<{ distanceKm: number; durationMin: number }>>([]);
   const [newItem, setNewItem] = useState({
     name: "", time: "", cost: "", note: "",
@@ -625,6 +627,27 @@ export default function TripDetailPage({ params }: { params: Promise<{ id: strin
     if (!itemId.startsWith("new-") && !itemId.startsWith("i")) {
       deleteTripItem(itemId).catch(() => {});
     }
+  }
+
+  function handleDrop(dayNum: number, dropOnItemId: string) {
+    if (!dragItemId || dragItemId === dropOnItemId) { setDragItemId(null); setDragOverItemId(null); return; }
+    setTrip((prev) => {
+      const days = prev.days.map((d) => {
+        if (d.day !== dayNum) return d;
+        const items = [...d.items];
+        const fromIdx = items.findIndex((i) => i.id === dragItemId);
+        const toIdx   = items.findIndex((i) => i.id === dropOnItemId);
+        if (fromIdx === -1 || toIdx === -1) return d;
+        const [moved] = items.splice(fromIdx, 1);
+        items.splice(toIdx, 0, moved);
+        // fire-and-forget persist
+        reorderItinerary(trip.id, dayNum, items.map((i) => i.id)).catch(() => {});
+        return { ...d, items };
+      });
+      return { ...prev, days };
+    });
+    setDragItemId(null);
+    setDragOverItemId(null);
   }
 
   function resetNewItem() {
@@ -904,7 +927,14 @@ export default function TripDetailPage({ params }: { params: Promise<{ id: strin
                 </div>
               ) : (
                 currentDay.items.map((item, idx) => (
-                  <div key={item.id}>
+                  <div key={item.id}
+                    draggable={isOwner}
+                    onDragStart={() => setDragItemId(item.id)}
+                    onDragOver={(e) => { e.preventDefault(); setDragOverItemId(item.id); }}
+                    onDrop={() => handleDrop(currentDay.day, item.id)}
+                    onDragEnd={() => { setDragItemId(null); setDragOverItemId(null); }}
+                    className={`transition-opacity ${dragItemId === item.id ? "opacity-40" : ""} ${dragOverItemId === item.id && dragItemId !== item.id ? "ring-2 ring-[#398AB9]/40 rounded-2xl" : ""}`}
+                  >
                     <ItemCard
                       item={item}
                       isOwner={isOwner}
