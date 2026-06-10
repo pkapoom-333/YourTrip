@@ -16,24 +16,43 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     { url: `${BASE_URL}/forgot-password`, lastModified: now, changeFrequency: "monthly", priority: 0.3 },
   ];
 
-  // Fetch real place slugs from DB
+  // Fetch real place slugs + public user profiles from DB
   let placeRoutes: MetadataRoute.Sitemap = [];
+  let userRoutes: MetadataRoute.Sitemap = [];
   try {
-    const places = await prisma.place.findMany({
-      where: { isPublished: true },
-      select: { slug: true, updatedAt: true },
-      orderBy: { isFeatured: "desc" },
-      take: 200,
-    });
+    const [places, users] = await Promise.all([
+      prisma.place.findMany({
+        where: { isPublished: true },
+        select: { slug: true, updatedAt: true },
+        orderBy: { isFeatured: "desc" },
+        take: 500,
+      }),
+      prisma.user.findMany({
+        where: { username: { not: null } },
+        select: { username: true, updatedAt: true },
+        orderBy: { createdAt: "desc" },
+        take: 1000,
+      }),
+    ]);
+
     placeRoutes = places.map((p) => ({
       url: `${BASE_URL}/place/${p.slug}`,
       lastModified: p.updatedAt,
       changeFrequency: "weekly" as const,
       priority: 0.8,
     }));
+
+    userRoutes = users
+      .filter((u) => u.username)
+      .map((u) => ({
+        url: `${BASE_URL}/u/${u.username}`,
+        lastModified: u.updatedAt,
+        changeFrequency: "weekly" as const,
+        priority: 0.6,
+      }));
   } catch {
     // DB unavailable — skip dynamic routes
   }
 
-  return [...staticRoutes, ...placeRoutes];
+  return [...staticRoutes, ...placeRoutes, ...userRoutes];
 }

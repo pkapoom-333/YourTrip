@@ -21,16 +21,16 @@ PROGRESS █████████████████████ 96%  (D
 |---|-------|----|--------|
 | S8-1 | **Post detail page** — /post/[id]: full view, image, likes, share, OG meta | 300 | ✅ |
 | S8-2 | **Profile edit** — change name, bio, username (avatar later with Cloudinary) | 250 | ✅ |
-| S8-3 | **Write a review** — form in PlaceDetailClient: stars + text, POST to DB | 250 | ⬜ |
+| S8-3 | **Write a review** — form in PlaceDetailClient: stars + text, POST to DB | 250 | ✅ |
 
 ### 🛡️ TIER A — Content + Discovery
 
 | # | Quest | XP | Status |
 |---|-------|----|--------|
-| A11 | **Dynamic sitemap** — /sitemap.xml เพิ่ม entries จาก DB places + /u/[username] | 150 | ⬜ |
-| A12 | **Suggested follows sidebar** — "คนที่คุณอาจรู้จัก" widget บน feed (mutual follows) | 200 | ⬜ |
-| A13 | **Trip share link** — toggle trip เป็น public → shareable URL + OG preview | 200 | ⬜ |
-| A14 | **Comment delete** — post owner + comment owner สามารถ delete comment ตัวเองได้ | 100 | ⬜ |
+| A11 | **Dynamic sitemap** — /sitemap.xml เพิ่ม entries จาก DB places + /u/[username] | 150 | ✅ |
+| A12 | **Suggested follows sidebar** — "คนที่คุณอาจรู้จัก" widget บน feed (mutual follows) | 200 | ✅ |
+| A13 | **Trip share link** — toggle trip เป็น public → shareable URL + OG preview | 200 | ✅ |
+| A14 | **Comment delete** — post owner + comment owner สามารถ delete comment ตัวเองได้ | 100 | ✅ |
 
 ### 🏹 TIER B — Polish + UX
 

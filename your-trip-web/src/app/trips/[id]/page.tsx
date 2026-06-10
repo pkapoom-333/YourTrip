@@ -2,12 +2,13 @@
 
 import { use, useState, useEffect, useCallback, useRef } from "react";
 import AppShell from "@/components/AppShell";
-import { getTripById, addItineraryItem, deleteTripItem, updateTripItem } from "@/server/actions/trips";
+import { getTripById, addItineraryItem, deleteTripItem, updateTripItem, toggleTripPublic } from "@/server/actions/trips";
 import {
   ChevronLeft, Plus, MapPin, Clock, Wallet,
   Trash2, GripVertical, Calendar, Share2,
   Edit3, ChevronDown, ChevronUp, Flag, Car, Map,
   Navigation, Search, Loader2, X, ExternalLink, Printer,
+  Lock, Unlock,
 } from "lucide-react";
 import Link from "next/link";
 import dynamic from "next/dynamic";
@@ -503,6 +504,8 @@ export default function TripDetailPage({ params }: { params: Promise<{ id: strin
   const [isOwner, setIsOwner] = useState(true); // assumed owner until DB confirms otherwise
   const [activeDay, setActiveDay] = useState(1);
   const [shareCopied, setShareCopied] = useState(false);
+  const [isPublic, setIsPublic] = useState(false);
+  const [togglingPublic, setTogglingPublic] = useState(false);
   const [showAddModal, setShowAddModal] = useState(false);
   const [showMap, setShowMap] = useState(false);
   const [routeSegments, setRouteSegments] = useState<Array<{ distanceKm: number; durationMin: number }>>([]);
@@ -521,6 +524,7 @@ export default function TripDetailPage({ params }: { params: Promise<{ id: strin
       getTripById(id).then(({ data, isOwner: owner }) => {
         if (!data) return;
         setIsOwner(owner ?? false);
+        setIsPublic(data.isPublic);
         const fmt = new Intl.DateTimeFormat("th-TH", { day: "numeric", month: "short", year: "numeric" });
         setTrip({
           id: data.id,
@@ -726,8 +730,25 @@ export default function TripDetailPage({ params }: { params: Promise<{ id: strin
               <Printer className="w-4 h-4" />
             </Link>
             {isOwner && (
-              <button className="w-8 h-8 bg-black/30 backdrop-blur-sm rounded-full flex items-center justify-center text-white hover:bg-black/50 transition">
-                <Edit3 className="w-4 h-4" />
+              <button
+                onClick={async () => {
+                  setTogglingPublic(true);
+                  const { data } = await toggleTripPublic(trip.id);
+                  if (data) {
+                    setIsPublic(data.isPublic);
+                    if (data.isPublic) {
+                      await navigator.clipboard.writeText(window.location.href).catch(() => {});
+                      setShareCopied(true);
+                      setTimeout(() => setShareCopied(false), 2000);
+                    }
+                  }
+                  setTogglingPublic(false);
+                }}
+                disabled={togglingPublic}
+                className={`w-8 h-8 backdrop-blur-sm rounded-full flex items-center justify-center text-white transition ${isPublic ? "bg-green-500/70 hover:bg-green-600/80" : "bg-black/30 hover:bg-black/50"}`}
+                title={isPublic ? "ทริปสาธารณะ — คลิกเพื่อทำเป็นส่วนตัว" : "ทำให้ทริปเป็นสาธารณะ"}
+              >
+                {togglingPublic ? <Loader2 className="w-4 h-4 animate-spin" /> : isPublic ? <Unlock className="w-4 h-4" /> : <Lock className="w-4 h-4" />}
               </button>
             )}
           </div>

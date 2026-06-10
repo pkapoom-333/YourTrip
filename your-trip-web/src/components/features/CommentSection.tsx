@@ -1,11 +1,13 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
-import { Heart, Send, MoreHorizontal } from "lucide-react";
-import { getComments, createComment } from "@/server/actions/posts";
+import { Heart, Send, MoreHorizontal, Trash2 } from "lucide-react";
+import { getComments, createComment, deleteComment } from "@/server/actions/posts";
+import { useUser } from "@/hooks/useUser";
 
 interface Comment {
   id: string;
+  userId?: string;
   author: string;
   avatar: string;
   avatarBg: string;
@@ -41,13 +43,20 @@ const MOCK_COMMENTS: Comment[] = [
 
 function CommentItem({
   comment,
+  myId,
   onLike,
   onReply,
+  onDelete,
 }: {
   comment: Comment;
+  myId?: string;
   onLike: (id: string) => void;
   onReply: (author: string) => void;
+  onDelete: (id: string) => void;
 }) {
+  const [menuOpen, setMenuOpen] = useState(false);
+  const canDelete = myId && comment.userId === myId;
+
   return (
     <div className="flex gap-2.5">
       <div className={`w-7 h-7 ${comment.avatarBg} rounded-full flex items-center justify-center text-white text-[10px] font-bold flex-shrink-0 mt-0.5`}>
@@ -75,9 +84,26 @@ function CommentItem({
           >
             ตอบกลับ
           </button>
-          <button className="text-gray-300 hover:text-gray-500 ml-auto">
-            <MoreHorizontal className="w-3.5 h-3.5" />
-          </button>
+          {canDelete && (
+            <div className="relative ml-auto">
+              <button
+                onClick={() => setMenuOpen((o) => !o)}
+                className="text-gray-300 dark:text-slate-600 hover:text-gray-500 dark:hover:text-slate-400 transition"
+              >
+                <MoreHorizontal className="w-3.5 h-3.5" />
+              </button>
+              {menuOpen && (
+                <div className="absolute right-0 bottom-6 w-28 bg-white dark:bg-slate-800 border border-gray-100 dark:border-slate-700 rounded-xl shadow-lg z-50 overflow-hidden">
+                  <button
+                    onClick={() => { setMenuOpen(false); onDelete(comment.id); }}
+                    className="flex items-center gap-2 w-full px-3 py-2 text-xs text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 transition"
+                  >
+                    <Trash2 className="w-3.5 h-3.5" /> ลบ
+                  </button>
+                </div>
+              )}
+            </div>
+          )}
         </div>
       </div>
     </div>
@@ -100,6 +126,7 @@ function fmtComment(d: Date): string {
 }
 
 export function CommentSection({ postId, initialCount = 0 }: CommentSectionProps) {
+  const { user: me } = useUser();
   const [comments, setComments] = useState<Comment[]>(MOCK_COMMENTS);
   const [input, setInput] = useState("");
   const [isExpanded, setIsExpanded] = useState(false);
@@ -116,6 +143,7 @@ export function CommentSection({ postId, initialCount = 0 }: CommentSectionProps
       if (data.length === 0) return;
       setComments(data.map((c) => ({
         id: c.id,
+        userId: c.user.id,
         author: c.user.username ?? c.user.name ?? "ผู้ใช้",
         avatar: (c.user.name ?? c.user.username ?? "ผ").charAt(0).toUpperCase(),
         avatarBg: "bg-[#398AB9]",
@@ -141,6 +169,14 @@ export function CommentSection({ postId, initialCount = 0 }: CommentSectionProps
     setInput(`@${author} `);
     setIsExpanded(true);
     setTimeout(() => inputRef.current?.focus(), 100);
+  }
+
+  async function handleDelete(commentId: string) {
+    setComments((prev) => prev.filter((c) => c.id !== commentId));
+    const id = typeof postId === "number" ? String(postId) : postId;
+    if (!id.startsWith("mock")) {
+      await deleteComment(commentId).catch(() => {});
+    }
   }
 
   function handleSubmit(e: React.FormEvent) {
@@ -194,8 +230,10 @@ export function CommentSection({ postId, initialCount = 0 }: CommentSectionProps
             <CommentItem
               key={c.id}
               comment={c}
+              myId={me?.id}
               onLike={handleLike}
               onReply={handleReply}
+              onDelete={handleDelete}
             />
           ))}
         </div>

@@ -194,6 +194,31 @@ export async function createComment(
   }
 }
 
+export async function deleteComment(
+  commentId: string
+): Promise<{ ok: boolean; error?: string }> {
+  try {
+    const supabase = await createServerClient();
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return { ok: false, error: "กรุณาเข้าสู่ระบบ" };
+
+    const comment = await prisma.comment.findUnique({
+      where: { id: commentId },
+      select: { userId: true, post: { select: { userId: true } } },
+    });
+    if (!comment) return { ok: false, error: "ไม่พบความคิดเห็น" };
+
+    const isAuthor = comment.userId === user.id;
+    const isPostOwner = comment.post?.userId === user.id;
+    if (!isAuthor && !isPostOwner) return { ok: false, error: "ไม่มีสิทธิ์ลบ" };
+
+    await prisma.comment.delete({ where: { id: commentId } });
+    return { ok: true };
+  } catch {
+    return { ok: false, error: "เกิดข้อผิดพลาด" };
+  }
+}
+
 export async function getFeed(cursor?: string, followingOnly = false) {
   try {
     const supabase = await createServerClient();

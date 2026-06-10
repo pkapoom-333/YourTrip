@@ -385,3 +385,25 @@ export async function duplicateTrip(tripId: string): Promise<{ data?: { id: stri
     return { error: { message: "ไม่สามารถคัดลอกทริปได้" } };
   }
 }
+
+export async function toggleTripPublic(
+  tripId: string
+): Promise<{ data: { isPublic: boolean } | null; error?: string }> {
+  try {
+    const supabase = await createServerClient();
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return { data: null, error: "กรุณาเข้าสู่ระบบ" };
+
+    const trip = await prisma.trip.findUnique({ where: { id: tripId, userId: user.id }, select: { isPublic: true } });
+    if (!trip) return { data: null, error: "ไม่พบทริป" };
+
+    const updated = await prisma.trip.update({
+      where: { id: tripId },
+      data: { isPublic: !trip.isPublic },
+      select: { isPublic: true },
+    });
+    return { data: { isPublic: updated.isPublic } };
+  } catch {
+    return { data: null, error: "เกิดข้อผิดพลาด" };
+  }
+}
