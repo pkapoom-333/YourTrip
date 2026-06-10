@@ -4,16 +4,46 @@
 
 ---
 
-## 🎮 CURRENT SPRINT — S7 "Social + Polish"
-**ช่วง:** 10–20 มิ.ย. 2026 | **MVP deadline:** 14 ก.ค. 2026
+## 🎮 CURRENT SPRINT — S8 "Launch Prep"
+**ช่วง:** 10–25 มิ.ย. 2026 | **MVP deadline:** 14 ก.ค. 2026
 
 ```
-PROGRESS ████████████████████ 93%  (Day 14 / ~34 ก่อน launch)
+PROGRESS █████████████████████ 96%  (Day 14 / ~34 ก่อน launch)
 ```
 
 ---
 
-## 🔥 QUEST BOARD — Sprint S7 NEW QUESTS
+## 🔥 QUEST BOARD — Sprint S8 LAUNCH PREP
+
+### ⚔️ TIER S — ทำก่อนเลย
+
+| # | Quest | XP | Status |
+|---|-------|----|--------|
+| S8-1 | **Post detail page** — /post/[id]: full view, image, likes, share, OG meta | 300 | ✅ |
+| S8-2 | **Profile edit** — change name, bio, username (avatar later with Cloudinary) | 250 | ✅ |
+| S8-3 | **Write a review** — form in PlaceDetailClient: stars + text, POST to DB | 250 | ⬜ |
+
+### 🛡️ TIER A — Content + Discovery
+
+| # | Quest | XP | Status |
+|---|-------|----|--------|
+| A11 | **Dynamic sitemap** — /sitemap.xml เพิ่ม entries จาก DB places + /u/[username] | 150 | ⬜ |
+| A12 | **Suggested follows sidebar** — "คนที่คุณอาจรู้จัก" widget บน feed (mutual follows) | 200 | ⬜ |
+| A13 | **Trip share link** — toggle trip เป็น public → shareable URL + OG preview | 200 | ⬜ |
+| A14 | **Comment delete** — post owner + comment owner สามารถ delete comment ตัวเองได้ | 100 | ⬜ |
+
+### 🏹 TIER B — Polish + UX
+
+| # | Quest | XP | Status |
+|---|-------|----|--------|
+| B22 | **Post search** — search ใน feed by keyword (caption full-text) | 150 | ⬜ |
+| B23 | **Place suggest in create** — แนะนำ places จาก DB ขณะ type location ใน Create Post | 150 | ⬜ |
+| B24 | **Dark mode admin** — /admin/guides full dark sweep | 50 | ⬜ |
+| B25 | **Skeleton for collections** — loading.tsx สำหรับ /collections | 50 | ⬜ |
+
+---
+
+## 🔥 QUEST BOARD — Sprint S7 COMPLETED
 
 ### ⚔️ TIER S — ทำก่อนเลย
 
@@ -29,8 +59,8 @@ PROGRESS ████████████████████ 93%  (Day 
 | # | Quest | XP | Status |
 |---|-------|----|--------|
 | A6 | **Hashtag browsing** — /tags/[tag] page แสดง posts + places ที่มี tag นั้น | 200 | ✅ |
-| A7 | **Admin guide review** — /admin/guides: approve/reject guide applications | 250 | ⬜ |
-| A8 | **Post mentions** — @username ใน caption → link to profile | 150 | ⬜ |
+| A7 | **Admin guide review** — /admin/guides: approve/reject guide applications | 250 | ✅ |
+| A8 | **Post mentions** — @username ใน caption → link to profile | 150 | ✅ |
 | A9 | **Place rating aggregate** — คำนวณ avg rating จาก reviews จริง (ตอนนี้ไม่ได้อัปเดต) | 200 | ✅ |
 | A10 | **Feed Following tab** — filter feed เฉพาะ posts จากคนที่ follow | 250 | ✅ |
 
