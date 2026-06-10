@@ -5,7 +5,7 @@ import { usePathname, useRouter } from "next/navigation";
 import { useState, useEffect } from "react";
 import {
   Home, PlusSquare, MapPin, User,
-  Compass, Bell, Settings, Users, LogOut,
+  Compass, Bell, Settings, Users, LogOut, UserSearch,
 } from "lucide-react";
 import { useUser } from "@/hooks/useUser";
 import { createClient } from "@/lib/supabase/client";
@@ -14,11 +14,12 @@ import { PWAInstallPrompt } from "@/components/PWAInstallPrompt";
 
 // Desktop sidebar nav (all items)
 const sidebarItems = [
-  { href: "/feed",    icon: Home,       label: "หน้าหลัก" },
-  { href: "/explore", icon: Compass,    label: "สำรวจ" },
-  { href: "/trips",   icon: MapPin,     label: "ทริป" },
-  { href: "/buddy",   icon: Users,      label: "Travel Buddy" },
-  { href: "/profile", icon: User,       label: "โปรไฟล์" },
+  { href: "/feed",          icon: Home,       label: "หน้าหลัก" },
+  { href: "/explore",       icon: Compass,    label: "สำรวจ" },
+  { href: "/trips",         icon: MapPin,     label: "ทริป" },
+  { href: "/search/users",  icon: UserSearch, label: "ค้นหาคน" },
+  { href: "/buddy",         icon: Users,      label: "Travel Buddy" },
+  { href: "/profile",       icon: User,       label: "โปรไฟล์" },
 ];
 
 // Mobile bottom nav (4 items only — create button is separate)

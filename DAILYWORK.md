@@ -4,16 +4,48 @@
 
 ---
 
-## 🎮 CURRENT SPRINT — S6 "Launch Prep"
-**ช่วง:** 9–20 มิ.ย. 2026 | **MVP deadline:** 14 ก.ค. 2026
+## 🎮 CURRENT SPRINT — S7 "Social + Polish"
+**ช่วง:** 10–20 มิ.ย. 2026 | **MVP deadline:** 14 ก.ค. 2026
 
 ```
-PROGRESS ██████████████████░░ 88%  (Day 13 / ~10 ก่อน launch)
+PROGRESS ████████████████████ 93%  (Day 14 / ~34 ก่อน launch)
 ```
 
 ---
 
-## 🔥 QUEST BOARD — Sprint S6 NEW QUESTS
+## 🔥 QUEST BOARD — Sprint S7 NEW QUESTS
+
+### ⚔️ TIER S — ทำก่อนเลย
+
+| # | Quest | XP | Status |
+|---|-------|----|--------|
+| S7-1 | **User Search** — /search/users หน้าค้นหาคน + follow ได้เลย | 300 | ⬜ |
+| S7-2 | **Trending Places** — algorithm: sort by (saves×2 + reviews×3 + 7-day recency boost) | 200 | ⬜ |
+| S7-3 | **Onboarding wizard** — first-time user: choose interests + follow 3 suggested users | 250 | ⬜ |
+| S7-4 | **Place Collections** — user-curated lists ("/เที่ยวเชียงใหม่ weekend") like a listicle | 300 | ⬜ |
+
+### 🛡️ TIER A — Social + Quality
+
+| # | Quest | XP | Status |
+|---|-------|----|--------|
+| A6 | **Hashtag browsing** — /tags/[tag] page แสดง posts + places ที่มี tag นั้น | 200 | ⬜ |
+| A7 | **Admin guide review** — /admin/guides: approve/reject guide applications | 250 | ⬜ |
+| A8 | **Post mentions** — @username ใน caption → link to profile | 150 | ⬜ |
+| A9 | **Place rating aggregate** — คำนวณ avg rating จาก reviews จริง (ตอนนี้ไม่ได้อัปเดต) | 200 | ⬜ |
+| A10 | **Feed Following tab** — filter feed เฉพาะ posts จากคนที่ follow | 250 | ⬜ |
+
+### 🏹 TIER B — Performance + PWA
+
+| # | Quest | XP | Status |
+|---|-------|----|--------|
+| B18 | **Bundle analysis** — รัน @next/bundle-analyzer แล้ว optimize chunk ใหญ่สุด | 150 | ⬜ |
+| B19 | **Core Web Vitals** — ตรวจ LCP/FID/CLS ด้วย Lighthouse แล้วแก้ | 200 | ⬜ |
+| B20 | **Offline support** — sw.js cache: /feed, place images (stale-while-revalidate) | 150 | ⬜ |
+| B21 | **Share open graph preview** — og:image ดึง place photo จริง (ตอนนี้ใช้ fallback) | 100 | ⬜ |
+
+---
+
+## 🔥 QUEST BOARD — Sprint S6 COMPLETED
 
 ### ⚔️ TIER S — ทำก่อนเลย (ไม่ต้อง allow)
 
@@ -282,10 +314,10 @@ URL: https://vercel.com → YourTrip → Settings → Environment Variables
 
 | # | Feature | รายละเอียด | Status |
 |---|---------|------------|--------|
-| AI-1 | **AI Trip form** | /trips/ai-plan หรือ modal — form กรอก preference | ⬜ |
-| AI-2 | **AI generation logic** | Server Action เรียก Claude API (claude-haiku) ส่ง context สถานที่ใน DB + preference → รับ itinerary JSON | ⬜ |
-| AI-3 | **Auto-create trip** | parse AI response → createTrip + TripDays + TripItems อัตโนมัติ | ⬜ |
-| AI-4 | **Preview before save** | แสดง itinerary ที่ AI สร้างให้ดูก่อน → กด "บันทึกทริปนี้" | ⬜ |
+| AI-1 | **AI Trip form** | /trips/ai-plan หรือ modal — form กรอก preference | ✅ |
+| AI-2 | **AI generation logic** | Server Action เรียก Claude API (claude-haiku) ส่ง context สถานที่ใน DB + preference → รับ itinerary JSON | ✅ |
+| AI-3 | **Auto-create trip** | parse AI response → createTrip + TripDays + TripItems อัตโนมัติ | ✅ |
+| AI-4 | **Preview before save** | แสดง itinerary ที่ AI สร้างให้ดูก่อน → กด "บันทึกทริปนี้" | ✅ |
 
 **Stack:** Anthropic SDK (claude-haiku-4-5) + Prisma places as context
 **Env ที่ต้องเพิ่ม:** `ANTHROPIC_API_KEY`
@@ -356,4 +388,24 @@ User เปิด /feed
 | PF-5 | **"ทำไมถึงแนะนำ"** | แสดง reason ใต้ post "เพราะคุณสนใจ cafe ในเชียงใหม่" | ⬜ |
 
 **Architecture:** user_interests table + Postgres vector (pgvector) หรือ simple scoring ก่อน → upgrade ทีหลัง
+
+
+### 📍 Real Place Data Seed — ก่อน Phase 3
+> บันทึก: 2026-06-09 | ลำดับความสำคัญ: ทำก่อน Phase 3
+
+**ความต้องการ:** เพิ่มข้อมูลสถานที่จริงใน Thailand ให้ครบ seed script ก่อน launch
+
+**จังหวัดที่ต้องมีก่อน (popular):**
+เชียงใหม่, กรุงเทพฯ, ภูเก็ต, เกาะสมุย, กระบี่, เชียงราย, อยุธยา, พัทยา, หัวหิน, ขอนแก่น
+
+**ประเภทสถานที่ต่อจังหวัด:**
+- สถานที่เที่ยว (attractions) — วัด, อุทยาน, จุดชมวิว
+- ร้านอาหาร / คาเฟ่ที่โด่งดัง
+- ตลาด / ถนนคนเดิน
+
+| # | Task | Status |
+|---|------|--------|
+| SD-1 | หาข้อมูลสถานที่จริงจาก web research (ไม่ต้อง API key) → สร้าง seed script ครบ 10 จังหวัด | ✅ |
+| SD-2 | เพิ่ม lat/lng ครบทุกสถานที่ (ใช้กับ map + geolocation sort) | ✅ |
+| SD-3 | รัน seed script บน Supabase จริง | ⬜ blocked (ต้องการ DATABASE_URL ที่ active) |
 
