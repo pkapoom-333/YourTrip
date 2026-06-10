@@ -312,6 +312,65 @@ export async function deletePost(postId: string): Promise<{ data?: { success: bo
   }
 }
 
+// ─── getPostsByTag ────────────────────────────────────────────────────────────
+
+export async function getPostsByTag(
+  tag: string,
+  cursor?: string,
+  take = 12
+): Promise<{ data: ReturnType<typeof getFeed> extends Promise<{ data: infer T }> ? T : never; nextCursor?: string; hasMore: boolean }> {
+  try {
+    const supabase = await createServerClient();
+    const { data: { user: me } } = await supabase.auth.getUser();
+
+    const posts = await prisma.post.findMany({
+      take,
+      ...(cursor ? { skip: 1, cursor: { id: cursor } } : {}),
+      where: { isPublic: true, tags: { has: tag } },
+      orderBy: { createdAt: "desc" },
+      include: {
+        user: { select: { id: true, name: true, username: true, avatarUrl: true } },
+        place: { select: { id: true, slug: true, name: true } },
+        _count: { select: { likes: true, comments: true } },
+      },
+    });
+
+    const nextCursor = posts.length === take ? posts[posts.length - 1].id : undefined;
+    const postIds = posts.map((p) => p.id);
+
+    const [likedSet, savedSet] = me
+      ? await Promise.all([
+          prisma.like.findMany({ where: { userId: me.id, postId: { in: postIds } }, select: { postId: true } })
+            .then((rows) => new Set(rows.map((r) => r.postId))),
+          prisma.save.findMany({ where: { userId: me.id, postId: { in: postIds } }, select: { postId: true } })
+            .then((rows) => new Set(rows.map((r) => r.postId))),
+        ])
+      : [new Set<string>(), new Set<string>()];
+
+    return {
+      data: posts.map((p) => ({
+        id: p.id,
+        userId: p.userId,
+        content: p.content,
+        images: p.images,
+        location: p.location,
+        tags: p.tags,
+        createdAt: p.createdAt,
+        user: p.user,
+        likesCount: p._count.likes,
+        commentsCount: p._count.comments,
+        likedByMe: likedSet.has(p.id),
+        savedByMe: savedSet.has(p.id),
+        place: p.place ? { id: p.place.id, slug: p.place.slug, name: p.place.name } : null,
+      })),
+      nextCursor,
+      hasMore: !!nextCursor,
+    };
+  } catch {
+    return { data: [], nextCursor: undefined, hasMore: false };
+  }
+}
+
 export async function getPostById(postId: string): Promise<{ data: PostDetail | null }> {
   try {
     const supabase = await createServerClient();

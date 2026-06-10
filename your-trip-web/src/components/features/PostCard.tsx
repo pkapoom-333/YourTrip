@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { Heart, MessageCircle, Send, Bookmark, MapPin, MoreHorizontal } from "lucide-react";
 import { toggleLike, toggleSave } from "@/server/actions/posts";
 import { CommentSection } from "./CommentSection";
@@ -42,6 +43,7 @@ export function PostCard({ post, onTagClick }: { post: PostCardData; onTagClick?
   const [likeCount, setLikeCount] = useState(post.likes);
   const [isLiking, setIsLiking] = useState(false);
   const { success, error, info } = useToast();
+  const router = useRouter();
 
   async function handleLike() {
     if (isLiking) return;
@@ -140,7 +142,11 @@ export function PostCard({ post, onTagClick }: { post: PostCardData; onTagClick?
             {post.tags.map((tag) => (
               <button
                 key={tag}
-                onClick={(e) => { e.preventDefault(); onTagClick?.(tag); }}
+                onClick={(e) => {
+                  e.preventDefault();
+                  if (onTagClick) onTagClick(tag);
+                  else router.push(`/tags/${encodeURIComponent(tag)}`);
+                }}
                 className="text-[10px] bg-black/50 text-white px-2 py-0.5 rounded-full backdrop-blur-sm hover:bg-[#398AB9]/80 transition"
               >
                 #{tag}
