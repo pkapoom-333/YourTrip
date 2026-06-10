@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ออฟไลน์ — Your Trip</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+      background: #F8FAFC;
+      color: #1f2937;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+      text-align: center;
+    }
+    .icon {
+      font-size: 72px;
+      margin-bottom: 24px;
+      animation: float 3s ease-in-out infinite;
+    }
+    @keyframes float {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-10px); }
+    }
+    h1 {
+      font-size: 24px;
+      font-weight: 800;
+      color: #1C658C;
+      margin-bottom: 12px;
+    }
+    p {
+      font-size: 15px;
+      color: #6b7280;
+      line-height: 1.6;
+      max-width: 320px;
+      margin-bottom: 32px;
+    }
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: #398AB9;
+      color: white;
+      font-size: 14px;
+      font-weight: 700;
+      padding: 14px 28px;
+      border-radius: 16px;
+      border: none;
+      cursor: pointer;
+      text-decoration: none;
+      transition: background 0.2s;
+    }
+    .btn:hover { background: #1C658C; }
+    .logo {
+      position: fixed;
+      top: 20px;
+      left: 24px;
+      font-size: 20px;
+      font-weight: 800;
+      color: #398AB9;
+      text-decoration: none;
+    }
+    .tips {
+      margin-top: 40px;
+      padding: 16px 20px;
+      background: white;
+      border-radius: 16px;
+      border: 1px solid #e5e7eb;
+      max-width: 320px;
+      text-align: left;
+    }
+    .tips h3 {
+      font-size: 12px;
+      font-weight: 700;
+      color: #9ca3af;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      margin-bottom: 10px;
+    }
+    .tips li {
+      font-size: 13px;
+      color: #6b7280;
+      padding: 4px 0;
+      list-style: none;
+    }
+    .tips li::before { content: "✓ "; color: #398AB9; font-weight: 700; }
+  </style>
+</head>
+<body>
+  <a href="/" class="logo">Your Trip</a>
+
+  <div class="icon">🌏</div>
+  <h1>ไม่มีสัญญาณอินเทอร์เน็ต</h1>
+  <p>ดูเหมือนคุณออฟไลน์อยู่<br />กรุณาตรวจสอบการเชื่อมต่อ แล้วลองใหม่อีกครั้ง</p>
+
+  <button class="btn" onclick="window.location.reload()">
+    ↺ ลองใหม่
+  </button>
+
+  <div class="tips">
+    <h3>สิ่งที่ทำได้ขณะออฟไลน์</h3>
+    <ul>
+      <li>ดูทริปที่บันทึกไว้ในแคช</li>
+      <li>อ่านโพสต์ที่เปิดไว้ก่อนหน้า</li>
+      <li>เขียนโพสต์ (ส่งเมื่อออนไลน์)</li>
+    </ul>
+  </div>
+</body>
+</html>

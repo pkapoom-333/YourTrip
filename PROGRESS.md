@@ -1,7 +1,7 @@
 # PROGRESS.md
 # Travel Community App — Dev Log
 
-## Status: Phase 2 | Day 14 (sess 5) | 2026-06-09
+## Status: Phase 2 | Day 15 | 2026-06-10
 
 ## Current sprint task
 → **DONE Day 13 sess 1**: B16 dark mode (ThemeProvider + anti-FOUC + AppShell + Settings + Feed + PostCard + Explore + Toast + Trips), B18 PWA SVG icon
@@ -11,7 +11,8 @@
 → **DONE Day 14 sess 5**: robots.ts /guide/ disallow; Featured Guides section on landing page (getVerifiedGuides action + FeaturedGuide type + 3-col cards + mock fallback); Trips tab on own profile page (/profile) with public/private badge; "Add to Trip" FAB on place detail (modal: trip+day selector, addItineraryItem); Trips list search bar (shows when >3 trips); Explore map view (Leaflet, 3rd view toggle, markers with popup). 0 TS errors.
 → **DONE Day 14 sess 6**: Dark mode followers/following pages (profile/[userId]/followers + following — header, tab strip, empty state, divider rows). 0 TS errors.
 → **DONE Day 14 sess 7**: AI Trip Planner AI-1→AI-4 (@anthropic-ai/sdk, /trips/ai-plan 4-step UI form→generating→preview→save, generateAITrip+saveAITrip actions, TripsClient AI button+FAB). Real Thai places seed (SD-1+SD-2 — 41 places 10 provinces w/ lat/lng, seed-places-real.ts).
-→ **NEXT**: Sprint S7 — User Search, Collections, Onboarding, Performance; then Deploy (user confirm git push)
+→ **DONE Day 15**: Sprint S9 100% complete + Sprint S10 LAUNCH READY — B28 calendar view, A15 block user, A16 report post modal, S9-1 Supabase Realtime notification badge+toast, S10-1 collections edit, S10-2 /settings/blocked page, S10-3 @mention notifications in posts+comments, A19 landing page AI section+live badge, B30 trip drag-reorder, A20 /offline.html PWA page. Schema: Report+Block models added. 0 TS errors.
+→ **NEXT**: Vercel deploy prep (env vars, DNS), remaining S10-B quests (B31 post preview already done), or new Sprint S11
 
 ---
 

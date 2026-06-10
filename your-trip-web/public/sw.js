@@ -1,7 +1,7 @@
-const CACHE_VERSION = "yourtrip-v2";
+const CACHE_VERSION = "yourtrip-v3";
 const STATIC_CACHE = `${CACHE_VERSION}-static`;
 const IMAGE_CACHE = `${CACHE_VERSION}-images`;
-const OFFLINE_URL = "/offline";
+const OFFLINE_URL = "/offline.html";
 
 const PRECACHE_URLS = [OFFLINE_URL, "/manifest.webmanifest", "/icon.svg", "/icon-192.png"];
 

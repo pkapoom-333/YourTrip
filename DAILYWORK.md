@@ -20,27 +20,27 @@ PROGRESS ██████████████████████ 98% 
 
 | # | Quest | XP | Status |
 |---|-------|----|--------|
-| S10-1 | **Collections CRUD** — Create/edit/delete collection, add/remove places from collection | 300 | ⬜ |
-| S10-2 | **Blocked users settings page** — /settings/blocked list with unblock buttons | 150 | ⬜ |
-| S10-3 | **@mention notifications** — when tagged in post/comment, create Notification row | 200 | ⬜ |
+| S10-1 | **Collections CRUD** — Create/edit/delete collection, add/remove places from collection | 300 | ✅ |
+| S10-2 | **Blocked users settings page** — /settings/blocked list with unblock buttons | 150 | ✅ |
+| S10-3 | **@mention notifications** — when tagged in post/comment, create Notification row | 200 | ✅ |
 
 ### 🛡️ TIER A — Polish Before Launch
 
 | # | Quest | XP | Status |
 |---|-------|----|--------|
-| A19 | **Landing page polish** — add hero animation, features section, CTA, screenshots | 200 | ⬜ |
-| A20 | **PWA offline page** — custom /offline.html + better SW error fallback | 100 | ⬜ |
-| A21 | **Feed infinite scroll** — replace "load more" button with IntersectionObserver | 200 | ⬜ |
+| A19 | **Landing page polish** — add hero animation, features section, CTA, screenshots | 200 | ✅ |
+| A20 | **PWA offline page** — custom /offline.html + better SW error fallback | 100 | ✅ |
+| A21 | **Feed infinite scroll** — replace "load more" button with IntersectionObserver | 200 | ✅ |
 | A22 | **Place categories filter** — filter by category chips in Explore (ร้านอาหาร/คาเฟ่/ธรรมชาติ) | 100 | ✅ |
 
 ### 🏹 TIER B — UX Details
 
 | # | Quest | XP | Status |
 |---|-------|----|--------|
-| B30 | **Trip day drag-reorder** — drag items within a day to reorder (HTML5 drag or @dnd-kit) | 150 | ⬜ |
+| B30 | **Trip day drag-reorder** — drag items within a day to reorder (HTML5 drag or @dnd-kit) | 150 | ✅ |
 | B31 | **Post creation preview** — show image preview before posting | 100 | ⬜ |
-| B32 | **Dark mode user setting** — remember dark/light preference via localStorage (not just system) | 50 | ⬜ |
-| B33 | **Notification mark all read** — "อ่านทั้งหมด" button on /notifications page | 50 | ⬜ |
+| B32 | **Dark mode user setting** — remember dark/light preference via localStorage (not just system) | 50 | ✅ |
+| B33 | **Notification mark all read** — "อ่านทั้งหมด" button on /notifications page | 50 | ✅ |
 
 ---
 
