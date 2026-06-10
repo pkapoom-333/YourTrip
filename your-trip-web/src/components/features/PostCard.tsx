@@ -23,6 +23,7 @@ export interface PostCardData {
   title?: string;
   caption: string;
   img?: string;
+  images?: string[];
   likes: number;
   comments: number;
   shares?: number;
@@ -53,6 +54,8 @@ function renderCaption(text: string) {
 }
 
 export function PostCard({ post, onTagClick }: { post: PostCardData; onTagClick?: (tag: string) => void }) {
+  const allImages = post.images?.length ? post.images : (post.img ? [post.img] : []);
+  const [imgIndex, setImgIndex] = useState(0);
   const [liked, setLiked] = useState(post.liked);
   const [saved, setSaved] = useState(post.saved);
   const [likeCount, setLikeCount] = useState(post.likes);
@@ -140,17 +143,39 @@ export function PostCard({ post, onTagClick }: { post: PostCardData; onTagClick?
         </div>
       </div>
 
-      {/* Post image */}
-      {post.img && (
+      {/* Post image(s) */}
+      {allImages.length > 0 && (
       <Link href={`/post/${post.id}`} className="block">
       <div className="relative aspect-[4/3] overflow-hidden bg-gray-100 dark:bg-slate-700">
         <img
-          src={post.img}
+          src={allImages[imgIndex]}
           alt={post.title ?? ""}
           className="w-full h-full object-cover transition-transform duration-300 hover:scale-105"
           referrerPolicy="no-referrer"
           onError={(e) => { (e.target as HTMLImageElement).parentElement!.style.display = "none"; }}
         />
+        {/* Multi-image indicators */}
+        {allImages.length > 1 && (
+          <>
+            <div className="absolute bottom-8 left-1/2 -translate-x-1/2 flex gap-1.5">
+              {allImages.map((_, i) => (
+                <button
+                  key={i}
+                  onClick={(e) => { e.preventDefault(); setImgIndex(i); }}
+                  className={`rounded-full transition-all ${i === imgIndex ? "w-4 h-1.5 bg-white" : "w-1.5 h-1.5 bg-white/50"}`}
+                />
+              ))}
+            </div>
+            <button
+              className="absolute left-0 inset-y-0 w-1/3"
+              onClick={(e) => { e.preventDefault(); setImgIndex((i) => Math.max(0, i - 1)); }}
+            />
+            <button
+              className="absolute right-0 inset-y-0 w-1/3"
+              onClick={(e) => { e.preventDefault(); setImgIndex((i) => Math.min(allImages.length - 1, i + 1)); }}
+            />
+          </>
+        )}
         {/* Tags */}
         {post.tags.length > 0 && (
           <div className="absolute bottom-2 left-2 flex gap-1 flex-wrap">

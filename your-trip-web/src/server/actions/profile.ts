@@ -49,19 +49,26 @@ export async function getProfile(userId?: string) {
     const targetId = userId ?? authUser?.id;
     if (!targetId) return { data: null };
 
-    const user = await prisma.user.findUnique({
-      where: { id: targetId },
-      include: {
-        _count: {
-          select: {
-            posts: true,
-            followers: true,
-            following: true,
-            trips: true,
+    const [user, placesVisited] = await Promise.all([
+      prisma.user.findUnique({
+        where: { id: targetId },
+        include: {
+          _count: {
+            select: {
+              posts: true,
+              followers: true,
+              following: true,
+              trips: true,
+            },
           },
         },
-      },
-    });
+      }),
+      prisma.tripItem.findMany({
+        where: { day: { trip: { userId: targetId } }, placeId: { not: null } },
+        select: { placeId: true },
+        distinct: ["placeId"],
+      }).then((rows) => rows.length).catch(() => 0),
+    ]);
 
     if (!user) {
       // First login — create profile from Supabase auth user
@@ -91,6 +98,7 @@ export async function getProfile(userId?: string) {
             followersCount: newUser._count.followers,
             followingCount: newUser._count.following,
             tripsCount: newUser._count.trips,
+            placesVisited: 0,
           },
         };
       }
@@ -113,6 +121,7 @@ export async function getProfile(userId?: string) {
         followersCount: user._count.followers,
         followingCount: user._count.following,
         tripsCount: user._count.trips,
+        placesVisited,
       },
     };
   } catch {

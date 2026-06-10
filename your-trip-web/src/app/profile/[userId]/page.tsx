@@ -31,6 +31,7 @@ interface ProfileState {
   postsCount: number;
   followersCount: number;
   followingCount: number;
+  isVerifiedGuide: boolean;
 }
 
 const AVATAR_COLORS = [
@@ -74,6 +75,7 @@ export default function UserProfilePage() {
           postsCount: profileRes.data.postsCount,
           followersCount: profileRes.data.followersCount,
           followingCount: profileRes.data.followingCount,
+          isVerifiedGuide: (profileRes.data as { isVerifiedGuide?: boolean }).isVerifiedGuide ?? false,
         });
         setFollowerCount(profileRes.data.followersCount);
       }
@@ -192,7 +194,14 @@ export default function UserProfilePage() {
 
           {/* Name & bio */}
           <div className="mb-4">
-            <p className="font-bold text-gray-900 dark:text-slate-100">{profile.name}</p>
+            <div className="flex items-center gap-2 flex-wrap">
+              <p className="font-bold text-gray-900 dark:text-slate-100">{profile.name}</p>
+              {profile.isVerifiedGuide && (
+                <span className="text-[11px] bg-amber-50 dark:bg-amber-900/30 text-amber-600 dark:text-amber-400 border border-amber-200 dark:border-amber-700 px-2 py-0.5 rounded-full font-semibold">
+                  🏅 มัคคุเทศก์ที่ได้รับการรับรอง
+                </span>
+              )}
+            </div>
             {profile.username && (
               <p className="text-xs text-gray-400 dark:text-slate-500">@{profile.username}</p>
             )}

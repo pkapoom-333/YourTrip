@@ -4,16 +4,46 @@
 
 ---
 
-## 🎮 CURRENT SPRINT — S8 "Launch Prep"
-**ช่วง:** 10–25 มิ.ย. 2026 | **MVP deadline:** 14 ก.ค. 2026
+## 🎮 CURRENT SPRINT — S9 "Final Mile"
+**ช่วง:** 10–30 มิ.ย. 2026 | **MVP deadline:** 14 ก.ค. 2026
 
 ```
-PROGRESS █████████████████████ 96%  (Day 14 / ~34 ก่อน launch)
+PROGRESS ██████████████████████ 98%  (Day 14 / ~34 ก่อน launch)
 ```
 
 ---
 
-## 🔥 QUEST BOARD — Sprint S8 LAUNCH PREP
+## 🔥 QUEST BOARD — Sprint S9 FINAL MILE
+
+### ⚔️ TIER S — ทำก่อนเลย
+
+| # | Quest | XP | Status |
+|---|-------|----|--------|
+| S9-1 | **Notification push real** — Supabase Realtime subscribe to new likes/follows/comments | 300 | ⬜ |
+| S9-2 | **Explore search bar** — search places by name/province with debounce in ExploreClient | 200 | ✅ |
+| S9-3 | **Post image carousel in feed** — swipeable multi-image support in PostCard | 200 | ✅ |
+
+### 🛡️ TIER A — Quality of Life
+
+| # | Quest | XP | Status |
+|---|-------|----|--------|
+| A15 | **Block user** — /settings block list, block blocks follow + hides posts | 200 | ⬜ |
+| A16 | **Report post** — report button → logs to DB, admin can view | 150 | ⬜ |
+| A17 | **Profile stats** — trips count, places visited, total km traveled (from itinerary) | 150 | ✅ |
+| A18 | **Place save from feed** — save button on place card in Explore shows saved state | 100 | ⬜ |
+
+### 🏹 TIER B — Polish
+
+| # | Quest | XP | Status |
+|---|-------|----|--------|
+| B26 | **Guide badge on profile** — ✓ verified badge next to name for isVerifiedGuide users | 100 | ✅ |
+| B27 | **Copy link to post** — share button in PostCard also copies to clipboard + toast | 50 | ⬜ |
+| B28 | **Trips calendar view** — /trips monthly calendar showing trip start/end dates | 200 | ⬜ |
+| B29 | **Search history** — localStorage-based recent searches on /search/posts + /search/users | 100 | ✅ |
+
+---
+
+## 🔥 QUEST BOARD — Sprint S8 COMPLETED
 
 ### ⚔️ TIER S — ทำก่อนเลย
 

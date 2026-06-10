@@ -1,9 +1,10 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
-import { Search, X, FileText } from "lucide-react";
+import { Search, X, FileText, Clock } from "lucide-react";
 import Link from "next/link";
 import { searchPosts, type PostSearchResult } from "@/server/actions/posts";
+import { useSearchHistory } from "@/hooks/useSearchHistory";
 
 function fmtDate(d: Date) {
   const diff = Date.now() - new Date(d).getTime();
@@ -66,6 +67,11 @@ export default function PostSearchClient() {
   const [results, setResults] = useState<PostSearchResult[]>([]);
   const [loading, setLoading] = useState(false);
   const debounce = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const { history, add: addHistory, remove: removeHistory } = useSearchHistory("posts");
+
+  function submitQuery(q: string) {
+    if (q.trim()) addHistory(q.trim());
+  }
 
   useEffect(() => {
     if (!query.trim()) { setResults([]); return; }
@@ -73,10 +79,11 @@ export default function PostSearchClient() {
     if (debounce.current) clearTimeout(debounce.current);
     debounce.current = setTimeout(async () => {
       setLoading(true);
+      addHistory(query.trim());
       const { data } = await searchPosts(query, 30);
       setResults(data);
       setLoading(false);
-    }, 350);
+    }, 800);
 
     return () => { if (debounce.current) clearTimeout(debounce.current); };
   }, [query]);
@@ -103,6 +110,31 @@ export default function PostSearchClient() {
           </button>
         )}
       </div>
+
+      {/* Search history (shown when no query) */}
+      {!query.trim() && history.length > 0 && (
+        <div className="mb-4 bg-white dark:bg-slate-800 rounded-2xl border border-gray-100 dark:border-slate-700 overflow-hidden">
+          <div className="flex items-center justify-between px-4 py-2.5 border-b border-gray-50 dark:border-slate-700/50">
+            <span className="text-xs font-semibold text-gray-500 dark:text-slate-400">ค้นหาล่าสุด</span>
+          </div>
+          {history.map((term) => (
+            <button
+              key={term}
+              onClick={() => setQuery(term)}
+              className="flex items-center gap-3 w-full px-4 py-2.5 hover:bg-gray-50 dark:hover:bg-slate-700/50 text-left transition border-b border-gray-50 dark:border-slate-700/50 last:border-0"
+            >
+              <Clock className="w-3.5 h-3.5 text-gray-400 dark:text-slate-500 flex-shrink-0" />
+              <span className="text-sm text-gray-700 dark:text-slate-300 flex-1">{term}</span>
+              <button
+                onClick={(e) => { e.stopPropagation(); removeHistory(term); }}
+                className="text-gray-300 dark:text-slate-600 hover:text-gray-500 dark:hover:text-slate-400 transition"
+              >
+                <X className="w-3.5 h-3.5" />
+              </button>
+            </button>
+          ))}
+        </div>
+      )}
 
       {/* Results */}
       <div className="bg-white dark:bg-slate-800 rounded-2xl border border-gray-100 dark:border-slate-700 overflow-hidden">

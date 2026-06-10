@@ -101,6 +101,12 @@ export default function ProfilePage() {
                 <p className="text-xl font-bold text-gray-900 dark:text-slate-100">{(profile as { tripsCount?: number }).tripsCount ?? 0}</p>
                 <p className="text-xs text-gray-400 dark:text-slate-500">ทริป</p>
               </Link>
+              {(profile as { placesVisited?: number }).placesVisited !== undefined && (profile as { placesVisited?: number }).placesVisited! > 0 && (
+                <div>
+                  <p className="text-xl font-bold text-gray-900 dark:text-slate-100">{(profile as { placesVisited?: number }).placesVisited}</p>
+                  <p className="text-xs text-gray-400 dark:text-slate-500">สถานที่</p>
+                </div>
+              )}
               {user?.id ? (
                 <Link href={`/profile/${user.id}/followers`} className="hover:opacity-80 transition">
                   <p className="text-xl font-bold text-gray-900 dark:text-slate-100">

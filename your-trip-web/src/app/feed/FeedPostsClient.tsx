@@ -115,6 +115,7 @@ function mapPost(p: {
     id: p.id,
     caption: p.content,
     img: p.images?.[0] ?? undefined,
+    images: p.images ?? [],
     user: {
       id: p.user?.id ?? undefined,
       name: p.user?.name ?? "YourTrip User",
