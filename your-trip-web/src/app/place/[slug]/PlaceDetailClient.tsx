@@ -10,11 +10,12 @@ import {
   Car, Bike, Bus, Navigation, AlertTriangle,
   ParkingSquare, Wifi, Wind, Leaf, Accessibility,
   MessageCircle, MoreHorizontal, ThumbsUp, ChevronDown, PenLine,
-  Plus, X, CalendarDays,
+  Plus, X, CalendarDays, BookMarked,
 } from "lucide-react";
 import { createReview } from "@/server/actions/places";
 import { toggleSavePlace } from "@/server/actions/savedPlaces";
 import { getUserTrips, addItineraryItem } from "@/server/actions/trips";
+import { getUserCollections, addToCollection, type CollectionListItem } from "@/server/actions/collections";
 import { Avatar } from "@/components/shared/Avatar";
 import { useToast } from "@/components/shared/Toast";
 
@@ -105,6 +106,34 @@ export default function PlaceDetailClient({ place, slug, initialSaved = false }:
   const [selectedDay, setSelectedDay] = useState(1);
   const [tripsLoading, setTripsLoading] = useState(false);
   const [addingItem, setAddingItem] = useState(false);
+  const [addColOpen, setAddColOpen] = useState(false);
+  const [colList, setColList] = useState<CollectionListItem[]>([]);
+  const [selectedColId, setSelectedColId] = useState("");
+  const [colLoading, setColLoading] = useState(false);
+  const [addingToCol, setAddingToCol] = useState(false);
+
+  async function openAddToCollection() {
+    setAddColOpen(true);
+    if (colList.length > 0) return;
+    setColLoading(true);
+    const { data } = await getUserCollections();
+    setColList(data);
+    if (data.length > 0) setSelectedColId(data[0].id);
+    setColLoading(false);
+  }
+
+  async function handleAddToCollection() {
+    if (!selectedColId || !place.id) return;
+    setAddingToCol(true);
+    const result = await addToCollection(selectedColId, place.id);
+    setAddingToCol(false);
+    if (!result.error) {
+      success(`เพิ่ม "${place.name}" ในคอลเลกชันแล้ว ✓`);
+      setAddColOpen(false);
+    } else {
+      toastError(result.error);
+    }
+  }
 
   async function openAddToTrip() {
     setAddTripOpen(true);
@@ -583,8 +612,15 @@ export default function PlaceDetailClient({ place, slug, initialSaved = false }:
         </div>
       </div>
 
-      {/* ── Add to Trip FAB ── */}
-      <div className="fixed bottom-20 md:bottom-6 right-4 z-30">
+      {/* ── FABs (Add to Trip + Add to Collection) ── */}
+      <div className="fixed bottom-20 md:bottom-6 right-4 z-30 flex flex-col items-end gap-2">
+        <button
+          onClick={openAddToCollection}
+          className="flex items-center gap-2 bg-white dark:bg-slate-800 hover:bg-gray-50 dark:hover:bg-slate-700 text-gray-700 dark:text-slate-300 text-sm font-semibold px-4 py-2.5 rounded-2xl shadow-md border border-gray-200 dark:border-slate-700 transition-all active:scale-95"
+        >
+          <BookMarked className="w-4 h-4 text-[#398AB9]" />
+          บันทึกในคอลเลกชัน
+        </button>
         <button
           onClick={openAddToTrip}
           className="flex items-center gap-2 bg-[#398AB9] hover:bg-[#1C658C] text-white text-sm font-bold px-4 py-3 rounded-2xl shadow-lg shadow-[#398AB9]/40 transition-all active:scale-95"
@@ -668,6 +704,55 @@ export default function PlaceDetailClient({ place, slug, initialSaved = false }:
                   className="w-full py-3.5 rounded-2xl bg-[#398AB9] hover:bg-[#1C658C] text-white font-bold text-sm transition disabled:opacity-50 shadow-md shadow-[#398AB9]/30"
                 >
                   {addingItem ? "กำลังเพิ่ม..." : "เพิ่มในทริป ✓"}
+                </button>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* ── Add to Collection Modal ── */}
+      {addColOpen && (
+        <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center">
+          <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={() => setAddColOpen(false)} />
+          <div className="relative bg-white dark:bg-slate-800 rounded-t-3xl sm:rounded-3xl w-full sm:max-w-sm mx-0 sm:mx-4 p-6 shadow-2xl">
+            <div className="flex items-center justify-between mb-5">
+              <h3 className="text-base font-bold text-gray-900 dark:text-slate-100">บันทึกในคอลเลกชัน</h3>
+              <button onClick={() => setAddColOpen(false)} className="text-gray-400 dark:text-slate-500 hover:text-gray-600 dark:hover:text-slate-300">
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+            <p className="text-sm text-gray-500 dark:text-slate-400 mb-4 truncate">📍 {place.name}</p>
+
+            {colLoading ? (
+              <div className="flex items-center justify-center py-8">
+                <div className="w-8 h-8 border-2 border-[#398AB9] border-t-transparent rounded-full animate-spin" />
+              </div>
+            ) : colList.length === 0 ? (
+              <div className="text-center py-8">
+                <p className="text-sm text-gray-400 dark:text-slate-500 mb-4">ยังไม่มีคอลเลกชัน</p>
+                <a href="/collections" className="text-sm text-[#398AB9] font-medium hover:underline">สร้างคอลเลกชัน →</a>
+              </div>
+            ) : (
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-xs font-semibold text-gray-500 dark:text-slate-400 mb-1.5">คอลเลกชัน</label>
+                  <select
+                    value={selectedColId}
+                    onChange={(e) => setSelectedColId(e.target.value)}
+                    className="w-full px-3 py-2.5 rounded-xl border border-gray-200 dark:border-slate-600 bg-white dark:bg-slate-700 text-sm text-gray-900 dark:text-slate-100 outline-none focus:ring-2 focus:ring-[#398AB9]/40"
+                  >
+                    {colList.map((c) => (
+                      <option key={c.id} value={c.id}>{c.emoji ?? "📍"} {c.title} ({c.placeCount} สถานที่)</option>
+                    ))}
+                  </select>
+                </div>
+                <button
+                  onClick={handleAddToCollection}
+                  disabled={addingToCol}
+                  className="w-full py-3.5 rounded-2xl bg-[#398AB9] hover:bg-[#1C658C] text-white font-bold text-sm transition disabled:opacity-50 shadow-md shadow-[#398AB9]/30"
+                >
+                  {addingToCol ? "กำลังเพิ่ม..." : "บันทึกในคอลเลกชัน ✓"}
                 </button>
               </div>
             )}
