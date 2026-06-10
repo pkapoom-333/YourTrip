@@ -436,3 +436,64 @@ export async function getPostById(postId: string): Promise<{ data: PostDetail | 
     return { data: null };
   }
 }
+
+export interface PostSearchResult {
+  id: string;
+  content: string;
+  images: string[];
+  tags: string[];
+  likesCount: number;
+  commentsCount: number;
+  createdAt: Date;
+  user: { id: string; name: string | null; username: string | null; avatarUrl: string | null };
+  place: { slug: string; name: string } | null;
+}
+
+export async function searchPosts(
+  query: string,
+  take = 20
+): Promise<{ data: PostSearchResult[] }> {
+  if (!query.trim()) return { data: [] };
+
+  try {
+    const posts = await prisma.post.findMany({
+      where: {
+        isPublic: true,
+        OR: [
+          { content: { contains: query, mode: "insensitive" } },
+          { tags: { has: query.toLowerCase().replace(/^#/, "") } },
+          { location: { contains: query, mode: "insensitive" } },
+        ],
+      },
+      orderBy: { createdAt: "desc" },
+      take,
+      select: {
+        id: true,
+        content: true,
+        images: true,
+        tags: true,
+        location: true,
+        createdAt: true,
+        user: { select: { id: true, name: true, username: true, avatarUrl: true } },
+        place: { select: { slug: true, name: true } },
+        _count: { select: { likes: true, comments: true } },
+      },
+    });
+
+    return {
+      data: posts.map((p) => ({
+        id: p.id,
+        content: p.content,
+        images: p.images,
+        tags: p.tags,
+        likesCount: p._count.likes,
+        commentsCount: p._count.comments,
+        createdAt: p.createdAt,
+        user: p.user,
+        place: p.place,
+      })),
+    };
+  } catch {
+    return { data: [] };
+  }
+}

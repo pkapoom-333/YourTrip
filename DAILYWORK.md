@@ -36,10 +36,10 @@ PROGRESS █████████████████████ 96%  (D
 
 | # | Quest | XP | Status |
 |---|-------|----|--------|
-| B22 | **Post search** — search ใน feed by keyword (caption full-text) | 150 | ⬜ |
-| B23 | **Place suggest in create** — แนะนำ places จาก DB ขณะ type location ใน Create Post | 150 | ⬜ |
-| B24 | **Dark mode admin** — /admin/guides full dark sweep | 50 | ⬜ |
-| B25 | **Skeleton for collections** — loading.tsx สำหรับ /collections | 50 | ⬜ |
+| B22 | **Post search** — search ใน feed by keyword (caption full-text) | 150 | ✅ |
+| B23 | **Place suggest in create** — แนะนำ places จาก DB ขณะ type location ใน Create Post | 150 | ✅ |
+| B24 | **Dark mode admin** — /admin/guides full dark sweep | 50 | ✅ |
+| B25 | **Skeleton for collections** — loading.tsx สำหรับ /collections | 50 | ✅ |
 
 ---
 
