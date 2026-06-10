@@ -11,6 +11,7 @@ import { useUser } from "@/hooks/useUser";
 import { createClient } from "@/lib/supabase/client";
 import { getUnreadCount } from "@/server/actions/notifications";
 import { PWAInstallPrompt } from "@/components/PWAInstallPrompt";
+import { useToast } from "@/components/shared/Toast";
 
 // Desktop sidebar nav (all items)
 const sidebarItems = [
@@ -43,27 +44,49 @@ function getInitials(name?: string | null, email?: string | null): string {
   return "YT";
 }
 
+function useNotificationBadge() {
+  const { user } = useUser();
+  const [unread, setUnread] = useState(0);
+  const { info } = useToast();
+
+  // Initial fetch
+  useEffect(() => {
+    getUnreadCount().then(({ count }) => setUnread(count)).catch(() => {});
+  }, []);
+
+  // Supabase Realtime — increment badge and show toast on new notification
+  useEffect(() => {
+    if (!user?.id) return;
+    const supabase = createClient();
+    const channel = supabase
+      .channel(`notif-badge-${user.id}`)
+      .on(
+        "postgres_changes",
+        { event: "INSERT", schema: "public", table: "notifications", filter: `userId=eq.${user.id}` },
+        (payload: { new: Record<string, unknown> }) => {
+          setUnread((n) => n + 1);
+          const title = payload.new.title as string | undefined;
+          if (title) info(`🔔 ${title}`);
+        }
+      )
+      .subscribe();
+    return () => { supabase.removeChannel(channel); };
+  }, [user?.id, info]);
+
+  return { unread, setUnread };
+}
+
 /** Desktop sidebar — hidden on mobile */
 function Sidebar() {
   const path = usePathname();
   const router = useRouter();
   const { user } = useUser();
-  const [unread, setUnread] = useState(0);
-
-  // Poll unread count every 60s
-  useEffect(() => {
-    function fetchCount() {
-      getUnreadCount().then(({ count }) => setUnread(count)).catch(() => {});
-    }
-    fetchCount();
-    const t = setInterval(fetchCount, 60_000);
-    return () => clearInterval(t);
-  }, []);
+  const { unread, setUnread } = useNotificationBadge();
 
   // Reset badge when visiting notifications
   useEffect(() => {
     if (path === "/notifications") setUnread(0);
-  }, [path]);
+  }, [path, setUnread]);
 
   async function handleSignOut() {
     const supabase = createClient();
@@ -170,20 +193,11 @@ function Sidebar() {
 /** Mobile bottom nav — hidden on desktop */
 function BottomNav() {
   const path = usePathname();
-  const [unread, setUnread] = useState(0);
-
-  useEffect(() => {
-    function fetchCount() {
-      getUnreadCount().then(({ count }) => setUnread(count)).catch(() => {});
-    }
-    fetchCount();
-    const t = setInterval(fetchCount, 60_000);
-    return () => clearInterval(t);
-  }, []);
+  const { unread, setUnread } = useNotificationBadge();
 
   useEffect(() => {
     if (path === "/notifications") setUnread(0);
-  }, [path]);
+  }, [path, setUnread]);
 
   return (
     <nav className="md:hidden fixed bottom-0 left-0 right-0 z-50 bg-white dark:bg-slate-800 border-t border-gray-100 dark:border-slate-700">
