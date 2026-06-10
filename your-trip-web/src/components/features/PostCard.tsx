@@ -37,6 +37,21 @@ function fmt(n: number) {
   return n >= 1000 ? (n / 1000).toFixed(1).replace(".0", "") + "K" : String(n);
 }
 
+function renderCaption(text: string) {
+  const parts = text.split(/(@\w+)/g);
+  return parts.map((part, i) => {
+    if (part.startsWith("@") && part.length > 1) {
+      const username = part.slice(1);
+      return (
+        <Link key={i} href={`/u/${username}`} className="text-[#398AB9] font-medium hover:underline">
+          {part}
+        </Link>
+      );
+    }
+    return <span key={i}>{part}</span>;
+  });
+}
+
 export function PostCard({ post, onTagClick }: { post: PostCardData; onTagClick?: (tag: string) => void }) {
   const [liked, setLiked] = useState(post.liked);
   const [saved, setSaved] = useState(post.saved);
@@ -198,7 +213,7 @@ export function PostCard({ post, onTagClick }: { post: PostCardData; onTagClick?
       <div className="px-4 pb-2">
         <p className="text-sm text-gray-800 dark:text-slate-200 leading-relaxed">
           <span className="font-semibold mr-1">{post.user.name}</span>
-          {post.caption}
+          {renderCaption(post.caption)}
         </p>
       </div>
 
