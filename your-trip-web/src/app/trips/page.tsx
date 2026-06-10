@@ -39,6 +39,8 @@ export default async function TripsPage() {
       status: mapStatus(t.status),
       startDate: t.startDate ? fmt.format(t.startDate) : "—",
       endDate:   t.endDate   ? fmt.format(t.endDate)   : "—",
+      startDateISO: t.startDate ? t.startDate.toISOString() : undefined,
+      endDateISO:   t.endDate   ? t.endDate.toISOString()   : undefined,
       members: 1,
       places: allItems.length,
       img: t.coverImage ?? "",

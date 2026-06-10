@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { Plus, MapPin, Calendar, Users, ChevronRight, Map, Plane, Trash2, X, ChevronDown, Copy, Check, Globe, Search, Sparkles } from "lucide-react";
+import { Plus, MapPin, Calendar, Users, ChevronRight, ChevronLeft, Map as MapIcon, Plane, Trash2, X, ChevronDown, Copy, Check, Globe, Search, Sparkles, LayoutList, CalendarDays } from "lucide-react";
 import { deleteTrip, updateTripStatus, duplicateTrip, type PublicTripItem } from "@/server/actions/trips";
 import { useToast } from "@/components/shared/Toast";
 import { Avatar } from "@/components/shared/Avatar";
@@ -13,6 +13,8 @@ export interface TripSummary {
   status: "upcoming" | "planning" | "completed" | "cancelled";
   startDate: string;
   endDate: string;
+  startDateISO?: string;
+  endDateISO?: string;
   members: number;
   places: number;
   img: string;
@@ -36,6 +38,11 @@ export default function TripsClient({ initialTrips, communityTrips = [] }: { ini
   const [duplicatingId, setDuplicatingId] = useState<string | null>(null);
   const [duplicatedId, setDuplicatedId] = useState<string | null>(null);
   const { success, error: toastError } = useToast();
+
+  const [view, setView] = useState<"list" | "calendar">("list");
+  const _now = new Date();
+  const [calYear, setCalYear] = useState(_now.getFullYear());
+  const [calMonth, setCalMonth] = useState(_now.getMonth());
 
   const [search, setSearch] = useState("");
   const filtered = trips
@@ -79,6 +86,15 @@ export default function TripsClient({ initialTrips, communityTrips = [] }: { ini
     const next = STATUS_CYCLE[(idx + 1) % STATUS_CYCLE.length];
     setTrips((prev) => prev.map((t) => t.id === tripId ? { ...t, status: next } : t));
     await updateTripStatus(tripId, DB_STATUS[next]).catch(() => {});
+  }
+
+  function prevCalMonth() {
+    if (calMonth === 0) { setCalMonth(11); setCalYear((y) => y - 1); }
+    else setCalMonth((m) => m - 1);
+  }
+  function nextCalMonth() {
+    if (calMonth === 11) { setCalMonth(0); setCalYear((y) => y + 1); }
+    else setCalMonth((m) => m + 1);
   }
 
   const totalPlaces = trips.reduce((s: number, t: TripSummary) => s + t.places, 0);
@@ -141,20 +157,39 @@ export default function TripsClient({ initialTrips, communityTrips = [] }: { ini
         </div>
       )}
 
-      {/* Tabs */}
-      <div className="flex gap-2 mb-4 overflow-x-auto scrollbar-none">
-        {(["all", "upcoming", "planning", "completed"] as const).map((t) => (
-          <button key={t} onClick={() => setTab(t)}
-            className={`px-3.5 py-1.5 rounded-full text-xs font-medium flex-shrink-0 transition ${
-              tab === t ? "bg-[#398AB9] text-white" : "bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-600 text-gray-500 dark:text-slate-400"
-            }`}>
-            {t === "all" ? "ทั้งหมด" : statusConfig[t].label}
+      {/* Tabs + view toggle */}
+      <div className="flex items-center gap-2 mb-4">
+        <div className="flex gap-2 overflow-x-auto scrollbar-none flex-1">
+          {(["all", "upcoming", "planning", "completed"] as const).map((t) => (
+            <button key={t} onClick={() => setTab(t)}
+              className={`px-3.5 py-1.5 rounded-full text-xs font-medium flex-shrink-0 transition ${
+                tab === t ? "bg-[#398AB9] text-white" : "bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-600 text-gray-500 dark:text-slate-400"
+              }`}>
+              {t === "all" ? "ทั้งหมด" : statusConfig[t].label}
+            </button>
+          ))}
+        </div>
+        <div className="flex items-center gap-0.5 flex-shrink-0 bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-600 rounded-xl p-0.5">
+          <button onClick={() => setView("list")}
+            className={`p-1.5 rounded-lg transition ${view === "list" ? "bg-[#398AB9] text-white" : "text-gray-400 dark:text-slate-500 hover:text-gray-600 dark:hover:text-slate-300"}`}
+            title="รายการ">
+            <LayoutList className="w-3.5 h-3.5" />
           </button>
-        ))}
+          <button onClick={() => setView("calendar")}
+            className={`p-1.5 rounded-lg transition ${view === "calendar" ? "bg-[#398AB9] text-white" : "text-gray-400 dark:text-slate-500 hover:text-gray-600 dark:hover:text-slate-300"}`}
+            title="ปฏิทิน">
+            <CalendarDays className="w-3.5 h-3.5" />
+          </button>
+        </div>
       </div>
 
+      {/* Calendar view */}
+      {view === "calendar" && (
+        <TripsCalendar trips={trips} year={calYear} month={calMonth} onPrev={prevCalMonth} onNext={nextCalMonth} />
+      )}
+
       {/* Trip cards */}
-      <div className="space-y-3">
+      {view === "list" && (<div className="space-y-3">
         {filtered.length === 0 && (
           <div className="text-center py-16 text-gray-400 dark:text-slate-500">
             <Plane className="w-10 h-10 mx-auto mb-3 opacity-30" />
@@ -234,7 +269,7 @@ export default function TripsClient({ initialTrips, communityTrips = [] }: { ini
                 {!isConfirming ? (
                   <Link href={`/trips/${trip.id}`}
                     className="flex items-center justify-between text-sm text-[#398AB9] font-medium hover:text-[#1C658C] transition">
-                    <span className="flex items-center gap-1.5"><Map className="w-4 h-4" /> ดูแผนการเดินทาง</span>
+                    <span className="flex items-center gap-1.5"><MapIcon className="w-4 h-4" /> ดูแผนการเดินทาง</span>
                     <ChevronRight className="w-4 h-4" />
                   </Link>
                 ) : (
@@ -259,7 +294,7 @@ export default function TripsClient({ initialTrips, communityTrips = [] }: { ini
             </div>
           );
         })}
-      </div>
+      </div>)}
 
       {/* Community Trips */}
       {communityTrips.length > 0 && (
@@ -339,6 +374,7 @@ const MOCK_TRIPS: TripSummary[] = [
   {
     id: "mock-1", title: "เชียงใหม่ 3 วัน 2 คืน", status: "upcoming",
     startDate: "15 มิ.ย. 2026", endDate: "17 มิ.ย. 2026",
+    startDateISO: "2026-06-15", endDateISO: "2026-06-17",
     members: 3, places: 8,
     img: "https://images.unsplash.com/photo-1528360983277-13d401cdc186?auto=format&fit=crop&w=800&q=80",
     destinations: ["ดอยอินทนนท์", "วัดพระธาตุดอยสุเทพ", "ถนนคนเดิน"],
@@ -346,6 +382,7 @@ const MOCK_TRIPS: TripSummary[] = [
   {
     id: "mock-2", title: "บาหลี Solo Trip", status: "planning",
     startDate: "10 ก.ค. 2026", endDate: "17 ก.ค. 2026",
+    startDateISO: "2026-07-10", endDateISO: "2026-07-17",
     members: 1, places: 12,
     img: "https://images.unsplash.com/photo-1537996194471-e657df975ab4?auto=format&fit=crop&w=800&q=80",
     destinations: ["Tegalalang", "Ubud", "Seminyak", "Uluwatu"],
@@ -353,8 +390,158 @@ const MOCK_TRIPS: TripSummary[] = [
   {
     id: "mock-3", title: "ภูเก็ตกับครอบครัว", status: "completed",
     startDate: "20 เม.ย. 2026", endDate: "24 เม.ย. 2026",
+    startDateISO: "2026-04-20", endDateISO: "2026-04-24",
     members: 5, places: 6,
     img: "https://images.unsplash.com/photo-1552465011-b4e21bf6e79a?auto=format&fit=crop&w=800&q=80",
     destinations: ["หาดกะรน", "บิ๊กพุทธา", "ตลาดบางเหนียว"],
   },
 ];
+
+// ─── Calendar component ────────────────────────────────────────────────────────
+
+const THAI_MONTHS_FULL = [
+  "มกราคม", "กุมภาพันธ์", "มีนาคม", "เมษายน", "พฤษภาคม", "มิถุนายน",
+  "กรกฎาคม", "สิงหาคม", "กันยายน", "ตุลาคม", "พฤศจิกายน", "ธันวาคม",
+];
+const THAI_DOW = ["อา", "จ", "อ", "พ", "พฤ", "ศ", "ส"];
+
+// Up to 6 trip colors for multi-trip calendars
+const TRIP_COLORS = [
+  "bg-[#398AB9] text-white",
+  "bg-emerald-500 text-white",
+  "bg-amber-500 text-white",
+  "bg-purple-500 text-white",
+  "bg-pink-500 text-white",
+  "bg-orange-500 text-white",
+];
+const TRIP_BAR_COLORS = [
+  "bg-[#398AB9]/30",
+  "bg-emerald-400/30",
+  "bg-amber-400/30",
+  "bg-purple-400/30",
+  "bg-pink-400/30",
+  "bg-orange-400/30",
+];
+
+function buildCalendarCells(year: number, month: number): (number | null)[] {
+  const firstDow = new Date(year, month, 1).getDay();
+  const daysInMonth = new Date(year, month + 1, 0).getDate();
+  const cells: (number | null)[] = [
+    ...Array<null>(firstDow).fill(null),
+    ...Array.from({ length: daysInMonth }, (_, i) => i + 1),
+  ];
+  while (cells.length % 7 !== 0) cells.push(null);
+  return cells;
+}
+
+function tripsOnDay(trips: TripSummary[], year: number, month: number, day: number): TripSummary[] {
+  const d = new Date(year, month, day, 12, 0, 0);
+  return trips.filter((t) => {
+    if (!t.startDateISO || !t.endDateISO) return false;
+    const start = new Date(t.startDateISO); start.setHours(0, 0, 0, 0);
+    const end = new Date(t.endDateISO); end.setHours(23, 59, 59, 999);
+    return d >= start && d <= end;
+  });
+}
+
+function isStartDay(t: TripSummary, year: number, month: number, day: number): boolean {
+  if (!t.startDateISO) return false;
+  const s = new Date(t.startDateISO);
+  return s.getFullYear() === year && s.getMonth() === month && s.getDate() === day;
+}
+
+function TripsCalendar({ trips, year, month, onPrev, onNext }: {
+  trips: TripSummary[];
+  year: number;
+  month: number;
+  onPrev: () => void;
+  onNext: () => void;
+}) {
+  const cells = buildCalendarCells(year, month);
+  const today = new Date();
+  const tripsWithDates = trips.filter((t) => t.startDateISO);
+  // build stable color index
+  const colorMap = new Map<string, number>();
+  tripsWithDates.forEach((t, i) => colorMap.set(t.id, i % TRIP_COLORS.length));
+
+  return (
+    <div className="bg-white dark:bg-slate-800 rounded-2xl border border-gray-100 dark:border-slate-700 overflow-hidden mb-4">
+      {/* Month header */}
+      <div className="flex items-center justify-between px-4 py-3 border-b border-gray-100 dark:border-slate-700">
+        <button onClick={onPrev}
+          className="w-7 h-7 flex items-center justify-center rounded-lg text-gray-400 dark:text-slate-500 hover:bg-gray-100 dark:hover:bg-slate-700 transition">
+          <ChevronLeft className="w-4 h-4" />
+        </button>
+        <span className="text-sm font-bold text-gray-800 dark:text-slate-200">
+          {THAI_MONTHS_FULL[month]} {year + 543}
+        </span>
+        <button onClick={onNext}
+          className="w-7 h-7 flex items-center justify-center rounded-lg text-gray-400 dark:text-slate-500 hover:bg-gray-100 dark:hover:bg-slate-700 transition">
+          <ChevronRight className="w-4 h-4" />
+        </button>
+      </div>
+
+      {/* Day-of-week headers */}
+      <div className="grid grid-cols-7 border-b border-gray-50 dark:border-slate-700/50">
+        {THAI_DOW.map((d) => (
+          <div key={d} className="text-center text-[10px] font-semibold text-gray-400 dark:text-slate-500 py-2">{d}</div>
+        ))}
+      </div>
+
+      {/* Day cells */}
+      <div className="grid grid-cols-7">
+        {cells.map((day, i) => {
+          if (!day) return <div key={i} className="min-h-[52px] border-b border-r border-gray-50 dark:border-slate-700/20" />;
+          const dayTrips = tripsOnDay(trips, year, month, day);
+          const isToday = today.getFullYear() === year && today.getMonth() === month && today.getDate() === day;
+          const hasBg = dayTrips.length > 0;
+          return (
+            <div key={i} className={`min-h-[52px] p-1 border-b border-r border-gray-50 dark:border-slate-700/20 ${hasBg ? "bg-[#398AB9]/5 dark:bg-[#398AB9]/10" : ""}`}>
+              <span className={`text-[11px] w-6 h-6 flex items-center justify-center mx-auto rounded-full mb-0.5 ${
+                isToday ? "bg-[#398AB9] text-white font-bold" : "text-gray-700 dark:text-slate-300"
+              }`}>
+                {day}
+              </span>
+              {dayTrips.map((t) => {
+                const ci = colorMap.get(t.id) ?? 0;
+                const isStart = isStartDay(t, year, month, day);
+                return isStart ? (
+                  <Link key={t.id} href={`/trips/${t.id}`}
+                    className={`block text-[9px] leading-tight px-1 py-0.5 rounded truncate font-semibold mb-0.5 ${TRIP_COLORS[ci]}`}>
+                    {t.title}
+                  </Link>
+                ) : (
+                  <div key={t.id} className={`h-1.5 rounded-full mb-0.5 mx-0.5 ${TRIP_BAR_COLORS[ci]}`} />
+                );
+              })}
+            </div>
+          );
+        })}
+      </div>
+
+      {/* Legend */}
+      {tripsWithDates.length > 0 && (
+        <div className="px-4 py-2.5 border-t border-gray-50 dark:border-slate-700/50 flex flex-wrap gap-x-3 gap-y-1.5">
+          {tripsWithDates.map((t) => {
+            const ci = colorMap.get(t.id) ?? 0;
+            const dotColors = ["bg-[#398AB9]", "bg-emerald-500", "bg-amber-500", "bg-purple-500", "bg-pink-500", "bg-orange-500"];
+            return (
+              <Link key={t.id} href={`/trips/${t.id}`}
+                className="flex items-center gap-1.5 text-[10px] text-gray-600 dark:text-slate-400 hover:text-[#398AB9] transition">
+                <span className={`w-2 h-2 rounded-full flex-shrink-0 ${dotColors[ci]}`} />
+                {t.title}
+              </Link>
+            );
+          })}
+        </div>
+      )}
+
+      {tripsWithDates.length === 0 && (
+        <div className="py-10 text-center text-gray-400 dark:text-slate-500">
+          <Calendar className="w-8 h-8 mx-auto mb-2 opacity-30" />
+          <p className="text-xs">ยังไม่มีทริปที่มีวันที่</p>
+        </div>
+      )}
+    </div>
+  );
+}
