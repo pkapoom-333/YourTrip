@@ -388,28 +388,34 @@ export default function UserProfilePage() {
               </div>
             ) : (
               posts.map((p) => (
-                <div
+                <Link
                   key={p.id}
-                  className="relative aspect-square bg-gray-200 dark:bg-slate-700 overflow-hidden group cursor-pointer"
+                  href={`/post/${p.id}`}
+                  className="relative aspect-square bg-gray-200 dark:bg-slate-700 overflow-hidden group block"
                 >
                   {p.images[0] ? (
                     <img
                       src={p.images[0]}
                       alt=""
                       className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                      referrerPolicy="no-referrer"
                     />
                   ) : (
                     <div className="w-full h-full bg-gray-100 dark:bg-slate-700 flex items-center justify-center">
                       <Grid3X3 className="w-6 h-6 text-gray-300 dark:text-slate-500" />
                     </div>
                   )}
-                  <div className="absolute inset-0 bg-black/0 group-hover:bg-black/30 transition flex items-center justify-center opacity-0 group-hover:opacity-100">
-                    <div className="flex items-center gap-1.5 text-white font-semibold text-sm">
+                  <div className="absolute inset-0 bg-black/0 group-hover:bg-black/40 transition flex items-center justify-center gap-4 opacity-0 group-hover:opacity-100">
+                    <div className="flex items-center gap-1 text-white font-semibold text-sm">
                       <Heart className="w-4 h-4 fill-white" />
                       {p.likesCount}
                     </div>
+                    <div className="flex items-center gap-1 text-white font-semibold text-sm">
+                      <MessageCircle className="w-4 h-4 fill-white" />
+                      {p.commentsCount}
+                    </div>
                   </div>
-                </div>
+                </Link>
               ))
             )}
           </div>

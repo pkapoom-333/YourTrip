@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import AppShell from "@/components/AppShell";
 import Link from "next/link";
-import { Settings, MapPin, Grid3X3, Bookmark, Heart, Star, Map, Camera, Activity } from "lucide-react";
+import { Settings, MapPin, Grid3X3, Bookmark, Heart, Star, Map, Camera, Activity, MessageCircle } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { getProfile, getUserPosts, getUserSavedPosts, getRecentActivity, type PostGridItem, type ActivityItem } from "@/server/actions/profile";
 import { getSavedPlaces, type SavedPlaceItem } from "@/server/actions/savedPlaces";
@@ -289,23 +289,27 @@ export default function ProfilePage() {
               </div>
             ) : (
               myPosts.map((p) => (
-                <div key={p.id} className="relative aspect-square bg-gray-200 dark:bg-slate-700 overflow-hidden group cursor-pointer">
+                <Link key={p.id} href={`/post/${p.id}`} className="relative aspect-square bg-gray-200 dark:bg-slate-700 overflow-hidden group block">
                   {p.images[0] ? (
                     <img src={p.images[0]} alt="" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                       referrerPolicy="no-referrer"
                       onError={(e) => { (e.target as HTMLImageElement).parentElement!.style.display = "none"; }} />
                   ) : (
-                    <div className="w-full h-full bg-gray-200 flex items-center justify-center">
+                    <div className="w-full h-full bg-gray-200 dark:bg-slate-700 flex items-center justify-center">
                       <Grid3X3 className="w-6 h-6 text-gray-400" />
                     </div>
                   )}
-                  <div className="absolute inset-0 bg-black/0 group-hover:bg-black/30 transition flex items-center justify-center opacity-0 group-hover:opacity-100">
-                    <div className="flex items-center gap-1.5 text-white font-semibold text-sm">
+                  <div className="absolute inset-0 bg-black/0 group-hover:bg-black/40 transition flex items-center justify-center gap-4 opacity-0 group-hover:opacity-100">
+                    <div className="flex items-center gap-1 text-white font-semibold text-sm">
                       <Heart className="w-4 h-4 fill-white" />
                       {p.likesCount}
                     </div>
+                    <div className="flex items-center gap-1 text-white font-semibold text-sm">
+                      <MessageCircle className="w-4 h-4 fill-white" />
+                      {p.commentsCount}
+                    </div>
                   </div>
-                </div>
+                </Link>
               ))
             )}
           </div>
