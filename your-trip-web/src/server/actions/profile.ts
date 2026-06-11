@@ -569,6 +569,79 @@ export async function getBlockedUsers(): Promise<{ data: { id: string; name: str
   }
 }
 
+// ─── Recent Activity feed ─────────────────────────────────────────────────────
+
+export type ActivityItem =
+  | { kind: "post";   id: string; image: string | null; caption: string; likesCount: number; createdAt: Date }
+  | { kind: "trip";   id: string; title: string; destination: string; coverImage: string | null; createdAt: Date }
+  | { kind: "review"; id: string; placeName: string; placeSlug: string; rating: number; content: string | null; createdAt: Date };
+
+export async function getRecentActivity(
+  userId?: string,
+  take = 15
+): Promise<{ data: ActivityItem[] }> {
+  try {
+    const supabase = await createServerClient();
+    const { data: { user: authUser } } = await supabase.auth.getUser();
+    const targetId = userId ?? authUser?.id;
+    if (!targetId) return { data: [] };
+
+    const [posts, trips, reviews] = await Promise.all([
+      prisma.post.findMany({
+        where: { userId: targetId, ...(userId ? { isPublic: true } : {}) },
+        orderBy: { createdAt: "desc" },
+        take,
+        include: { _count: { select: { likes: true } } },
+      }),
+      prisma.trip.findMany({
+        where: { userId: targetId, ...(userId ? { isPublic: true } : {}) },
+        orderBy: { createdAt: "desc" },
+        take,
+        select: { id: true, title: true, destination: true, coverImage: true, createdAt: true },
+      }),
+      prisma.review.findMany({
+        where: { userId: targetId },
+        orderBy: { createdAt: "desc" },
+        take,
+        include: { place: { select: { name: true, slug: true } } },
+      }),
+    ]);
+
+    const items: ActivityItem[] = [
+      ...posts.map((p): ActivityItem => ({
+        kind: "post",
+        id: p.id,
+        image: p.images[0] ?? null,
+        caption: p.content,
+        likesCount: p._count.likes,
+        createdAt: p.createdAt,
+      })),
+      ...trips.map((t): ActivityItem => ({
+        kind: "trip",
+        id: t.id,
+        title: t.title,
+        destination: t.destination,
+        coverImage: t.coverImage,
+        createdAt: t.createdAt,
+      })),
+      ...reviews.map((r): ActivityItem => ({
+        kind: "review",
+        id: r.id,
+        placeName: r.place.name,
+        placeSlug: r.place.slug,
+        rating: r.rating,
+        content: r.content ?? null,
+        createdAt: r.createdAt,
+      })),
+    ];
+
+    items.sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
+    return { data: items.slice(0, take) };
+  } catch {
+    return { data: [] };
+  }
+}
+
 // TODO Phase 2: create GuideApplication model to store full application + file uploads + admin review
 export async function applyAsGuide(): Promise<{ data?: { success: boolean }; error?: { message: string } }> {
   try {
