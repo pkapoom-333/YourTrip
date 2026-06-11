@@ -16,11 +16,13 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     { url: `${BASE_URL}/forgot-password`, lastModified: now, changeFrequency: "monthly", priority: 0.3 },
   ];
 
-  // Fetch real place slugs + public user profiles from DB
+  // Fetch real place slugs + public user profiles + provinces + public trips from DB
   let placeRoutes: MetadataRoute.Sitemap = [];
   let userRoutes: MetadataRoute.Sitemap = [];
+  let provinceRoutes: MetadataRoute.Sitemap = [];
+  let tripRoutes: MetadataRoute.Sitemap = [];
   try {
-    const [places, users] = await Promise.all([
+    const [places, users, provinces, publicTrips] = await Promise.all([
       prisma.place.findMany({
         where: { isPublished: true },
         select: { slug: true, updatedAt: true },
@@ -32,6 +34,18 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
         select: { username: true, updatedAt: true },
         orderBy: { createdAt: "desc" },
         take: 1000,
+      }),
+      prisma.place.findMany({
+        where: { isPublished: true, province: { not: null } },
+        select: { province: true, updatedAt: true },
+        distinct: ["province"],
+        take: 100,
+      }),
+      prisma.trip.findMany({
+        where: { isPublic: true },
+        select: { id: true, updatedAt: true },
+        orderBy: { updatedAt: "desc" },
+        take: 200,
       }),
     ]);
 
@@ -50,9 +64,25 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
         changeFrequency: "weekly" as const,
         priority: 0.6,
       }));
+
+    provinceRoutes = provinces
+      .filter((p) => p.province)
+      .map((p) => ({
+        url: `${BASE_URL}/explore/${encodeURIComponent(p.province!)}`,
+        lastModified: p.updatedAt,
+        changeFrequency: "weekly" as const,
+        priority: 0.85,
+      }));
+
+    tripRoutes = publicTrips.map((t) => ({
+      url: `${BASE_URL}/trips/${t.id}`,
+      lastModified: t.updatedAt,
+      changeFrequency: "weekly" as const,
+      priority: 0.6,
+    }));
   } catch {
     // DB unavailable — skip dynamic routes
   }
 
-  return [...staticRoutes, ...placeRoutes, ...userRoutes];
+  return [...staticRoutes, ...provinceRoutes, ...placeRoutes, ...userRoutes, ...tripRoutes];
 }
