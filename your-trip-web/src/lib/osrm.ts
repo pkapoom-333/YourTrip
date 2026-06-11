@@ -29,6 +29,41 @@ export async function getDrivingRoute(
   }));
 }
 
+/** Google Directions via internal proxy — returns empty array on any error */
+export async function getGoogleRoute(
+  coords: Array<{ lat: number; lng: number }>
+): Promise<RouteSegment[]> {
+  if (coords.length < 2) return [];
+
+  const origin = `${coords[0].lat},${coords[0].lng}`;
+  const destination = `${coords[coords.length - 1].lat},${coords[coords.length - 1].lng}`;
+  const middle = coords.slice(1, -1).map((c) => `${c.lat},${c.lng}`).join("|");
+
+  const params = new URLSearchParams({ origin, destination });
+  if (middle) params.set("waypoints", middle);
+
+  try {
+    const res = await fetch(`/api/directions?${params}`);
+    if (!res.ok) return [];
+    const json = await res.json() as {
+      status: string;
+      routes: Array<{
+        legs: Array<{
+          distance: { value: number };
+          duration: { value: number };
+        }>;
+      }>;
+    };
+    if (json.status !== "OK" || !json.routes[0]) return [];
+    return json.routes[0].legs.map((leg) => ({
+      distanceKm: Math.round((leg.distance.value / 1000) * 10) / 10,
+      durationMin: Math.round(leg.duration.value / 60),
+    }));
+  } catch {
+    return [];
+  }
+}
+
 /** Haversine fallback — ระยะทางเส้นตรง */
 export function haversineKm(
   a: { lat: number; lng: number },

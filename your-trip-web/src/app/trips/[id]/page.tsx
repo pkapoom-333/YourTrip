@@ -12,7 +12,7 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import dynamic from "next/dynamic";
-import { getDrivingRoute, haversineKm } from "@/lib/osrm";
+import { getDrivingRoute, getGoogleRoute, haversineKm } from "@/lib/osrm";
 import type { MapPoint } from "@/components/features/TripDayMap";
 import { searchPlacesForTrip, type PlacePickerItem } from "@/server/actions/places";
 
@@ -510,6 +510,7 @@ export default function TripDetailPage({ params }: { params: Promise<{ id: strin
   const [dragItemId, setDragItemId] = useState<string | null>(null);
   const [dragOverItemId, setDragOverItemId] = useState<string | null>(null);
   const [routeSegments, setRouteSegments] = useState<Array<{ distanceKm: number; durationMin: number }>>([]);
+  const [routeSource, setRouteSource] = useState<"google" | "osrm" | "haversine" | null>(null);
   const [newItem, setNewItem] = useState({
     name: "", time: "", cost: "", note: "",
     duration: "", travelTimeTo: "",
@@ -574,21 +575,33 @@ export default function TripDetailPage({ params }: { params: Promise<{ id: strin
       setRouteSegments([]);
       return;
     }
+
+    // 1️⃣ Google Directions (accurate, traffic-aware)
+    const googleSegs = await getGoogleRoute(coords);
+    if (googleSegs.length > 0) {
+      setRouteSegments(googleSegs);
+      setRouteSource("google");
+      return;
+    }
+
+    // 2️⃣ OSRM fallback (open-source routing)
     try {
       const segs = await getDrivingRoute(coords);
       if (segs.length > 0) {
         setRouteSegments(segs);
+        setRouteSource("osrm");
         return;
       }
-    } catch { /* fall through to haversine */ }
+    } catch { /* fall through */ }
 
-    // Haversine fallback for consecutive pairs
+    // 3️⃣ Haversine fallback (straight-line estimate)
     const segs = [];
     for (let i = 0; i < coords.length - 1; i++) {
       const km = haversineKm(coords[i], coords[i + 1]);
       segs.push({ distanceKm: km, durationMin: Math.round((km / 40) * 60) });
     }
     setRouteSegments(segs);
+    setRouteSource("haversine");
   }, [currentDay]);
 
   useEffect(() => { fetchRoute(); }, [fetchRoute]);
@@ -900,18 +913,38 @@ export default function TripDetailPage({ params }: { params: Promise<{ id: strin
                     } satisfies MapPoint))
                   }
                 />
-                {/* Route summary from OSRM */}
+                {/* Route summary */}
                 {routeSegments.length > 0 && (
-                  <div className="mt-2 flex gap-2 flex-wrap">
-                    {routeSegments.map((seg, i) => (
-                      <div key={i} className="flex items-center gap-1 bg-[#398AB9]/8 text-[#398AB9] text-[11px] font-medium px-2.5 py-1 rounded-full">
-                        <Navigation className="w-3 h-3" />
-                        {currentDay.items[i]?.name.slice(0, 8)} → {currentDay.items[i + 1]?.name.slice(0, 8)}
-                        <span className="text-[#1C658C] font-bold ml-1">{seg.distanceKm} km</span>
-                        <span className="text-gray-400">·</span>
-                        <span>~{seg.durationMin} นาที</span>
-                      </div>
-                    ))}
+                  <div className="mt-2 space-y-1.5">
+                    <div className="flex items-center gap-1.5">
+                      <span className="text-[10px] text-gray-400 dark:text-slate-500">เวลาเดินทาง</span>
+                      {routeSource === "google" && (
+                        <span className="text-[9px] font-semibold bg-emerald-50 dark:bg-emerald-900/20 text-emerald-600 dark:text-emerald-400 px-1.5 py-0.5 rounded-full">
+                          📍 Google Maps
+                        </span>
+                      )}
+                      {routeSource === "osrm" && (
+                        <span className="text-[9px] text-gray-400 dark:text-slate-500 px-1.5 py-0.5 rounded-full bg-gray-50 dark:bg-slate-700">
+                          OSRM
+                        </span>
+                      )}
+                      {routeSource === "haversine" && (
+                        <span className="text-[9px] text-gray-400 dark:text-slate-500 px-1.5 py-0.5 rounded-full bg-gray-50 dark:bg-slate-700">
+                          ประมาณการ
+                        </span>
+                      )}
+                    </div>
+                    <div className="flex gap-2 flex-wrap">
+                      {routeSegments.map((seg, i) => (
+                        <div key={i} className="flex items-center gap-1 bg-[#398AB9]/8 text-[#398AB9] text-[11px] font-medium px-2.5 py-1 rounded-full">
+                          <Navigation className="w-3 h-3" />
+                          {currentDay.items[i]?.name.slice(0, 8)} → {currentDay.items[i + 1]?.name.slice(0, 8)}
+                          <span className="text-[#1C658C] font-bold ml-1">{seg.distanceKm} km</span>
+                          <span className="text-gray-400">·</span>
+                          <span>~{seg.durationMin} นาที</span>
+                        </div>
+                      ))}
+                    </div>
                   </div>
                 )}
               </div>
