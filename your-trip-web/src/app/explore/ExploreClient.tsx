@@ -551,6 +551,56 @@ export default function ExploreClient({ initialPlaces, initialSaved = [] }: { in
         ))}
       </div>
 
+      {/* ── Destination Spotlight ── only shown with no active filters */}
+      {!query && activeCategory === "all" && activeRegion === "all" && searchMode === "places" && (
+        <div className="mb-5">
+          <div className="flex items-center justify-between mb-3">
+            <p className="text-sm font-bold text-gray-900 dark:text-slate-100">จุดหมายยอดนิยม</p>
+            <Link href="/explore" className="text-xs text-[#398AB9] hover:underline flex items-center gap-0.5">
+              สำรวจเพิ่มเติม <ArrowRight className="w-3 h-3" />
+            </Link>
+          </div>
+          <div className="flex gap-3 overflow-x-auto scrollbar-none pb-1 -mx-4 px-4 md:mx-0 md:px-0">
+            {[
+              { province: "เชียงใหม่", label: "เชียงใหม่", sub: "ภาคเหนือ", img: "https://images.unsplash.com/photo-1528360983277-13d401cdc186?auto=format&fit=crop&w=400&q=80", color: "from-emerald-800/70" },
+              { province: "กรุงเทพมหานคร", label: "กรุงเทพฯ", sub: "เมืองหลวง", img: "https://images.unsplash.com/photo-1563492065599-3520f775eeed?auto=format&fit=crop&w=400&q=80", color: "from-blue-900/70" },
+              { province: "กระบี่", label: "กระบี่", sub: "ภาคใต้", img: "https://images.unsplash.com/photo-1537953773345-d172ccf13cf4?auto=format&fit=crop&w=400&q=80", color: "from-cyan-800/70" },
+              { province: "ภูเก็ต", label: "ภูเก็ต", sub: "เกาะมุก", img: "https://images.unsplash.com/photo-1589394815804-964ed0be2eb5?auto=format&fit=crop&w=400&q=80", color: "from-orange-800/70" },
+              { province: "เชียงราย", label: "เชียงราย", sub: "ล้านนา", img: "https://images.unsplash.com/photo-1548013146-72479768bada?auto=format&fit=crop&w=400&q=80", color: "from-purple-800/70" },
+              { province: "พระนครศรีอยุธยา", label: "อยุธยา", sub: "โบราณสถาน", img: "https://images.unsplash.com/photo-1555400038-63f5ba517a47?auto=format&fit=crop&w=400&q=80", color: "from-amber-900/70" },
+            ].map(({ province, label, sub, img, color }) => {
+              const count = initialPlaces.filter((p) => p.province?.includes(label.replace("ฯ", ""))).length;
+              return (
+                <Link
+                  key={province}
+                  href={`/explore/${encodeURIComponent(province)}`}
+                  className="group relative flex-shrink-0 w-36 h-44 rounded-2xl overflow-hidden shadow-sm hover:shadow-lg transition-all duration-300 hover:-translate-y-0.5"
+                >
+                  <img
+                    src={img}
+                    alt={label}
+                    className="absolute inset-0 w-full h-full object-cover group-hover:scale-[1.06] transition-transform duration-500"
+                    referrerPolicy="no-referrer"
+                    loading="lazy"
+                    onError={(e) => { (e.target as HTMLImageElement).src = "https://images.unsplash.com/photo-1476514525405-8d4b4c284c1e?auto=format&fit=crop&w=400&q=80"; }}
+                  />
+                  <div className={`absolute inset-0 bg-gradient-to-t ${color} to-transparent`} />
+                  <div className="absolute bottom-0 left-0 right-0 p-3">
+                    <p className="text-white font-bold text-sm leading-tight">{label}</p>
+                    <p className="text-white/70 text-[10px] mt-0.5">{sub}</p>
+                    {count > 0 && (
+                      <span className="inline-block mt-1.5 text-[9px] font-semibold bg-white/20 backdrop-blur-sm text-white px-2 py-0.5 rounded-full">
+                        {count} สถานที่
+                      </span>
+                    )}
+                  </div>
+                </Link>
+              );
+            })}
+          </div>
+        </div>
+      )}
+
       {/* Province quick-links — only shown when not searching or filtering */}
       {!query && activeCategory === "all" && activeRegion === "all" && searchMode === "places" && (
         <div className="mb-4">
@@ -558,9 +608,6 @@ export default function ExploreClient({ initialPlaces, initialSaved = [] }: { in
             <p className="text-xs font-semibold text-gray-500 dark:text-slate-400 uppercase tracking-wide">
               ท่องเที่ยวตามจังหวัด
             </p>
-            <Link href="/explore" className="text-xs text-[#398AB9] hover:underline flex items-center gap-0.5">
-              ดูทั้งหมด <ArrowRight className="w-3 h-3" />
-            </Link>
           </div>
           <div className="flex gap-2 overflow-x-auto scrollbar-none pb-1">
             {[
