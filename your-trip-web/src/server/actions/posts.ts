@@ -553,6 +553,34 @@ export const REPORT_REASONS = [
 
 export type ReportReason = (typeof REPORT_REASONS)[number];
 
+export async function getTrendingHashtags(take = 8): Promise<{ data: { tag: string; count: number }[] }> {
+  try {
+    // Unnest the tags array and count occurrences across all posts (last 30 days)
+    const rows = await prisma.$queryRaw<{ tag: string; count: bigint }[]>`
+      SELECT tag, COUNT(*) as count
+      FROM posts, UNNEST(tags) AS tag
+      WHERE "createdAt" > NOW() - INTERVAL '30 days'
+        AND tag IS NOT NULL AND tag != ''
+      GROUP BY tag
+      ORDER BY count DESC
+      LIMIT ${take}
+    `;
+    return { data: rows.map((r) => ({ tag: r.tag, count: Number(r.count) })) };
+  } catch {
+    // Fallback mock if DB not ready or no posts with tags
+    return {
+      data: [
+        { tag: "เชียงใหม่", count: 2400 },
+        { tag: "บาหลี",     count: 1800 },
+        { tag: "โตเกียว",  count: 3100 },
+        { tag: "ภูเก็ต",   count: 1500 },
+        { tag: "กรุงเทพฯ", count: 4200 },
+        { tag: "คาเฟ่",    count: 890  },
+      ],
+    };
+  }
+}
+
 export async function reportPost(
   postId: string,
   reason: ReportReason,

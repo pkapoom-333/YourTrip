@@ -11,7 +11,7 @@ export const metadata: Metadata = {
   alternates: { canonical: `${SITE_URL}/feed` },
 };
 import { type PostCardData } from "@/components/features/PostCard";
-import { getFeed } from "@/server/actions/posts";
+import { getFeed, getTrendingHashtags } from "@/server/actions/posts";
 import { getPlaces } from "@/server/actions/places";
 import { getPublicTrips } from "@/server/actions/trips";
 import { MapPin as MapPinIcon } from "lucide-react";
@@ -64,12 +64,6 @@ const MOCK_POSTS: PostCardData[] = [
   },
 ];
 
-const trending = [
-  { label: "เชียงใหม่", count: "2.4K โพสต์" },
-  { label: "บาหลี", count: "1.8K โพสต์" },
-  { label: "โตเกียว", count: "3.1K โพสต์" },
-  { label: "ภูเก็ต", count: "1.5K โพสต์" },
-];
 
 const fmtTime = (d: Date) => {
   const diff = Date.now() - new Date(d).getTime();
@@ -85,10 +79,12 @@ export default async function FeedPage() {
     { data: dbPosts, nextCursor, hasMore },
     { data: featuredPlaces },
     { data: communityTrips },
+    { data: trendingHashtags },
   ] = await Promise.all([
     getFeed(),
     getPlaces({ featured: true, take: 3 }),
     getPublicTrips(3),
+    getTrendingHashtags(6),
   ]);
 
   const feedPosts: PostCardData[] = dbPosts.length > 0
@@ -181,15 +177,19 @@ export default async function FeedPage() {
                 <h3 className="text-sm font-semibold text-gray-900 dark:text-slate-100">กำลังฮิต</h3>
               </div>
               <div className="space-y-3">
-                {trending.map((t, i) => (
-                  <div key={t.label} className="flex items-center justify-between">
-                    <div className="flex items-center gap-3">
-                      <span className="text-xs text-gray-400 dark:text-slate-500 w-4">{i + 1}</span>
-                      <span className="text-sm font-medium text-gray-800 dark:text-slate-200">#{t.label}</span>
-                    </div>
-                    <span className="text-[11px] text-gray-400 dark:text-slate-500">{t.count}</span>
-                  </div>
-                ))}
+                {trendingHashtags.map((t, i) => {
+                  const fmtCount = t.count >= 1000 ? (t.count / 1000).toFixed(1).replace(".0","") + "K" : String(t.count);
+                  return (
+                    <Link key={t.tag} href={`/tags/${encodeURIComponent(t.tag)}`}
+                      className="flex items-center justify-between group hover:opacity-80 transition">
+                      <div className="flex items-center gap-3">
+                        <span className="text-xs text-gray-400 dark:text-slate-500 w-4">{i + 1}</span>
+                        <span className="text-sm font-medium text-gray-800 dark:text-slate-200 group-hover:text-[#398AB9] transition">#{t.tag}</span>
+                      </div>
+                      <span className="text-[11px] text-gray-400 dark:text-slate-500">{fmtCount} โพสต์</span>
+                    </Link>
+                  );
+                })}
               </div>
             </div>
 
