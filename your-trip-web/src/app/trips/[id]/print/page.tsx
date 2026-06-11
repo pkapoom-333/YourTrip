@@ -2,7 +2,7 @@
 
 import { use, useState, useEffect } from "react";
 import { getTripById } from "@/server/actions/trips";
-import { MapPin, Clock, Wallet, Car, Printer, ArrowLeft } from "lucide-react";
+import { MapPin, Clock, Wallet, Car, Printer, ArrowLeft, Copy, Check } from "lucide-react";
 import Link from "next/link";
 
 interface TripItem {
@@ -29,6 +29,42 @@ function fmtMin(min: number) {
   return m > 0 ? `${h} ชม. ${m} นาที` : `${h} ชม.`;
 }
 
+function buildTextExport(
+  title: string,
+  destination: string,
+  startDate: string,
+  endDate: string,
+  budget: number,
+  days: TripDay[],
+  tripId: string
+): string {
+  const header = [
+    `📋 ${title}`,
+    `📍 ${destination}`,
+    startDate ? `🗓 ${startDate}${endDate ? ` – ${endDate}` : ""}` : "",
+    budget > 0 ? `💰 งบ ฿${budget.toLocaleString()}` : "",
+    "",
+    "─".repeat(40),
+  ].filter(Boolean).join("\n");
+
+  const body = days.map((d) => {
+    const dayHeader = `\n📅 วันที่ ${d.day}${d.date ? ` — ${d.date}` : ""}`;
+    const items = d.items.map((item) => {
+      const parts = [`  • ${item.time ? `[${item.time}] ` : ""}${item.name}`];
+      if (item.duration) parts.push(`    ⏱ ${fmtMin(item.duration)}`);
+      if (item.cost) parts.push(`    ฿ ${item.cost.toLocaleString()}`);
+      if (item.note) parts.push(`    → ${item.note}`);
+      return parts.join("\n");
+    });
+    return [dayHeader, ...items].join("\n");
+  }).join("\n\n");
+
+  const totalCost = days.flatMap((d) => d.items).reduce((s, i) => s + (i.cost ?? 0), 0);
+  const footer = `\n${"─".repeat(40)}\n💸 ค่าใช้จ่ายรวม ฿${totalCost.toLocaleString()}${budget > 0 ? ` / งบ ฿${budget.toLocaleString()}` : ""}\n🔗 yourtrip.app/trips/${tripId}`;
+
+  return [header, body, footer].join("\n");
+}
+
 const typeEmoji: Record<string, string> = {
   place: "📍",
   food: "🍽️",
@@ -46,6 +82,7 @@ export default function TripPrintPage({ params }: { params: Promise<{ id: string
   const [budget, setBudget] = useState(0);
   const [days, setDays] = useState<TripDay[]>([]);
   const [loaded, setLoaded] = useState(false);
+  const [copied, setCopied] = useState(false);
 
   const fmt = new Intl.DateTimeFormat("th-TH", { day: "numeric", month: "long", year: "numeric" });
 
@@ -90,11 +127,25 @@ export default function TripPrintPage({ params }: { params: Promise<{ id: string
         </Link>
         <div className="flex-1" />
         <button
+          onClick={async () => {
+            const text = buildTextExport(title, destination, startDate, endDate, budget, days, id);
+            await navigator.clipboard.writeText(text).catch(() => {});
+            setCopied(true);
+            setTimeout(() => setCopied(false), 2000);
+          }}
+          className={`flex items-center gap-2 px-3 py-2 text-sm font-semibold rounded-xl border transition ${
+            copied ? "border-emerald-500 bg-emerald-50 text-emerald-600" : "border-gray-200 text-gray-600 hover:border-[#398AB9] hover:text-[#398AB9]"
+          }`}
+        >
+          {copied ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
+          {copied ? "คัดลอกแล้ว!" : "คัดลอกข้อความ"}
+        </button>
+        <button
           onClick={() => window.print()}
           className="flex items-center gap-2 px-4 py-2 bg-[#398AB9] text-white text-sm font-semibold rounded-xl hover:bg-[#1C658C] transition"
         >
           <Printer className="w-4 h-4" />
-          พิมพ์ / บันทึก PDF
+          พิมพ์ / PDF
         </button>
       </div>
 
