@@ -2,7 +2,7 @@
 
 import { useState, useRef } from "react";
 import AppShell from "@/components/AppShell";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { createPost } from "@/server/actions/posts";
 import { ImageUpload, type UploadedImage } from "@/components/ImageUpload";
 import { useUser } from "@/hooks/useUser";
@@ -24,16 +24,18 @@ const suggestedTags = [
 
 export default function CreatePage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const { user } = useUser();
   const [content, setContent] = useState("");
   const [images, setImages] = useState<UploadedImage[]>([]);
   const [location, setLocation] = useState("");
-  const [placeId, setPlaceId] = useState<string | undefined>();
+  const [placeId, setPlaceId] = useState<string | undefined>(searchParams.get("placeId") ?? undefined);
   const [placeSearchQ, setPlaceSearchQ] = useState("");
   const [placeResults, setPlaceResults] = useState<PlacePickerItem[]>([]);
   const [placeSearching, setPlaceSearching] = useState(false);
   const placeTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const [tags, setTags] = useState<string[]>([]);
+  const preTag = searchParams.get("tag");
+  const [tags, setTags] = useState<string[]>(preTag ? [preTag] : []);
   const [tagInput, setTagInput] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
