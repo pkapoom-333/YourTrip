@@ -114,13 +114,13 @@ export default async function FeedPage() {
         <div className="flex items-center justify-between px-4 py-3">
           <span className="text-lg font-bold text-[#398AB9]">Your Trip</span>
           <div className="flex items-center gap-2">
-            <button className="w-9 h-9 flex items-center justify-center rounded-full hover:bg-gray-50 dark:hover:bg-slate-700">
+            <Link href="/explore" className="w-9 h-9 flex items-center justify-center rounded-full hover:bg-gray-50 dark:hover:bg-slate-700">
               <Search className="w-5 h-5 text-gray-500 dark:text-slate-400" />
-            </button>
-            <button className="w-9 h-9 flex items-center justify-center rounded-full hover:bg-gray-50 dark:hover:bg-slate-700 relative">
+            </Link>
+            <Link href="/notifications" className="w-9 h-9 flex items-center justify-center rounded-full hover:bg-gray-50 dark:hover:bg-slate-700 relative">
               <Bell className="w-5 h-5 text-gray-500 dark:text-slate-400" />
               <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-[#FF4F4F] rounded-full" />
-            </button>
+            </Link>
           </div>
         </div>
       </header>

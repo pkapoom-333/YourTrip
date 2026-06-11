@@ -4,6 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { Plus, MapPin, Calendar, Users, ChevronRight, ChevronLeft, Map as MapIcon, Plane, Trash2, X, ChevronDown, Copy, Check, Globe, Search, Sparkles, LayoutList, CalendarDays } from "lucide-react";
 import { deleteTrip, updateTripStatus, duplicateTrip, type PublicTripItem } from "@/server/actions/trips";
+import type { DestinationSuggestion } from "@/server/actions/savedPlaces";
 import { useToast } from "@/components/shared/Toast";
 import { Avatar } from "@/components/shared/Avatar";
 
@@ -30,7 +31,7 @@ const statusConfig: Record<TripSummary["status"], { label: string; color: string
 
 const PLACEHOLDER_IMG = "https://images.unsplash.com/photo-1476514525405-8d4b4c284c1e?auto=format&fit=crop&w=800&q=80";
 
-export default function TripsClient({ initialTrips, communityTrips = [] }: { initialTrips: TripSummary[]; communityTrips?: PublicTripItem[] }) {
+export default function TripsClient({ initialTrips, communityTrips = [], destinationSuggestions = [] }: { initialTrips: TripSummary[]; communityTrips?: PublicTripItem[]; destinationSuggestions?: DestinationSuggestion[] }) {
   const [tab, setTab] = useState<"all" | "upcoming" | "planning" | "completed">("all");
   const [trips, setTrips] = useState<TripSummary[]>(initialTrips.length > 0 ? initialTrips : MOCK_TRIPS);
   const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
@@ -138,6 +139,41 @@ export default function TripsClient({ initialTrips, communityTrips = [] }: { ini
           </div>
         ))}
       </div>
+
+      {/* Destination suggestions — based on saved places */}
+      {destinationSuggestions.length > 0 && trips.length < 5 && (
+        <div className="mb-4">
+          <div className="flex items-center justify-between mb-2.5">
+            <p className="text-sm font-semibold text-gray-700 dark:text-slate-200">จากสถานที่ที่คุณบันทึก</p>
+            <Link href="/explore" className="text-xs text-[#398AB9] hover:underline">ดูเพิ่ม →</Link>
+          </div>
+          <div className="flex gap-2.5 overflow-x-auto scrollbar-none pb-1 -mx-4 px-4 md:mx-0 md:px-0">
+            {destinationSuggestions.map((s) => (
+              <Link
+                key={s.province}
+                href={`/trips/new?destination=${encodeURIComponent(s.province)}`}
+                className="flex-shrink-0 group relative w-28 h-32 rounded-2xl overflow-hidden shadow-sm hover:shadow-md transition-all hover:-translate-y-0.5 duration-200"
+              >
+                {s.coverImage ? (
+                  <img src={s.coverImage} alt={s.province}
+                    className="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                    referrerPolicy="no-referrer" />
+                ) : (
+                  <div className="absolute inset-0 bg-gradient-to-br from-[#398AB9] to-[#1C658C]" />
+                )}
+                <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
+                <div className="absolute bottom-0 left-0 right-0 p-2.5">
+                  <p className="text-white text-xs font-bold truncate">{s.province}</p>
+                  <p className="text-white/70 text-[10px]">{s.count} สถานที่</p>
+                </div>
+                <div className="absolute top-2 right-2 bg-[#398AB9] text-white text-[9px] font-bold px-1.5 py-0.5 rounded-full">
+                  วางแผน
+                </div>
+              </Link>
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* Search */}
       {trips.length > 3 && (

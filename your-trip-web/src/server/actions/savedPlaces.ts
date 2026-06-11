@@ -107,3 +107,52 @@ export async function getSavedPlaces(): Promise<{ data: SavedPlaceItem[] }> {
     return { data: [] };
   }
 }
+
+export interface DestinationSuggestion {
+  province: string;
+  count: number;
+  coverImage: string | null;
+}
+
+/** Top provinces from the user's saved places — used as trip destination suggestions */
+export async function getDestinationSuggestions(take = 5): Promise<{ data: DestinationSuggestion[] }> {
+  try {
+    const supabase = await createServerClient();
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return { data: [] };
+
+    const rows = await prisma.savedPlace.findMany({
+      where: { userId: user.id },
+      select: {
+        place: {
+          select: {
+            province: true,
+            images: { select: { url: true }, orderBy: { order: "asc" }, take: 1 },
+          },
+        },
+      },
+      orderBy: { createdAt: "desc" },
+    });
+
+    const map = new Map<string, { count: number; coverImage: string | null }>();
+    for (const r of rows) {
+      const prov = r.place.province;
+      if (!prov) continue;
+      const existing = map.get(prov);
+      if (existing) {
+        existing.count += 1;
+      } else {
+        map.set(prov, { count: 1, coverImage: r.place.images[0]?.url ?? null });
+      }
+    }
+
+    const sorted = Array.from(map.entries())
+      .sort((a, b) => b[1].count - a[1].count)
+      .slice(0, take)
+      .map(([province, { count, coverImage }]) => ({ province, count, coverImage }));
+
+    return { data: sorted };
+  } catch {
+    return { data: [] };
+  }
+}
