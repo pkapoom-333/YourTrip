@@ -113,6 +113,7 @@ export default function PlaceDetailClient({ place, slug, initialSaved = false }:
   const [addingToCol, setAddingToCol] = useState(false);
   const [lightboxOpen, setLightboxOpen] = useState(false);
   const [lightboxIndex, setLightboxIndex] = useState(0);
+  const [reviewSort, setReviewSort] = useState<"newest" | "highest" | "lowest" | "helpful">("helpful");
 
   async function openAddToCollection() {
     setAddColOpen(true);
@@ -564,15 +565,32 @@ export default function PlaceDetailClient({ place, slug, initialSaved = false }:
                   <MessageCircle className="w-4 h-4 text-[#398AB9]" />
                   <h2 className="text-base font-semibold text-gray-900 dark:text-slate-100">รีวิวจากชุมชน</h2>
                 </div>
-                <div className="flex items-center gap-1.5">
-                  <Star className="w-4 h-4 fill-amber-400 text-amber-400" />
-                  <span className="text-sm font-bold text-gray-900 dark:text-slate-100">{place.rating}</span>
-                  <span className="text-xs text-gray-400 dark:text-slate-500">({place.reviewCount.toLocaleString()})</span>
+                <div className="flex items-center gap-2">
+                  <select
+                    value={reviewSort}
+                    onChange={(e) => setReviewSort(e.target.value as typeof reviewSort)}
+                    className="text-xs text-gray-500 dark:text-slate-400 bg-gray-50 dark:bg-slate-700 border border-gray-200 dark:border-slate-600 rounded-lg px-2 py-1 focus:outline-none"
+                  >
+                    <option value="helpful">เป็นประโยชน์</option>
+                    <option value="newest">ล่าสุด</option>
+                    <option value="highest">คะแนนสูงสุด</option>
+                    <option value="lowest">คะแนนต่ำสุด</option>
+                  </select>
+                  <div className="flex items-center gap-1.5">
+                    <Star className="w-4 h-4 fill-amber-400 text-amber-400" />
+                    <span className="text-sm font-bold text-gray-900 dark:text-slate-100">{place.rating}</span>
+                    <span className="text-xs text-gray-400 dark:text-slate-500">({place.reviewCount.toLocaleString()})</span>
+                  </div>
                 </div>
               </div>
 
               <div className="space-y-3">
-                {place.reviews.map((r) => (
+                {[...place.reviews].sort((a, b) => {
+                  if (reviewSort === "newest") return new Date(b.time).getTime() - new Date(a.time).getTime();
+                  if (reviewSort === "highest") return b.rating - a.rating;
+                  if (reviewSort === "lowest") return a.rating - b.rating;
+                  return b.likes - a.likes; // helpful
+                }).map((r) => (
                   <div key={r.id} className="bg-white dark:bg-slate-800 rounded-xl border border-gray-100 dark:border-slate-700 p-4">
                     <div className="flex items-start justify-between gap-3">
                       <div className="flex items-start gap-3">

@@ -2,6 +2,7 @@
 
 import { use, useState, useEffect, useCallback, useRef } from "react";
 import { useRouter } from "next/navigation";
+import QRCode from "qrcode";
 import AppShell from "@/components/AppShell";
 import { getTripById, addItineraryItem, deleteTripItem, updateTripItem, toggleTripPublic, reorderItinerary, cloneTripToUser } from "@/server/actions/trips";
 import {
@@ -9,7 +10,7 @@ import {
   Trash2, GripVertical, Calendar, Share2,
   Edit3, ChevronDown, ChevronUp, Flag, Car, Map,
   Navigation, Search, Loader2, X, ExternalLink, Printer,
-  Lock, Unlock,
+  Lock, Unlock, QrCode,
 } from "lucide-react";
 import Link from "next/link";
 import dynamic from "next/dynamic";
@@ -509,6 +510,9 @@ export default function TripDetailPage({ params }: { params: Promise<{ id: strin
   const [togglingPublic, setTogglingPublic] = useState(false);
   const [showAddModal, setShowAddModal] = useState(false);
   const [cloningTrip, setCloningTrip] = useState(false);
+  const [showQR, setShowQR] = useState(false);
+  const [qrDataUrl, setQrDataUrl] = useState<string | null>(null);
+  const qrCanvasRef = useRef<HTMLCanvasElement>(null);
   const [showMap, setShowMap] = useState(false);
   const [dragItemId, setDragItemId] = useState<string | null>(null);
   const [dragOverItemId, setDragOverItemId] = useState<string | null>(null);
@@ -767,6 +771,20 @@ export default function TripDetailPage({ params }: { params: Promise<{ id: strin
             >
               <Printer className="w-4 h-4" />
             </Link>
+            {isPublic && (
+              <button
+                onClick={async () => {
+                  const url = window.location.href;
+                  const dataUrl = await QRCode.toDataURL(url, { width: 256, margin: 2 });
+                  setQrDataUrl(dataUrl);
+                  setShowQR(true);
+                }}
+                className="w-8 h-8 bg-black/30 backdrop-blur-sm rounded-full flex items-center justify-center text-white hover:bg-black/50 transition"
+                title="QR Code สำหรับแชร์"
+              >
+                <QrCode className="w-4 h-4" />
+              </button>
+            )}
             {isOwner && (
               <button
                 onClick={async () => {
@@ -1003,6 +1021,31 @@ export default function TripDetailPage({ params }: { params: Promise<{ id: strin
                 <Plus className="w-4 h-4" />เพิ่มสถานที่ / กิจกรรม
               </button>
             )}
+          </div>
+        )}
+
+        {/* QR Code modal */}
+        {showQR && qrDataUrl && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center">
+            <div className="absolute inset-0 bg-black/50" onClick={() => setShowQR(false)} />
+            <div className="relative z-10 bg-white dark:bg-slate-800 rounded-3xl p-6 shadow-2xl max-w-xs w-full mx-4 text-center">
+              <button onClick={() => setShowQR(false)} className="absolute top-4 right-4 text-gray-400 hover:text-gray-600 dark:hover:text-slate-300">
+                <X className="w-5 h-5" />
+              </button>
+              <h3 className="text-base font-bold text-gray-900 dark:text-slate-100 mb-1">แชร์ทริปนี้</h3>
+              <p className="text-xs text-gray-400 dark:text-slate-500 mb-4">สแกน QR Code เพื่อเปิดทริปนี้</p>
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src={qrDataUrl} alt="QR Code" className="w-48 h-48 mx-auto rounded-xl" />
+              <p className="text-[11px] text-gray-400 dark:text-slate-500 mt-3 truncate px-2">{typeof window !== "undefined" ? window.location.href : ""}</p>
+              <button
+                onClick={async () => {
+                  await navigator.clipboard.writeText(window.location.href).catch(() => {});
+                }}
+                className="mt-3 text-xs font-medium text-[#398AB9] hover:underline"
+              >
+                คัดลอก link
+              </button>
+            </div>
           </div>
         )}
 
