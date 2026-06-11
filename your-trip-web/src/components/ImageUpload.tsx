@@ -1,7 +1,11 @@
 "use client";
 
 import { useState, useRef, useCallback } from "react";
-import { Camera, X, Image as ImageIcon, Loader2, AlertCircle } from "lucide-react";
+import { Camera, X, Image as ImageIcon, Loader2, AlertCircle, Video } from "lucide-react";
+
+function isVideoFile(url: string) {
+  return /\.(mp4|webm|mov|ogg)(\?.*)?$/i.test(url);
+}
 
 export interface UploadedImage {
   url: string;
@@ -59,7 +63,7 @@ export function ImageUpload({
 
     const available = maxImages - value.length;
     if (available <= 0) {
-      setError(`อัปโหลดได้สูงสุด ${maxImages} รูป`);
+      setError(`อัปโหลดได้สูงสุด ${maxImages} ไฟล์`);
       return;
     }
 
@@ -101,7 +105,18 @@ export function ImageUpload({
         <div className={`grid gap-2 ${value.length === 1 ? "grid-cols-1" : value.length === 2 ? "grid-cols-2" : "grid-cols-3"}`}>
           {value.map((img, i) => (
             <div key={img.publicId} className="relative aspect-square rounded-2xl overflow-hidden bg-gray-100 dark:bg-slate-700">
-              <img src={img.preview || img.url} alt="" className="w-full h-full object-cover" />
+              {isVideoFile(img.preview || img.url) ? (
+                <video src={img.preview || img.url} className="w-full h-full object-cover" muted playsInline />
+              ) : (
+                <img src={img.preview || img.url} alt="" className="w-full h-full object-cover" />
+              )}
+              {isVideoFile(img.preview || img.url) && (
+                <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                  <div className="w-8 h-8 bg-black/50 rounded-full flex items-center justify-center">
+                    <Video className="w-4 h-4 text-white" />
+                  </div>
+                </div>
+              )}
               <button
                 type="button"
                 onClick={() => removeImage(i)}
@@ -158,8 +173,8 @@ export function ImageUpload({
               <div className="w-12 h-12 bg-gray-100 dark:bg-slate-700 group-hover:bg-[#398AB9]/10 rounded-2xl flex items-center justify-center transition">
                 <ImageIcon className="w-6 h-6 text-gray-400 dark:text-slate-500 group-hover:text-[#398AB9] transition" />
               </div>
-              <p className="text-sm font-medium text-gray-600 dark:text-slate-400">เพิ่มรูปภาพ</p>
-              <p className="text-xs text-gray-400 dark:text-slate-500">ลากวางหรือแตะเพื่อเลือก (สูงสุด {maxImages} รูป, 10 MB/รูป)</p>
+              <p className="text-sm font-medium text-gray-600 dark:text-slate-400">เพิ่มรูปภาพหรือวิดีโอ</p>
+              <p className="text-xs text-gray-400 dark:text-slate-500">ลากวางหรือแตะเพื่อเลือก (สูงสุด {maxImages} ไฟล์, 50 MB/ไฟล์)</p>
             </>
           )}
         </div>
@@ -177,7 +192,7 @@ export function ImageUpload({
       <input
         ref={inputRef}
         type="file"
-        accept="image/jpeg,image/png,image/webp,image/gif"
+        accept="image/jpeg,image/png,image/webp,image/gif,video/mp4,video/webm,video/quicktime,video/ogg"
         multiple={maxImages > 1}
         className="hidden"
         onChange={(e) => handleFiles(e.target.files)}

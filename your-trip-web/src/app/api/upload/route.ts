@@ -14,8 +14,11 @@ const CLOUDINARY_CONFIGURED =
   !!process.env.CLOUDINARY_API_KEY &&
   !!process.env.CLOUDINARY_API_SECRET;
 
-const MAX_SIZE_BYTES = 10 * 1024 * 1024; // 10 MB
-const ALLOWED_TYPES = ["image/jpeg", "image/png", "image/webp", "image/gif"];
+const IMAGE_MAX_BYTES = 10 * 1024 * 1024;  // 10 MB
+const VIDEO_MAX_BYTES = 50 * 1024 * 1024;  // 50 MB
+const ALLOWED_IMAGE_TYPES = ["image/jpeg", "image/png", "image/webp", "image/gif"];
+const ALLOWED_VIDEO_TYPES = ["video/mp4", "video/webm", "video/quicktime", "video/ogg"];
+const ALLOWED_TYPES = [...ALLOWED_IMAGE_TYPES, ...ALLOWED_VIDEO_TYPES];
 
 export async function POST(req: NextRequest) {
   // Auth check
@@ -35,11 +38,13 @@ export async function POST(req: NextRequest) {
     }
 
     if (!ALLOWED_TYPES.includes(file.type)) {
-      return NextResponse.json({ error: "รองรับเฉพาะ JPEG, PNG, WebP, GIF" }, { status: 400 });
+      return NextResponse.json({ error: "รองรับ JPEG, PNG, WebP, GIF, MP4, WebM, MOV" }, { status: 400 });
     }
 
-    if (file.size > MAX_SIZE_BYTES) {
-      return NextResponse.json({ error: "ไฟล์ต้องไม่เกิน 10 MB" }, { status: 400 });
+    const isVideo = ALLOWED_VIDEO_TYPES.includes(file.type);
+    const maxBytes = isVideo ? VIDEO_MAX_BYTES : IMAGE_MAX_BYTES;
+    if (file.size > maxBytes) {
+      return NextResponse.json({ error: `ไฟล์ต้องไม่เกิน ${isVideo ? "50" : "10"} MB` }, { status: 400 });
     }
 
     // If Cloudinary not configured, return a mock URL for development
@@ -68,11 +73,13 @@ export async function POST(req: NextRequest) {
       cloudinary.uploader.upload_stream(
         {
           folder,
-          resource_type: "image",
-          transformation: [
-            { quality: "auto", fetch_format: "auto" },
-            { width: 1200, height: 1200, crop: "limit" },
-          ],
+          resource_type: "auto",
+          ...(isVideo ? {} : {
+            transformation: [
+              { quality: "auto", fetch_format: "auto" },
+              { width: 1200, height: 1200, crop: "limit" },
+            ],
+          }),
         },
         (error, result) => {
           if (error || !result) reject(error ?? new Error("Upload failed"));

@@ -38,6 +38,10 @@ function fmt(n: number) {
   return n >= 1000 ? (n / 1000).toFixed(1).replace(".0", "") + "K" : String(n);
 }
 
+function isVideo(url: string) {
+  return /\.(mp4|webm|mov|ogg)(\?.*)?$/i.test(url);
+}
+
 function renderCaption(text: string) {
   const parts = text.split(/(@\w+)/g);
   return parts.map((part, i) => {
@@ -194,17 +198,34 @@ export function PostCard({ post, onTagClick }: { post: PostCardData; onTagClick?
         </div>
       </div>
 
-      {/* Post image(s) */}
+      {/* Post image(s) / video */}
       {allImages.length > 0 && (
       <Link href={`/post/${post.id}`} className="block">
-      <div className="relative aspect-[4/3] overflow-hidden bg-gray-100 dark:bg-slate-700">
-        <img
-          src={allImages[imgIndex]}
-          alt={post.title ?? ""}
-          className="w-full h-full object-cover transition-transform duration-300 hover:scale-105"
-          referrerPolicy="no-referrer"
-          onError={(e) => { (e.target as HTMLImageElement).parentElement!.style.display = "none"; }}
-        />
+      <div className={`relative overflow-hidden bg-gray-100 dark:bg-slate-700 ${isVideo(allImages[imgIndex]) ? "aspect-[9/16] max-h-[480px]" : "aspect-[4/3]"}`}>
+        {isVideo(allImages[imgIndex]) ? (
+          <video
+            key={allImages[imgIndex]}
+            src={allImages[imgIndex]}
+            className="w-full h-full object-cover"
+            autoPlay
+            muted
+            loop
+            playsInline
+            onClick={(e) => e.preventDefault()}
+          />
+        ) : (
+          <img
+            src={allImages[imgIndex]}
+            alt={post.title ?? ""}
+            className="w-full h-full object-cover transition-transform duration-300 hover:scale-105"
+            referrerPolicy="no-referrer"
+            onError={(e) => { (e.target as HTMLImageElement).parentElement!.style.display = "none"; }}
+          />
+        )}
+        {/* Video badge */}
+        {isVideo(allImages[imgIndex]) && (
+          <div className="absolute top-2 right-2 bg-black/50 text-white text-[10px] font-semibold px-1.5 py-0.5 rounded-full">▶ Video</div>
+        )}
         {/* Multi-image indicators */}
         {allImages.length > 1 && (
           <>
