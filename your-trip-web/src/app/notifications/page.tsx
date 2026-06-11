@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import AppShell from "@/components/AppShell";
 import { Bell, Heart, MessageCircle, UserPlus, Users, MapPin, CheckCheck } from "lucide-react";
 import {
@@ -144,6 +145,7 @@ function fmtTime(d: Date): string {
 }
 
 export default function NotificationsPage() {
+  const router = useRouter();
   const [notifs, setNotifs] = useState<Notif[]>(MOCK);
   const [filter, setFilter] = useState<"all" | "unread">("all");
 
@@ -276,7 +278,10 @@ export default function NotificationsPage() {
                   return (
                     <div
                       key={notif.id}
-                      onClick={() => markRead(notif.id)}
+                      onClick={() => {
+                        markRead(notif.id);
+                        if (notif.actionUrl) router.push(notif.actionUrl);
+                      }}
                       className={`flex items-start gap-3 px-4 md:px-6 py-4 border-b border-gray-50 dark:border-slate-700/50 cursor-pointer transition-colors hover:bg-gray-50 dark:hover:bg-slate-700/50 ${
                         !notif.isRead ? "bg-[#398AB9]/5 dark:bg-[#398AB9]/10" : ""
                       }`}
