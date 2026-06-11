@@ -44,6 +44,25 @@ function getInitials(name?: string | null, email?: string | null): string {
   return "YT";
 }
 
+function getNotifPref(key: string, def = true): boolean {
+  try {
+    const raw = localStorage.getItem(key);
+    return raw === null ? def : JSON.parse(raw) as boolean;
+  } catch { return def; }
+}
+
+function isNotifTypeAllowed(type: string): boolean {
+  switch (type) {
+    case "LIKE":           return getNotifPref("settings_notif_like");
+    case "COMMENT":        return getNotifPref("settings_notif_comment");
+    case "MENTION":        return getNotifPref("settings_notif_comment");
+    case "FOLLOW":         return getNotifPref("settings_notif_follow");
+    case "BUDDY_REQUEST":  return getNotifPref("settings_notif_buddy");
+    case "BUDDY_MATCH":    return getNotifPref("settings_notif_buddy");
+    default:               return true;
+  }
+}
+
 function useNotificationBadge() {
   const { user } = useUser();
   const [unread, setUnread] = useState(0);
@@ -66,7 +85,11 @@ function useNotificationBadge() {
         (payload: { new: Record<string, unknown> }) => {
           setUnread((n) => n + 1);
           const title = payload.new.title as string | undefined;
-          if (title) info(`🔔 ${title}`);
+          const type = (payload.new.type as string | undefined) ?? "";
+          // Only show toast if the user has enabled this notification type
+          if (title && isNotifTypeAllowed(type) && getNotifPref("settings_notif_push")) {
+            info(`🔔 ${title}`);
+          }
         }
       )
       .subscribe();
