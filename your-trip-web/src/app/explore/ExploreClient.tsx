@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback, useRef } from "react";
 import Link from "next/link";
-import { Search, Star, MapPin, SlidersHorizontal, X, LayoutGrid, List, ArrowUpDown, Users, UserPlus, UserCheck, Bookmark, Map, ArrowRight } from "lucide-react";
+import { Search, Star, MapPin, SlidersHorizontal, X, LayoutGrid, List, ArrowUpDown, Users, UserPlus, UserCheck, Bookmark, Map, ArrowRight, TrendingUp } from "lucide-react";
 import { toggleSavePlace } from "@/server/actions/savedPlaces";
 import type { PlaceListItem } from "@/server/actions/places";
 import { searchUsers, followUser, unfollowUser, type UserCard } from "@/server/actions/profile";
@@ -112,6 +112,17 @@ function PlaceCard({ place, saved, onToggleSave }: {
           <span className="text-[10px] bg-[#398AB9]/8 text-[#398AB9] px-2 py-0.5 rounded-full font-medium">
             {regionLabels[place.region] ?? place.region}
           </span>
+          {place.reviewCount > 0 && place.rating >= 4.5 && (
+            <span className="flex items-center gap-0.5 text-[10px] bg-emerald-50 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400 px-2 py-0.5 rounded-full font-medium">
+              <TrendingUp className="w-2.5 h-2.5" />
+              ดีเยี่ยม
+            </span>
+          )}
+          {place.reviewCount > 0 && place.rating >= 4.0 && place.rating < 4.5 && (
+            <span className="text-[10px] bg-amber-50 dark:bg-amber-900/30 text-amber-600 dark:text-amber-400 px-2 py-0.5 rounded-full font-medium">
+              แนะนำ
+            </span>
+          )}
           {place.hasWifi && (
             <span className="text-[10px] bg-gray-100 dark:bg-slate-700 text-gray-500 dark:text-slate-400 px-2 py-0.5 rounded-full">WiFi</span>
           )}
@@ -735,10 +746,21 @@ export default function ExploreClient({ initialPlaces, initialSaved = [] }: { in
                       </div>
                       <span className="text-xs text-gray-400 dark:text-slate-500">{priceSymbol(p.priceRange)}</span>
                     </div>
-                    <div className="flex gap-1 mt-1.5">
+                    <div className="flex gap-1 mt-1.5 flex-wrap">
                       <span className="text-[10px] bg-[#398AB9]/8 text-[#398AB9] px-2 py-0.5 rounded-full">
                         {regionLabels[p.region] ?? p.region}
                       </span>
+                      {p.reviewCount > 0 && p.rating >= 4.5 && (
+                        <span className="flex items-center gap-0.5 text-[10px] bg-emerald-50 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400 px-2 py-0.5 rounded-full font-medium">
+                          <TrendingUp className="w-2.5 h-2.5" />
+                          ดีเยี่ยม
+                        </span>
+                      )}
+                      {p.reviewCount > 0 && p.rating >= 4.0 && p.rating < 4.5 && (
+                        <span className="text-[10px] bg-amber-50 dark:bg-amber-900/30 text-amber-600 dark:text-amber-400 px-2 py-0.5 rounded-full font-medium">
+                          แนะนำ
+                        </span>
+                      )}
                     </div>
                   </div>
                 </Link>

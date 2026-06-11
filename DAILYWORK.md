@@ -23,8 +23,10 @@ PROGRESS ██████████████████████ 98% 
 | B3 | **Vercel deploy** — git push + env vars in dashboard | 500 | ⬜ (needs user) |
 | SD-3 | **Seed Supabase** — run seed-places-real.ts on production DB | 300 | ⬜ (needs user) |
 | S13-1 | **Vanity URLs** — /u/[username] → redirect to /profile/[userId] | 150 | ✅ |
-| S13-2 | **Feed lightbox** — click image in PostCard for fullscreen zoom view | 200 | ⬜ |
-| S13-3 | **Place rating badge on Explore card** — star count + rating trend % | 100 | ⬜ |
+| S13-2 | **Feed lightbox** — click image in PostCard for fullscreen zoom view | 200 | ✅ |
+| S13-3 | **Place rating badge on Explore card** — star count + rating trend % | 100 | ✅ |
+| S13-4 | **Place community posts grid** — /place/[slug] shows grid of community photos | 150 | ✅ |
+| S13-5 | **Feed stories row wired** — real active users (posted last 7 days) replace mock | 100 | ✅ |
 
 ### 🛡️ TIER A — Polish
 
