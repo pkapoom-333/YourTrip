@@ -49,7 +49,7 @@ export async function getProfile(userId?: string) {
     const targetId = userId ?? authUser?.id;
     if (!targetId) return { data: null };
 
-    const [user, placesVisited] = await Promise.all([
+    const [user, placesVisited, totalTripDays] = await Promise.all([
       prisma.user.findUnique({
         where: { id: targetId },
         include: {
@@ -68,6 +68,7 @@ export async function getProfile(userId?: string) {
         select: { placeId: true },
         distinct: ["placeId"],
       }).then((rows) => rows.length).catch(() => 0),
+      prisma.tripDay.count({ where: { trip: { userId: targetId } } }).catch(() => 0),
     ]);
 
     if (!user) {
@@ -122,6 +123,7 @@ export async function getProfile(userId?: string) {
         followingCount: user._count.following,
         tripsCount: user._count.trips,
         placesVisited,
+        totalTripDays,
       },
     };
   } catch {
@@ -142,6 +144,8 @@ export async function getProfile(userId?: string) {
         followersCount: 1200,
         followingCount: 234,
         tripsCount: 3,
+        placesVisited: 12,
+        totalTripDays: 24,
       },
     };
   }

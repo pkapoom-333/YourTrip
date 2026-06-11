@@ -12,6 +12,49 @@ import { Star as StarIcon } from "lucide-react";
 import { useUser } from "@/hooks/useUser";
 import { Avatar } from "@/components/shared/Avatar";
 
+function getTravelStyle(tripsCount: number, totalTripDays: number, placesVisited: number): { label: string; emoji: string; color: string } {
+  const avgDays = tripsCount > 0 ? totalTripDays / tripsCount : 0;
+  if (placesVisited >= 20) return { label: "Explorer", emoji: "🌍", color: "text-emerald-600 bg-emerald-50 border-emerald-200" };
+  if (avgDays >= 7) return { label: "Slow Traveler", emoji: "🏝️", color: "text-blue-600 bg-blue-50 border-blue-200" };
+  if (tripsCount >= 5) return { label: "Frequent Flyer", emoji: "✈️", color: "text-violet-600 bg-violet-50 border-violet-200" };
+  if (tripsCount >= 1) return { label: "Adventure Seeker", emoji: "🎒", color: "text-amber-600 bg-amber-50 border-amber-200" };
+  return { label: "New Traveler", emoji: "🗺️", color: "text-gray-600 bg-gray-50 border-gray-200" };
+}
+
+function TravelStatsCard({ totalTripDays, placesVisited, tripsCount }: {
+  totalTripDays: number;
+  placesVisited: number;
+  tripsCount: number;
+}) {
+  const style = getTravelStyle(tripsCount, totalTripDays, placesVisited);
+  const avgDays = tripsCount > 0 ? Math.round(totalTripDays / tripsCount) : 0;
+
+  return (
+    <div className="mt-4 rounded-2xl border border-gray-100 dark:border-slate-700 bg-gradient-to-br from-[#398AB9]/5 to-[#1C658C]/5 dark:from-[#398AB9]/10 dark:to-[#1C658C]/10 p-4">
+      <div className="flex items-center justify-between mb-3">
+        <p className="text-xs font-bold text-gray-700 dark:text-slate-300 uppercase tracking-wide">สถิติการเดินทาง</p>
+        <span className={`text-[11px] font-semibold px-2.5 py-1 rounded-full border ${style.color}`}>
+          {style.emoji} {style.label}
+        </span>
+      </div>
+      <div className="grid grid-cols-3 gap-2">
+        <div className="bg-white dark:bg-slate-800 rounded-xl p-3 text-center shadow-sm">
+          <p className="text-2xl font-bold text-[#398AB9]">{totalTripDays}</p>
+          <p className="text-[10px] text-gray-400 dark:text-slate-500 mt-0.5">วันเดินทาง</p>
+        </div>
+        <div className="bg-white dark:bg-slate-800 rounded-xl p-3 text-center shadow-sm">
+          <p className="text-2xl font-bold text-[#398AB9]">{placesVisited}</p>
+          <p className="text-[10px] text-gray-400 dark:text-slate-500 mt-0.5">สถานที่ในแผน</p>
+        </div>
+        <div className="bg-white dark:bg-slate-800 rounded-xl p-3 text-center shadow-sm">
+          <p className="text-2xl font-bold text-[#398AB9]">{avgDays}</p>
+          <p className="text-[10px] text-gray-400 dark:text-slate-500 mt-0.5">วัน/ทริป เฉลี่ย</p>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 // Mock fallback posts (shown when DB not configured)
 const MOCK_POSTS: PostGridItem[] = [
   { id: "m1", images: ["https://images.unsplash.com/photo-1476514525405-8d4b4c284c1e?auto=format&fit=crop&w=400&q=80"], likesCount: 284, commentsCount: 12 },
@@ -38,6 +81,9 @@ export default function ProfilePage() {
     postsCount: 48,
     followersCount: 1200,
     followingCount: 234,
+    tripsCount: 0,
+    placesVisited: 0,
+    totalTripDays: 0,
   });
   const [myPosts, setMyPosts] = useState<PostGridItem[]>(MOCK_POSTS);
   const [savedPosts, setSavedPosts] = useState<PostGridItem[]>([]);
@@ -59,11 +105,14 @@ export default function ProfilePage() {
         bio: data.bio ?? "",
         location: data.location ?? "",
         avatarUrl: data.avatarUrl ?? null,
-        isGuide: (data as { isGuide?: boolean }).isGuide ?? false,
-        isVerifiedGuide: (data as { isVerifiedGuide?: boolean }).isVerifiedGuide ?? false,
+        isGuide: data.isGuide ?? false,
+        isVerifiedGuide: data.isVerifiedGuide ?? false,
         postsCount: data.postsCount,
         followersCount: data.followersCount,
         followingCount: data.followingCount,
+        tripsCount: data.tripsCount ?? 0,
+        placesVisited: data.placesVisited ?? 0,
+        totalTripDays: (data as { totalTripDays?: number }).totalTripDays ?? 0,
       });
     });
     getUserPosts().then(({ data }) => {
@@ -98,12 +147,12 @@ export default function ProfilePage() {
                 <p className="text-xs text-gray-400 dark:text-slate-500">โพสต์</p>
               </div>
               <Link href="/trips" className="hover:opacity-80 transition">
-                <p className="text-xl font-bold text-gray-900 dark:text-slate-100">{(profile as { tripsCount?: number }).tripsCount ?? 0}</p>
+                <p className="text-xl font-bold text-gray-900 dark:text-slate-100">{profile.tripsCount}</p>
                 <p className="text-xs text-gray-400 dark:text-slate-500">ทริป</p>
               </Link>
-              {(profile as { placesVisited?: number }).placesVisited !== undefined && (profile as { placesVisited?: number }).placesVisited! > 0 && (
+              {profile.placesVisited > 0 && (
                 <div>
-                  <p className="text-xl font-bold text-gray-900 dark:text-slate-100">{(profile as { placesVisited?: number }).placesVisited}</p>
+                  <p className="text-xl font-bold text-gray-900 dark:text-slate-100">{profile.placesVisited}</p>
                   <p className="text-xs text-gray-400 dark:text-slate-500">สถานที่</p>
                 </div>
               )}
@@ -184,6 +233,13 @@ export default function ProfilePage() {
               </div>
             ))}
           </div>
+
+          {/* ── Travel Stats Card ── */}
+          <TravelStatsCard
+            totalTripDays={profile.totalTripDays}
+            placesVisited={profile.placesVisited}
+            tripsCount={profile.tripsCount}
+          />
 
           <div className="flex gap-2 mt-4">
             <button
