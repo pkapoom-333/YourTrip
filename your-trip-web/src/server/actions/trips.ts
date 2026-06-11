@@ -386,6 +386,73 @@ export async function duplicateTrip(tripId: string): Promise<{ data?: { id: stri
   }
 }
 
+/** Clone any public trip (or own trip) to the current user's account */
+export async function cloneTripToUser(
+  tripId: string
+): Promise<{ data?: { id: string; title: string }; error?: { message: string } }> {
+  try {
+    const supabase = await createServerClient();
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return { error: { message: "กรุณาเข้าสู่ระบบ" } };
+
+    const original = await prisma.trip.findFirst({
+      where: {
+        id: tripId,
+        OR: [{ isPublic: true }, { userId: user.id }],
+      },
+      include: {
+        days: {
+          orderBy: { day: "asc" },
+          include: { items: { orderBy: { order: "asc" } } },
+        },
+      },
+    });
+
+    if (!original) return { error: { message: "ไม่พบทริป หรือทริปนี้เป็นส่วนตัว" } };
+
+    const newTitle = `${original.title} (สำเนา)`;
+    const cloned = await prisma.trip.create({
+      data: {
+        userId: user.id,
+        title: newTitle,
+        destination: original.destination,
+        startDate: original.startDate,
+        endDate: original.endDate,
+        budget: original.budget,
+        description: original.description,
+        isPublic: false,
+        coverImage: original.coverImage,
+        days: {
+          create: original.days.map((d) => ({
+            day: d.day,
+            date: d.date,
+            note: d.note,
+            items: {
+              create: d.items.map((item) => ({
+                placeId: item.placeId,
+                googlePlaceId: item.googlePlaceId,
+                name: item.name,
+                note: item.note,
+                time: item.time,
+                duration: item.duration,
+                travelTimeTo: item.travelTimeTo,
+                cost: item.cost,
+                order: item.order,
+                lat: item.lat,
+                lng: item.lng,
+              })),
+            },
+          })),
+        },
+      },
+    });
+
+    return { data: { id: cloned.id, title: newTitle } };
+  } catch {
+    return { error: { message: "ไม่สามารถบันทึกสำเนาทริปได้" } };
+  }
+}
+
 export async function toggleTripPublic(
   tripId: string
 ): Promise<{ data: { isPublic: boolean } | null; error?: string }> {

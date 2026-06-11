@@ -10,7 +10,7 @@ import {
   Car, Bike, Bus, Navigation, AlertTriangle,
   ParkingSquare, Wifi, Wind, Leaf, Accessibility,
   MessageCircle, MoreHorizontal, ThumbsUp, ChevronDown, PenLine,
-  Plus, X, CalendarDays, BookMarked,
+  Plus, X, CalendarDays, BookMarked, Maximize2,
 } from "lucide-react";
 import { createReview } from "@/server/actions/places";
 import { toggleSavePlace } from "@/server/actions/savedPlaces";
@@ -111,6 +111,8 @@ export default function PlaceDetailClient({ place, slug, initialSaved = false }:
   const [selectedColId, setSelectedColId] = useState("");
   const [colLoading, setColLoading] = useState(false);
   const [addingToCol, setAddingToCol] = useState(false);
+  const [lightboxOpen, setLightboxOpen] = useState(false);
+  const [lightboxIndex, setLightboxIndex] = useState(0);
 
   async function openAddToCollection() {
     setAddColOpen(true);
@@ -266,11 +268,89 @@ export default function PlaceDetailClient({ place, slug, initialSaved = false }:
             </>
           )}
 
-          <div className="absolute bottom-4 right-4 flex items-center gap-1.5 bg-black/40 backdrop-blur-sm text-white text-xs px-2.5 py-1 rounded-full">
-            <Camera className="w-3.5 h-3.5" />
-            {imgIndex + 1}/{safeImages.length}
+          <div className="absolute bottom-4 right-4 flex items-center gap-2">
+            <button
+              onClick={() => { setLightboxIndex(imgIndex); setLightboxOpen(true); }}
+              className="flex items-center gap-1 bg-black/40 backdrop-blur-sm text-white text-xs px-2 py-1 rounded-full hover:bg-black/60 transition"
+              title="ดูรูปขนาดเต็ม"
+            >
+              <Maximize2 className="w-3 h-3" />
+            </button>
+            <div className="flex items-center gap-1.5 bg-black/40 backdrop-blur-sm text-white text-xs px-2.5 py-1 rounded-full">
+              <Camera className="w-3.5 h-3.5" />
+              {imgIndex + 1}/{safeImages.length}
+            </div>
           </div>
         </div>
+
+        {/* ── Photo Lightbox ── */}
+        {lightboxOpen && (
+          <div
+            className="fixed inset-0 z-[100] bg-black flex items-center justify-center"
+            onClick={() => setLightboxOpen(false)}
+          >
+            {/* Close button */}
+            <button
+              className="absolute top-4 right-4 w-9 h-9 bg-white/10 hover:bg-white/20 rounded-full flex items-center justify-center transition"
+              onClick={() => setLightboxOpen(false)}
+            >
+              <X className="w-5 h-5 text-white" />
+            </button>
+
+            {/* Counter */}
+            <div className="absolute top-4 left-1/2 -translate-x-1/2 text-white/70 text-sm font-medium">
+              {lightboxIndex + 1} / {safeImages.length}
+            </div>
+
+            {/* Image */}
+            <div
+              className="relative w-full h-full max-w-5xl mx-auto px-12"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <Image
+                src={safeImages[lightboxIndex]}
+                alt={`${place.name} รูปที่ ${lightboxIndex + 1}`}
+                fill
+                className="object-contain"
+                sizes="100vw"
+                priority
+              />
+            </div>
+
+            {/* Prev / Next */}
+            {safeImages.length > 1 && (
+              <>
+                <button
+                  className="absolute left-3 top-1/2 -translate-y-1/2 w-10 h-10 bg-white/10 hover:bg-white/20 rounded-full flex items-center justify-center transition"
+                  onClick={(e) => { e.stopPropagation(); setLightboxIndex((i) => (i - 1 + safeImages.length) % safeImages.length); }}
+                >
+                  <ChevronLeft className="w-6 h-6 text-white" />
+                </button>
+                <button
+                  className="absolute right-3 top-1/2 -translate-y-1/2 w-10 h-10 bg-white/10 hover:bg-white/20 rounded-full flex items-center justify-center transition"
+                  onClick={(e) => { e.stopPropagation(); setLightboxIndex((i) => (i + 1) % safeImages.length); }}
+                >
+                  <ChevronRight className="w-6 h-6 text-white" />
+                </button>
+
+                {/* Thumbnail strip */}
+                <div className="absolute bottom-4 left-0 right-0 flex justify-center gap-2 px-4 overflow-x-auto scrollbar-none">
+                  {safeImages.map((src, i) => (
+                    <button
+                      key={i}
+                      onClick={(e) => { e.stopPropagation(); setLightboxIndex(i); }}
+                      className={`flex-shrink-0 w-14 h-10 rounded-lg overflow-hidden border-2 transition ${
+                        i === lightboxIndex ? "border-white" : "border-transparent opacity-50 hover:opacity-80"
+                      }`}
+                    >
+                      <Image src={src} alt="" fill className="object-cover" sizes="56px" />
+                    </button>
+                  ))}
+                </div>
+              </>
+            )}
+          </div>
+        )}
 
         {/* ── Content ── */}
         <div className="px-4 md:px-6 pb-8 space-y-6 mt-4">

@@ -1,8 +1,9 @@
 "use client";
 
 import { use, useState, useEffect, useCallback, useRef } from "react";
+import { useRouter } from "next/navigation";
 import AppShell from "@/components/AppShell";
-import { getTripById, addItineraryItem, deleteTripItem, updateTripItem, toggleTripPublic, reorderItinerary } from "@/server/actions/trips";
+import { getTripById, addItineraryItem, deleteTripItem, updateTripItem, toggleTripPublic, reorderItinerary, cloneTripToUser } from "@/server/actions/trips";
 import {
   ChevronLeft, Plus, MapPin, Clock, Wallet,
   Trash2, GripVertical, Calendar, Share2,
@@ -499,6 +500,7 @@ function ItemCard({
 
 export default function TripDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
+  const router = useRouter();
   const [trip, setTrip] = useState(MOCK_TRIP);
   const [isOwner, setIsOwner] = useState(true); // assumed owner until DB confirms otherwise
   const [activeDay, setActiveDay] = useState(1);
@@ -506,6 +508,7 @@ export default function TripDetailPage({ params }: { params: Promise<{ id: strin
   const [isPublic, setIsPublic] = useState(false);
   const [togglingPublic, setTogglingPublic] = useState(false);
   const [showAddModal, setShowAddModal] = useState(false);
+  const [cloningTrip, setCloningTrip] = useState(false);
   const [showMap, setShowMap] = useState(false);
   const [dragItemId, setDragItemId] = useState<string | null>(null);
   const [dragOverItemId, setDragOverItemId] = useState<string | null>(null);
@@ -849,13 +852,18 @@ export default function TripDetailPage({ params }: { params: Promise<{ id: strin
               <p className="text-[11px] text-amber-600/80 dark:text-amber-500 mt-0.5">ทริปนี้เป็นของผู้ใช้อื่น — คุณสามารถดูแผนได้แต่แก้ไขไม่ได้</p>
             </div>
             <button
+              disabled={cloningTrip}
               onClick={async () => {
-                // TODO: implement "Save a copy" — clone trip to current user
-                await navigator.clipboard.writeText(window.location.href).catch(() => {});
+                setCloningTrip(true);
+                const result = await cloneTripToUser(trip.id);
+                setCloningTrip(false);
+                if (result.data) {
+                  router.push(`/trips/${result.data.id}`);
+                }
               }}
-              className="flex-shrink-0 text-[11px] font-semibold bg-amber-100 dark:bg-amber-800/50 text-amber-700 dark:text-amber-300 px-3 py-1.5 rounded-xl hover:bg-amber-200 dark:hover:bg-amber-800 transition"
+              className="flex-shrink-0 text-[11px] font-semibold bg-amber-100 dark:bg-amber-800/50 text-amber-700 dark:text-amber-300 px-3 py-1.5 rounded-xl hover:bg-amber-200 dark:hover:bg-amber-800 transition disabled:opacity-60"
             >
-              📋 คัดลอก link
+              {cloningTrip ? "⏳ กำลังบันทึก..." : "📋 บันทึกสำเนา"}
             </button>
           </div>
         )}

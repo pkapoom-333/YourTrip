@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback, useRef } from "react";
 import Link from "next/link";
-import { Search, Star, MapPin, SlidersHorizontal, X, LayoutGrid, List, ArrowUpDown, Users, UserPlus, UserCheck, Bookmark, Map } from "lucide-react";
+import { Search, Star, MapPin, SlidersHorizontal, X, LayoutGrid, List, ArrowUpDown, Users, UserPlus, UserCheck, Bookmark, Map, ArrowRight } from "lucide-react";
 import { toggleSavePlace } from "@/server/actions/savedPlaces";
 import type { PlaceListItem } from "@/server/actions/places";
 import { searchUsers, followUser, unfollowUser, type UserCard } from "@/server/actions/profile";
@@ -550,6 +550,40 @@ export default function ExploreClient({ initialPlaces, initialSaved = [] }: { in
           </button>
         ))}
       </div>
+
+      {/* Province quick-links — only shown when not searching or filtering */}
+      {!query && activeCategory === "all" && activeRegion === "all" && searchMode === "places" && (
+        <div className="mb-4">
+          <div className="flex items-center justify-between mb-2">
+            <p className="text-xs font-semibold text-gray-500 dark:text-slate-400 uppercase tracking-wide">
+              ท่องเที่ยวตามจังหวัด
+            </p>
+            <Link href="/explore" className="text-xs text-[#398AB9] hover:underline flex items-center gap-0.5">
+              ดูทั้งหมด <ArrowRight className="w-3 h-3" />
+            </Link>
+          </div>
+          <div className="flex gap-2 overflow-x-auto scrollbar-none pb-1">
+            {[
+              { name: "เชียงใหม่", emoji: "🌿" },
+              { name: "กรุงเทพ", emoji: "🏙️" },
+              { name: "ภูเก็ต", emoji: "🏖️" },
+              { name: "กระบี่", emoji: "🌊" },
+              { name: "เชียงราย", emoji: "⛰️" },
+              { name: "อยุธยา", emoji: "🏛️" },
+              { name: "หัวหิน", emoji: "🌅" },
+              { name: "ขอนแก่น", emoji: "🌻" },
+            ].map(({ name, emoji }) => (
+              <Link
+                key={name}
+                href={`/explore/${encodeURIComponent(name)}`}
+                className="flex-shrink-0 flex items-center gap-1.5 px-3 py-1.5 bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-600 rounded-full text-sm text-gray-600 dark:text-slate-300 hover:border-[#398AB9] hover:text-[#398AB9] transition"
+              >
+                {emoji} {name}
+              </Link>
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* Results + controls */}
       <div className="flex items-center justify-between mb-4 gap-2 flex-wrap">

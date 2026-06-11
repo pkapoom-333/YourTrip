@@ -91,8 +91,9 @@ export async function getPlaces(params?: {
   featured?: boolean;
   tags?: string[];
   take?: number;
+  province?: string;
 }): Promise<{ data: PlaceListItem[] }> {
-  const { category = "all", region = "all", q = "", featured, tags, take = 20 } = params ?? {};
+  const { category = "all", region = "all", q = "", featured, tags, take = 20, province } = params ?? {};
 
   try {
     // Build where clause — extended search covers name, nameEn, province, description
@@ -101,6 +102,7 @@ export async function getPlaces(params?: {
       ...(category !== "all" && { category }),
       ...(region !== "all" && { region }),
       ...(featured !== undefined && { isFeatured: featured }),
+      ...(province && { province: { contains: province, mode: "insensitive" as const } }),
       // Full-text style search: OR across all relevant text fields (ILIKE)
       // TODO: upgrade to Postgres to_tsvector GIN index when data grows > 10K rows
       ...(q.trim() && {
