@@ -662,3 +662,27 @@ export async function reportPost(
     return { ok: true }; // silently succeed if table doesn't exist yet
   }
 }
+
+export interface ActiveUser {
+  id: string;
+  name: string | null;
+  username: string | null;
+  avatarUrl: string | null;
+}
+
+/** Users who posted publicly in the last 7 days — for the feed stories row */
+export async function getActiveUsers(take = 12): Promise<{ data: ActiveUser[] }> {
+  try {
+    const since = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
+    const rows = await prisma.post.findMany({
+      where: { isPublic: true, createdAt: { gte: since } },
+      orderBy: { createdAt: "desc" },
+      select: { userId: true, user: { select: { id: true, name: true, username: true, avatarUrl: true } } },
+      distinct: ["userId"],
+      take,
+    });
+    return { data: rows.map((r) => r.user) };
+  } catch {
+    return { data: [] };
+  }
+}

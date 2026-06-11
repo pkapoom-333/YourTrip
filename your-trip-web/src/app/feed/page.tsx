@@ -11,21 +11,18 @@ export const metadata: Metadata = {
   alternates: { canonical: `${SITE_URL}/feed` },
 };
 import { type PostCardData } from "@/components/features/PostCard";
-import { getFeed, getTrendingHashtags } from "@/server/actions/posts";
+import { getFeed, getTrendingHashtags, getActiveUsers, type ActiveUser } from "@/server/actions/posts";
 import { getPlaces } from "@/server/actions/places";
 import { getPublicTrips } from "@/server/actions/trips";
 import { MapPin as MapPinIcon } from "lucide-react";
 import { FeedPostsClient } from "./FeedPostsClient";
 import SuggestedUsers from "@/components/features/SuggestedUsers";
 
-const stories = [
-  { id: 0, name: "เพิ่มสตอรี่", bg: "bg-gray-100", initials: "+", isAdd: true },
-  { id: 1, name: "free people",  bg: "bg-orange-400",  initials: "FP" },
-  { id: 2, name: "shy girl",     bg: "bg-pink-400",    initials: "SG" },
-  { id: 3, name: "wanderer",     bg: "bg-emerald-400", initials: "W"  },
-  { id: 4, name: "travelmate",   bg: "bg-violet-400",  initials: "TM" },
-  { id: 5, name: "adventurer",   bg: "bg-amber-400",   initials: "AV" },
-  { id: 6, name: "nomad",        bg: "bg-sky-400",     initials: "N"  },
+const STORY_BG_COLORS = [
+  "bg-orange-400", "bg-pink-400", "bg-emerald-400",
+  "bg-violet-400", "bg-amber-400", "bg-sky-400",
+  "bg-rose-400",   "bg-teal-400",  "bg-indigo-400",
+  "bg-lime-500",   "bg-cyan-400",  "bg-fuchsia-400",
 ];
 
 // ─── Mock posts (shown when DB not configured) ────────────────────────────────
@@ -80,11 +77,13 @@ export default async function FeedPage() {
     { data: featuredPlaces },
     { data: communityTrips },
     { data: trendingHashtags },
+    { data: activeUsers },
   ] = await Promise.all([
     getFeed(),
     getPlaces({ featured: true, take: 3 }),
     getPublicTrips(3),
     getTrendingHashtags(6),
+    getActiveUsers(12),
   ]);
 
   const feedPosts: PostCardData[] = dbPosts.length > 0
@@ -140,23 +139,64 @@ export default async function FeedPage() {
               </button>
             </div>
 
-            {/* Stories */}
+            {/* Stories — active travelers row */}
             <div className="bg-white dark:bg-slate-800 md:rounded-2xl border border-gray-100 dark:border-slate-700 px-4 py-4 mb-3">
               <div className="flex gap-4 overflow-x-auto scrollbar-none">
-                {stories.map((s) => (
-                  <button key={s.id} className="flex flex-col items-center gap-1.5 flex-shrink-0">
-                    <div className={s.isAdd ? "" : "p-[2px] rounded-full bg-gradient-to-tr from-[#398AB9] to-[#1C658C]"}>
-                      <div className={`w-14 h-14 rounded-full flex items-center justify-center border-2 border-white dark:border-slate-800 ${
-                        s.isAdd ? "bg-gray-100 dark:bg-slate-700 border-dashed border-2 border-gray-300 dark:border-slate-600" : s.bg
-                      }`}>
-                        <span className={`font-bold text-sm ${s.isAdd ? "text-gray-400 dark:text-slate-500" : "text-white"}`}>
-                          {s.initials}
-                        </span>
-                      </div>
-                    </div>
-                    <span className="text-[10px] text-gray-500 dark:text-slate-400 w-14 text-center truncate">{s.name}</span>
-                  </button>
-                ))}
+                {/* Add story button */}
+                <Link href="/create" className="flex flex-col items-center gap-1.5 flex-shrink-0">
+                  <div className="w-14 h-14 rounded-full flex items-center justify-center bg-gray-100 dark:bg-slate-700 border-2 border-dashed border-gray-300 dark:border-slate-600">
+                    <span className="font-bold text-sm text-gray-400 dark:text-slate-500">+</span>
+                  </div>
+                  <span className="text-[10px] text-gray-500 dark:text-slate-400 w-14 text-center truncate">เพิ่มโพสต์</span>
+                </Link>
+
+                {/* Real active users */}
+                {activeUsers.length > 0
+                  ? activeUsers.map((u: ActiveUser, i: number) => {
+                      const initials = (u.name ?? u.username ?? "U")
+                        .split(" ")
+                        .map((w) => w[0])
+                        .join("")
+                        .slice(0, 2)
+                        .toUpperCase();
+                      const bg = STORY_BG_COLORS[i % STORY_BG_COLORS.length];
+                      const href = `/profile/${u.id}`;
+                      const label = u.name ?? u.username ?? "Traveler";
+                      return (
+                        <Link key={u.id} href={href} className="flex flex-col items-center gap-1.5 flex-shrink-0">
+                          <div className="p-[2px] rounded-full bg-gradient-to-tr from-[#398AB9] to-[#1C658C]">
+                            {u.avatarUrl ? (
+                              <img
+                                src={u.avatarUrl}
+                                alt={label}
+                                className="w-14 h-14 rounded-full object-cover border-2 border-white dark:border-slate-800"
+                              />
+                            ) : (
+                              <div className={`w-14 h-14 rounded-full flex items-center justify-center border-2 border-white dark:border-slate-800 ${bg}`}>
+                                <span className="font-bold text-sm text-white">{initials}</span>
+                              </div>
+                            )}
+                          </div>
+                          <span className="text-[10px] text-gray-500 dark:text-slate-400 w-14 text-center truncate">{label}</span>
+                        </Link>
+                      );
+                    })
+                  : /* Fallback mock when DB has no recent posts */
+                    (["free people", "shy girl", "wanderer", "travelmate", "adventurer", "nomad"] as const).map((name, i) => {
+                      const bg = STORY_BG_COLORS[i];
+                      const initials = name.split(" ").map((w) => w[0]).join("").slice(0, 2).toUpperCase();
+                      return (
+                        <button key={name} className="flex flex-col items-center gap-1.5 flex-shrink-0">
+                          <div className="p-[2px] rounded-full bg-gradient-to-tr from-[#398AB9] to-[#1C658C]">
+                            <div className={`w-14 h-14 rounded-full flex items-center justify-center border-2 border-white dark:border-slate-800 ${bg}`}>
+                              <span className="font-bold text-sm text-white">{initials}</span>
+                            </div>
+                          </div>
+                          <span className="text-[10px] text-gray-500 dark:text-slate-400 w-14 text-center truncate">{name}</span>
+                        </button>
+                      );
+                    })
+                }
               </div>
             </div>
 
