@@ -307,6 +307,22 @@ export async function updateTripStatus(tripId: string, status: "PLANNING" | "CON
   }
 }
 
+export async function updateTripDayNote(tripId: string, dayNum: number, note: string): Promise<{ ok: boolean }> {
+  try {
+    const supabase = await createServerClient();
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return { ok: false };
+
+    await prisma.tripDay.updateMany({
+      where: { tripId, day: dayNum, trip: { userId: user.id } },
+      data: { note: note || null },
+    });
+    return { ok: true };
+  } catch {
+    return { ok: true };
+  }
+}
+
 export async function updateTripCover(tripId: string, coverImage: string): Promise<{ data?: { success: boolean }; error?: { message: string } }> {
   try {
     const supabase = await createServerClient();

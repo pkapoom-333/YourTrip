@@ -4,7 +4,7 @@ import { use, useState, useEffect, useCallback, useRef } from "react";
 import { useRouter } from "next/navigation";
 import QRCode from "qrcode";
 import AppShell from "@/components/AppShell";
-import { getTripById, addItineraryItem, deleteTripItem, updateTripItem, toggleTripPublic, reorderItinerary, cloneTripToUser, updateTripStatus, updateTripCover } from "@/server/actions/trips";
+import { getTripById, addItineraryItem, deleteTripItem, updateTripItem, toggleTripPublic, reorderItinerary, cloneTripToUser, updateTripStatus, updateTripCover, updateTripDayNote } from "@/server/actions/trips";
 import {
   ChevronLeft, Plus, MapPin, Clock, Wallet,
   Trash2, GripVertical, Calendar, Share2,
@@ -38,6 +38,7 @@ interface TripDay {
   day: number;
   date: string;
   items: TripItem[];
+  note?: string;
 }
 
 interface GooglePlaceResult {
@@ -613,6 +614,7 @@ export default function TripDetailPage({ params }: { params: Promise<{ id: strin
           days: data.days.map((d) => ({
             day: d.day,
             date: d.date ? fmt.format(d.date) : `วันที่ ${d.day}`,
+            note: d.note ?? undefined,
             items: d.items.map((item) => ({
               id: item.id,
               name: item.name,
@@ -1006,9 +1008,31 @@ export default function TripDetailPage({ params }: { params: Promise<{ id: strin
         {currentDay && (
           <div className="px-4 py-4">
             <div className="flex items-center justify-between mb-3">
-              <div>
+              <div className="flex-1 min-w-0 mr-3">
                 <h2 className="text-base font-bold text-gray-800 dark:text-slate-200">วันที่ {currentDay.day}</h2>
                 <p className="text-xs text-gray-400 dark:text-slate-500 mt-0.5">{currentDay.date}</p>
+                {/* Day note — editable for owners, read-only otherwise */}
+                {isOwner ? (
+                  <input
+                    type="text"
+                    placeholder="+ เพิ่มบันทึกประจำวัน..."
+                    defaultValue={currentDay.note ?? ""}
+                    key={`note-${currentDay.day}`}
+                    onBlur={(e) => {
+                      const val = e.target.value.trim();
+                      setTrip((prev) => ({
+                        ...prev,
+                        days: prev.days.map((d) =>
+                          d.day === currentDay.day ? { ...d, note: val || undefined } : d
+                        ),
+                      }));
+                      updateTripDayNote(trip.id, currentDay.day, val).catch(() => {});
+                    }}
+                    className="mt-1 text-xs text-gray-500 dark:text-slate-400 bg-transparent border-none outline-none placeholder-gray-300 dark:placeholder-slate-600 w-full truncate"
+                  />
+                ) : currentDay.note ? (
+                  <p className="mt-1 text-xs text-gray-500 dark:text-slate-400 italic">{currentDay.note}</p>
+                ) : null}
               </div>
               <div className="flex items-center gap-2">
                 <div className="flex items-center gap-1 text-xs text-gray-500 dark:text-slate-400">
