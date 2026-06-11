@@ -10,8 +10,9 @@ import { Avatar } from "@/components/shared/Avatar";
 import { searchPlacesForTrip, type PlacePickerItem } from "@/server/actions/places";
 import {
   MapPin, Tag, X, ChevronLeft, Smile, AlertCircle, Loader2, Eye, EyeOff,
-  Heart, MessageCircle, Bookmark, Share2,
+  Heart, MessageCircle, Bookmark, Share2, Sparkles,
 } from "lucide-react";
+import { generateCaption } from "@/server/actions/ai-caption";
 
 const MAX_CHARS = 500;
 const MAX_IMAGES = 4;
@@ -37,6 +38,7 @@ export default function CreatePage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [showPreview, setShowPreview] = useState(false);
+  const [aiLoading, setAiLoading] = useState(false);
 
   const remaining = MAX_CHARS - content.length;
   const canPost = content.trim().length > 0 && !isSubmitting;
@@ -366,6 +368,27 @@ export default function CreatePage() {
           <div className="flex items-center gap-4">
             <button className="text-sm text-gray-500 dark:text-slate-400 hover:text-[#398AB9] transition">
               <Smile className="w-5 h-5" />
+            </button>
+            {/* AI caption button */}
+            <button
+              type="button"
+              disabled={aiLoading}
+              onClick={async () => {
+                setAiLoading(true);
+                const result = await generateCaption({
+                  location: location || undefined,
+                  tags: tags.length > 0 ? tags : undefined,
+                  imageCount: images.length,
+                });
+                setAiLoading(false);
+                if (result.data) setContent(result.data.slice(0, MAX_CHARS));
+                else if (result.error) setError(result.error);
+              }}
+              className="flex items-center gap-1.5 text-xs font-medium text-violet-600 dark:text-violet-400 bg-violet-50 dark:bg-violet-900/20 px-3 py-1.5 rounded-full hover:bg-violet-100 dark:hover:bg-violet-900/30 transition disabled:opacity-50"
+              title="✨ ให้ AI เขียน caption"
+            >
+              {aiLoading ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Sparkles className="w-3.5 h-3.5" />}
+              AI เขียนให้
             </button>
             <div className="ml-auto flex items-center gap-1.5">
               <div className={`w-1.5 h-1.5 rounded-full ${remaining < 50 ? "bg-[#FF4F4F]" : remaining < 150 ? "bg-amber-400" : "bg-emerald-400"}`} />
