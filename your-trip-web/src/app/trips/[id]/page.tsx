@@ -949,6 +949,32 @@ export default function TripDetailPage({ params }: { params: Promise<{ id: strin
               style={{ width: `${budgetPercent}%` }}
             />
           </div>
+          {/* Category breakdown chips */}
+          {totalCost > 0 && (() => {
+            const allItems = trip.days.flatMap((d) => d.items);
+            const cats: { key: string; label: string; emoji: string; color: string }[] = [
+              { key: "place",     label: "สถานที่", emoji: "📍", color: "bg-[#398AB9]/10 text-[#398AB9]" },
+              { key: "food",      label: "อาหาร",  emoji: "🍽️", color: "bg-orange-50 text-orange-600 dark:bg-orange-900/20 dark:text-orange-400" },
+              { key: "hotel",     label: "ที่พัก",  emoji: "🏨", color: "bg-violet-50 text-violet-600 dark:bg-violet-900/20 dark:text-violet-400" },
+              { key: "transport", label: "เดินทาง", emoji: "✈️", color: "bg-slate-100 text-slate-500 dark:bg-slate-700 dark:text-slate-400" },
+              { key: "activity",  label: "กิจกรรม", emoji: "🎯", color: "bg-emerald-50 text-emerald-600 dark:bg-emerald-900/20 dark:text-emerald-400" },
+            ];
+            return (
+              <div className="flex gap-2 mt-2 overflow-x-auto scrollbar-none">
+                {cats.map(({ key, label, emoji, color }) => {
+                  const sum = allItems.filter((i) => i.type === key).reduce((s, i) => s + (i.cost ?? 0), 0);
+                  if (sum === 0) return null;
+                  return (
+                    <div key={key} className={`flex-shrink-0 flex items-center gap-1 text-[10px] font-semibold px-2 py-1 rounded-full ${color}`}>
+                      <span>{emoji}</span>
+                      <span>{label}</span>
+                      <span className="opacity-70">฿{sum.toLocaleString()}</span>
+                    </div>
+                  );
+                })}
+              </div>
+            );
+          })()}
         </div>
 
         {/* Status tracker */}
