@@ -683,6 +683,32 @@ export default function PlaceDetailClient({ place, slug, initialSaved = false }:
             </section>
           )}
 
+          {/* ── Share Buttons ── */}
+          <section className="py-2">
+            <div className="flex items-center gap-2 flex-wrap">
+              <span className="text-xs font-medium text-gray-500 dark:text-slate-400 mr-1">แชร์ไปยัง:</span>
+              {[
+                { label: "LINE", emoji: "💬", href: (url: string, text: string) => `https://social-plugins.line.me/lineit/share?url=${encodeURIComponent(url)}&text=${encodeURIComponent(text)}`, color: "bg-green-50 text-green-700 border-green-200 dark:bg-green-900/20 dark:text-green-400 dark:border-green-800" },
+                { label: "Facebook", emoji: "📘", href: (url: string) => `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(url)}`, color: "bg-blue-50 text-blue-700 border-blue-200 dark:bg-blue-900/20 dark:text-blue-400 dark:border-blue-800" },
+                { label: "X", emoji: "🐦", href: (url: string, text: string) => `https://twitter.com/intent/tweet?url=${encodeURIComponent(url)}&text=${encodeURIComponent(text)}`, color: "bg-slate-50 text-slate-700 border-slate-200 dark:bg-slate-700 dark:text-slate-300 dark:border-slate-600" },
+              ].map(({ label, emoji, href, color }) => {
+                const url = typeof window !== "undefined" ? window.location.href : "";
+                const text = `${place.name} — ${place.location} | YourTrip`;
+                return (
+                  <a key={label}
+                    href={href(url, text)}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className={`flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-xl border transition hover:opacity-80 ${color}`}
+                  >
+                    <span>{emoji}</span>
+                    {label}
+                  </a>
+                );
+              })}
+            </div>
+          </section>
+
           {/* ── Nearby Places ── */}
           {place.nearby.length > 0 && (
             <section>
