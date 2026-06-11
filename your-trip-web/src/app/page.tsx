@@ -29,10 +29,10 @@ const websiteJsonLd = {
 };
 
 const destinations = [
-  { name: "เชียงใหม่, ไทย",        tag: "วัฒนธรรม & ธรรมชาติ", from: "from-emerald-400",  to: "to-teal-600",    emoji: "🏔️" },
-  { name: "บาหลี, อินโดนีเซีย",    tag: "เกาะสวรรค์",           from: "from-orange-400",  to: "to-rose-500",    emoji: "🌴" },
-  { name: "ซานโตรีนี, กรีซ",       tag: "โรแมนติก",             from: "from-sky-400",     to: "to-blue-600",    emoji: "🏛️" },
-  { name: "ฮาลองเบย์, เวียดนาม",   tag: "มหัศจรรย์โลก",         from: "from-cyan-400",    to: "to-emerald-600", emoji: "⛵" },
+  { name: "เชียงใหม่, ไทย",        tag: "วัฒนธรรม & ธรรมชาติ", from: "from-emerald-400",  to: "to-teal-600",    emoji: "🏔️", href: "/explore/เชียงใหม่" },
+  { name: "บาหลี, อินโดนีเซีย",    tag: "เกาะสวรรค์",           from: "from-orange-400",  to: "to-rose-500",    emoji: "🌴", href: "/explore?q=บาหลี" },
+  { name: "ภูเก็ต, ไทย",           tag: "ทะเล & หาดทราย",       from: "from-sky-400",     to: "to-blue-600",    emoji: "🏖️", href: "/explore/ภูเก็ต" },
+  { name: "กรุงเทพฯ, ไทย",         tag: "City & Street Food",   from: "from-cyan-400",    to: "to-emerald-600", emoji: "🏙️", href: "/explore/กรุงเทพมหานคร" },
 ];
 
 const features = [
@@ -201,7 +201,7 @@ export default async function LandingPage() {
                   </Link>
                 ))
               : destinations.map((d) => (
-                  <Link key={d.name} href="/explore"
+                  <Link key={d.name} href={d.href}
                     className={`group relative rounded-2xl overflow-hidden aspect-[3/4] cursor-pointer shadow-md hover:shadow-xl transition-all hover:-translate-y-1 bg-gradient-to-b ${d.from} ${d.to} flex flex-col items-center justify-center block`}>
                     <div className="text-5xl mb-3 group-hover:scale-110 transition-transform duration-300">
                       {d.emoji}
