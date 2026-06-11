@@ -4,7 +4,7 @@ import { use, useState, useEffect, useCallback, useRef } from "react";
 import { useRouter } from "next/navigation";
 import QRCode from "qrcode";
 import AppShell from "@/components/AppShell";
-import { getTripById, addItineraryItem, deleteTripItem, updateTripItem, toggleTripPublic, reorderItinerary, cloneTripToUser } from "@/server/actions/trips";
+import { getTripById, addItineraryItem, deleteTripItem, updateTripItem, toggleTripPublic, reorderItinerary, cloneTripToUser, updateTripStatus } from "@/server/actions/trips";
 import {
   ChevronLeft, Plus, MapPin, Clock, Wallet,
   Trash2, GripVertical, Calendar, Share2,
@@ -121,6 +121,67 @@ function fmtMin(min: number) {
   const h = Math.floor(min / 60);
   const m = min % 60;
   return m > 0 ? `${h} ชม. ${m} นาที` : `${h} ชม.`;
+}
+
+// ─── Trip Status Tracker ──────────────────────────────────────────────────────
+
+type TripStatusValue = "PLANNING" | "CONFIRMED" | "ONGOING" | "COMPLETED";
+
+const STATUS_STEPS: { value: TripStatusValue; label: string; emoji: string; color: string }[] = [
+  { value: "PLANNING",  label: "วางแผน",   emoji: "📋", color: "bg-blue-500"   },
+  { value: "CONFIRMED", label: "ยืนยันแล้ว", emoji: "✅", color: "bg-violet-500" },
+  { value: "ONGOING",   label: "กำลังเดินทาง", emoji: "✈️", color: "bg-amber-500"  },
+  { value: "COMPLETED", label: "เสร็จสิ้น",  emoji: "🏁", color: "bg-emerald-500" },
+];
+
+function TripStatusTracker({
+  status,
+  isOwner,
+  onStatusChange,
+}: {
+  status: TripStatusValue;
+  isOwner: boolean;
+  onStatusChange: (s: TripStatusValue) => void;
+}) {
+  const currentIdx = STATUS_STEPS.findIndex((s) => s.value === status);
+  return (
+    <div className="bg-white dark:bg-slate-800 border-b border-gray-100 dark:border-slate-700 px-4 py-3">
+      <p className="text-[10px] font-bold text-gray-400 dark:text-slate-500 uppercase tracking-widest mb-2.5">สถานะทริป</p>
+      <div className="flex items-center gap-0">
+        {STATUS_STEPS.map((step, idx) => {
+          const isDone    = idx < currentIdx;
+          const isCurrent = idx === currentIdx;
+          const isLast    = idx === STATUS_STEPS.length - 1;
+          return (
+            <div key={step.value} className="flex items-center flex-1">
+              <button
+                onClick={() => isOwner && onStatusChange(step.value)}
+                disabled={!isOwner}
+                className={`flex flex-col items-center gap-1 flex-1 transition-all ${isOwner ? "cursor-pointer hover:opacity-80" : "cursor-default"}`}
+                title={isOwner ? `เปลี่ยนเป็น: ${step.label}` : step.label}
+              >
+                <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm transition-all shadow-sm ${
+                  isCurrent ? `${step.color} text-white ring-2 ring-offset-2 ring-[#398AB9] scale-110` :
+                  isDone    ? "bg-[#398AB9] text-white" :
+                              "bg-gray-100 dark:bg-slate-700 text-gray-400 dark:text-slate-500"
+                }`}>
+                  {isDone ? "✓" : step.emoji}
+                </div>
+                <span className={`text-[9px] font-medium leading-tight text-center max-w-[52px] ${
+                  isCurrent ? "text-[#398AB9] font-bold" :
+                  isDone    ? "text-[#398AB9]" :
+                              "text-gray-400 dark:text-slate-500"
+                }`}>{step.label}</span>
+              </button>
+              {!isLast && (
+                <div className={`h-0.5 flex-1 rounded-full mx-1 transition-all ${idx < currentIdx ? "bg-[#398AB9]" : "bg-gray-100 dark:bg-slate-700"}`} />
+              )}
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
 }
 
 // ─── Google Maps link helpers ─────────────────────────────────────────────────
@@ -518,6 +579,7 @@ export default function TripDetailPage({ params }: { params: Promise<{ id: strin
   const [dragOverItemId, setDragOverItemId] = useState<string | null>(null);
   const [routeSegments, setRouteSegments] = useState<Array<{ distanceKm: number; durationMin: number }>>([]);
   const [routeSource, setRouteSource] = useState<"google" | "osrm" | "haversine" | null>(null);
+  const [tripStatus, setTripStatus] = useState<"PLANNING" | "CONFIRMED" | "ONGOING" | "COMPLETED">("PLANNING");
   const [newItem, setNewItem] = useState({
     name: "", time: "", cost: "", note: "",
     duration: "", travelTimeTo: "",
@@ -534,6 +596,7 @@ export default function TripDetailPage({ params }: { params: Promise<{ id: strin
         if (!data) return;
         setIsOwner(owner ?? false);
         setIsPublic(data.isPublic);
+        if (data.status) setTripStatus(data.status as typeof tripStatus);
         const fmt = new Intl.DateTimeFormat("th-TH", { day: "numeric", month: "short", year: "numeric" });
         setTrip({
           id: data.id,
@@ -842,6 +905,16 @@ export default function TripDetailPage({ params }: { params: Promise<{ id: strin
             />
           </div>
         </div>
+
+        {/* Status tracker */}
+        <TripStatusTracker
+          status={tripStatus}
+          isOwner={isOwner}
+          onStatusChange={async (s) => {
+            setTripStatus(s);
+            await updateTripStatus(trip.id, s).catch(() => {});
+          }}
+        />
 
         {/* Day tabs */}
         <div className="bg-white dark:bg-slate-800 border-b border-gray-100 dark:border-slate-700">
