@@ -1,6 +1,6 @@
 # 🗺️ DAILYWORK.md — YourTrip Quest Board
 > CTO Claude อ่านทุก session | ทำแบบ speedrun — commit บ่อย, ไม่ถามซ้ำ
-> Last updated: 2026-06-09
+> Last updated: 2026-06-12
 
 ---
 
@@ -10,6 +10,39 @@
 ```
 PROGRESS ██████████████████████ 98%  (Day 14 / ~34 ก่อน launch)
 ```
+
+---
+
+## 🔥 QUEST BOARD — Sprint S11 "POLISH & DEPLOY"
+**ช่วง:** 12–20 มิ.ย. 2026 | **MVP deadline:** 14 ก.ค. 2026
+
+### ⚔️ TIER S — Priority
+
+| # | Quest | XP | Status |
+|---|-------|----|--------|
+| GM-1 | **Open in Google Maps** per destination + full route button | 100 | ✅ |
+| GM-2 | **Google Directions API** — accurate travel times (3-tier fallback) | 200 | ✅ |
+| GM-3 | **Places Autocomplete** in trips/[id] add-item modal | 150 | ✅ |
+| S11-1 | **Province pages** — /explore/[province] SEO landing pages + explore chips | 250 | ✅ |
+| S11-2 | **Save trip copy** — cloneTripToUser() + "บันทึกสำเนา" button | 150 | ✅ |
+
+### 🛡️ TIER A — Polish
+
+| # | Quest | XP | Status |
+|---|-------|----|--------|
+| A23 | **Place photo lightbox** — fullscreen viewer with thumbnail strip | 150 | ✅ |
+| A24 | **AI caption assistant** — ✨ button in create post (claude-haiku) | 150 | ✅ |
+| A25 | **Notification preferences** — per-type toggle in /settings/notifications | 100 | ⬜ |
+| A26 | **Trip QR code share** — modal with QR code for public trips | 100 | ⬜ |
+
+### 🏹 TIER B — UX Details
+
+| # | Quest | XP | Status |
+|---|-------|----|--------|
+| B31 | **Post creation preview** — Eye/EyeOff toggle shows live PostCard | 100 | ✅ |
+| B35 | **Destination autocomplete** — Google Places in /trips/new | 100 | ✅ |
+| B36 | **Place reviews sort** — sort reviews by newest/highest/most liked | 50 | ⬜ |
+| B37 | **Feed video support** — show video player for mp4 posts | 100 | ⬜ |
 
 ---
 
@@ -233,6 +266,8 @@ PROGRESS ██████████████████████ 98% 
 | B2 | SQL migration `travel_time_to` column | Supabase SQL Editor |
 | B3 | git push → Vercel deploy | user confirm |
 | B4 | Cloudinary env ใน Vercel dashboard | user action |
+| B5 | ANTHROPIC_API_KEY ใน .env.local + Vercel | user provide key |
+| B6 | Google Maps API: enable Directions + Places APIs ใน GCP console | user action |
 
 ---
 

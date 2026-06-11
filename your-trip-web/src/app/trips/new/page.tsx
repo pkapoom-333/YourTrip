@@ -1,13 +1,13 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import AppShell from "@/components/AppShell";
 import { useRouter } from "next/navigation";
 import { createTrip } from "@/server/actions/trips";
 import { ImageUpload, type UploadedImage } from "@/components/ImageUpload";
 import {
   ChevronLeft, MapPin, Calendar, Image as ImageIcon,
-  Wallet, Globe, Lock, Sparkles, Check,
+  Wallet, Globe, Lock, Sparkles, Check, Loader2,
 } from "lucide-react";
 
 const popularDestinations = [
@@ -32,6 +32,64 @@ const budgetOptions = [
   { label: "สะดวกสบาย", value: 12000, icon: "🧡", desc: "฿6,000–12,000/วัน" },
   { label: "หรูหรา", value: 999999, icon: "💜", desc: "> ฿12,000/วัน" },
 ];
+
+// ─── DestinationInput — plain text + Google Places Autocomplete ───────────────
+
+function DestinationInput({
+  value,
+  onChange,
+}: {
+  value: string;
+  onChange: (dest: string) => void;
+}) {
+  const apiKey = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY;
+  const inputRef = useRef<HTMLInputElement>(null);
+  const [initialized, setInitialized] = useState(false);
+  const onChangeRef = useRef(onChange);
+  onChangeRef.current = onChange;
+
+  useEffect(() => {
+    if (!apiKey || !inputRef.current || initialized) return;
+    let cancelled = false;
+    (async () => {
+      try {
+        const { setOptions, importLibrary } = await import("@googlemaps/js-api-loader");
+        if (cancelled || !inputRef.current) return;
+        setOptions({ key: apiKey, v: "weekly" });
+        await importLibrary("places");
+        if (cancelled || !inputRef.current) return;
+        const ac = new google.maps.places.Autocomplete(inputRef.current, {
+          types: ["(regions)"],
+          fields: ["name"],
+        });
+        ac.addListener("place_changed", () => {
+          const place = ac.getPlace();
+          if (place?.name) onChangeRef.current(place.name);
+        });
+        setInitialized(true);
+      } catch { /* fallback to plain input */ }
+    })();
+    return () => { cancelled = true; };
+  }, [apiKey, initialized]);
+
+  return (
+    <div className="relative">
+      <MapPin className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-[#398AB9] pointer-events-none" />
+      <input
+        ref={inputRef}
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        placeholder="เช่น เชียงใหม่, บาหลี..."
+        className="w-full pl-10 pr-9 py-3.5 border border-gray-200 dark:border-slate-600 dark:bg-slate-700/50 dark:text-slate-200 dark:placeholder:text-slate-400 rounded-xl text-sm focus:outline-none focus:border-[#398AB9] focus:ring-2 focus:ring-[#398AB9]/10"
+      />
+      {apiKey && !initialized && (
+        <Loader2 className="absolute right-3.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-gray-400 animate-spin" />
+      )}
+    </div>
+  );
+}
+
+// ─── Page ─────────────────────────────────────────────────────────────────────
 
 export default function NewTripPage() {
   const router = useRouter();
@@ -132,15 +190,13 @@ export default function NewTripPage() {
               <label className="block text-sm font-semibold text-gray-700 dark:text-slate-300 mb-2">
                 ปลายทาง <span className="text-red-400">*</span>
               </label>
-              <div className="relative">
-                <MapPin className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-[#398AB9]" />
-                <input
-                  value={form.destination}
-                  onChange={(e) => set("destination", e.target.value)}
-                  placeholder="เช่น เชียงใหม่, บาหลี..."
-                  className="w-full pl-10 pr-4 py-3.5 border border-gray-200 dark:border-slate-600 dark:bg-slate-700/50 dark:text-slate-200 dark:placeholder:text-slate-400 rounded-xl text-sm focus:outline-none focus:border-[#398AB9] focus:ring-2 focus:ring-[#398AB9]/10"
-                />
-              </div>
+              <DestinationInput
+                value={form.destination}
+                onChange={(dest) => {
+                  set("destination", dest);
+                  if (!form.title) set("title", `ทริป${dest}`);
+                }}
+              />
               {/* Popular destinations */}
               <div className="flex flex-wrap gap-2 mt-3">
                 {popularDestinations.map((d) => (
