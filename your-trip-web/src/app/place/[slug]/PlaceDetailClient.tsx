@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import AppShell from "@/components/AppShell";
 import Link from "next/link";
 import Image from "next/image";
@@ -13,6 +13,7 @@ import {
   Plus, X, CalendarDays, BookMarked, Maximize2,
 } from "lucide-react";
 import { createReview } from "@/server/actions/places";
+import { getPostsByPlace } from "@/server/actions/posts";
 import { toggleSavePlace } from "@/server/actions/savedPlaces";
 import { getUserTrips, addItineraryItem } from "@/server/actions/trips";
 import { getUserCollections, addToCollection, type CollectionListItem } from "@/server/actions/collections";
@@ -113,6 +114,14 @@ export default function PlaceDetailClient({ place, slug, initialSaved = false }:
   const [addingToCol, setAddingToCol] = useState(false);
   const [lightboxOpen, setLightboxOpen] = useState(false);
   const [lightboxIndex, setLightboxIndex] = useState(0);
+  const [communityPosts, setCommunityPosts] = useState<{ id: string; images: string[]; likesCount: number; user: { name: string | null; avatarUrl: string | null } }[]>([]);
+
+  useEffect(() => {
+    if (place.id && !place.id.startsWith("mock")) {
+      getPostsByPlace(place.id).then(({ data }) => setCommunityPosts(data));
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [place.id]);
   const [reviewSort, setReviewSort] = useState<"newest" | "highest" | "lowest" | "helpful">("helpful");
 
   async function openAddToCollection() {
@@ -708,6 +717,43 @@ export default function PlaceDetailClient({ place, slug, initialSaved = false }:
               })}
             </div>
           </section>
+
+          {/* ── Community Posts ── */}
+          {communityPosts.length > 0 && (
+            <section>
+              <div className="flex items-center justify-between mb-3">
+                <h2 className="text-base font-semibold text-gray-900 dark:text-slate-100">
+                  โพสต์จากชุมชน
+                </h2>
+                <Link href={`/create?placeId=${place.id}`}
+                  className="text-xs text-[#398AB9] hover:underline flex items-center gap-0.5">
+                  <Camera className="w-3 h-3" /> เพิ่มรูปของคุณ
+                </Link>
+              </div>
+              <div className="grid grid-cols-3 gap-1">
+                {communityPosts.slice(0, 9).map((p) => (
+                  <Link key={p.id} href={`/post/${p.id}`}
+                    className="group relative aspect-square rounded-xl overflow-hidden bg-gray-100 dark:bg-slate-700">
+                    {p.images[0] ? (
+                      <img src={p.images[0]} alt=""
+                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                        referrerPolicy="no-referrer"
+                        loading="lazy"
+                        onError={(e) => { (e.target as HTMLImageElement).parentElement!.style.display = "none"; }} />
+                    ) : (
+                      <div className="w-full h-full flex items-center justify-center text-2xl">📸</div>
+                    )}
+                    <div className="absolute inset-0 bg-black/0 group-hover:bg-black/30 transition flex items-center justify-center opacity-0 group-hover:opacity-100">
+                      <div className="flex items-center gap-1 text-white text-xs font-semibold drop-shadow">
+                        <Heart className="w-3 h-3 fill-white" />
+                        {p.likesCount}
+                      </div>
+                    </div>
+                  </Link>
+                ))}
+              </div>
+            </section>
+          )}
 
           {/* ── Nearby Places ── */}
           {place.nearby.length > 0 && (

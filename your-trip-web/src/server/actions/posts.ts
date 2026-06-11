@@ -612,6 +612,36 @@ export async function getTrendingHashtags(take = 8): Promise<{ data: { tag: stri
   }
 }
 
+/** Get recent posts for a place (community photos) */
+export async function getPostsByPlace(
+  placeId: string,
+  take = 9
+): Promise<{ data: { id: string; images: string[]; likesCount: number; user: { name: string | null; avatarUrl: string | null } }[] }> {
+  try {
+    const posts = await prisma.post.findMany({
+      where: { placeId, isPublic: true },
+      orderBy: { createdAt: "desc" },
+      take,
+      select: {
+        id: true,
+        images: true,
+        _count: { select: { likes: true } },
+        user: { select: { name: true, avatarUrl: true } },
+      },
+    });
+    return {
+      data: posts.map((p) => ({
+        id: p.id,
+        images: p.images,
+        likesCount: p._count.likes,
+        user: p.user,
+      })),
+    };
+  } catch {
+    return { data: [] };
+  }
+}
+
 export async function reportPost(
   postId: string,
   reason: ReportReason,
