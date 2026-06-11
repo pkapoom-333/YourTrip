@@ -9,7 +9,8 @@ import { useUser } from "@/hooks/useUser";
 import { Avatar } from "@/components/shared/Avatar";
 import { searchPlacesForTrip, type PlacePickerItem } from "@/server/actions/places";
 import {
-  MapPin, Tag, X, ChevronLeft, Smile, AlertCircle, Search, Loader2,
+  MapPin, Tag, X, ChevronLeft, Smile, AlertCircle, Loader2, Eye, EyeOff,
+  Heart, MessageCircle, Bookmark, Share2,
 } from "lucide-react";
 
 const MAX_CHARS = 500;
@@ -35,6 +36,7 @@ export default function CreatePage() {
   const [tagInput, setTagInput] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [showPreview, setShowPreview] = useState(false);
 
   const remaining = MAX_CHARS - content.length;
   const canPost = content.trim().length > 0 && !isSubmitting;
@@ -117,12 +119,25 @@ export default function CreatePage() {
             ยกเลิก
           </button>
           <h1 className="text-sm font-semibold text-gray-900 dark:text-slate-100">โพสต์ใหม่</h1>
-          <button
-            onClick={handlePost}
-            disabled={!canPost}
-            className="text-sm font-bold text-white bg-[#398AB9] px-4 py-1.5 rounded-full disabled:opacity-40 hover:bg-[#1C658C] transition">
-            {isSubmitting ? "กำลังโพสต์..." : "โพสต์"}
-          </button>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => setShowPreview((v) => !v)}
+              title={showPreview ? "กลับแก้ไข" : "ดูตัวอย่าง"}
+              className={`flex items-center gap-1 text-xs font-medium px-3 py-1.5 rounded-full border transition ${
+                showPreview
+                  ? "border-[#398AB9] bg-[#398AB9]/10 text-[#398AB9]"
+                  : "border-gray-200 dark:border-slate-600 text-gray-500 dark:text-slate-400 hover:border-[#398AB9] hover:text-[#398AB9]"
+              }`}>
+              {showPreview ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
+              {showPreview ? "แก้ไข" : "Preview"}
+            </button>
+            <button
+              onClick={handlePost}
+              disabled={!canPost}
+              className="text-sm font-bold text-white bg-[#398AB9] px-4 py-1.5 rounded-full disabled:opacity-40 hover:bg-[#1C658C] transition">
+              {isSubmitting ? "กำลังโพสต์..." : "โพสต์"}
+            </button>
+          </div>
         </div>
 
         {/* Error banner */}
@@ -136,7 +151,91 @@ export default function CreatePage() {
           </div>
         )}
 
-        <div className="px-4 py-4 space-y-4">
+        {/* ── Preview panel ── */}
+        {showPreview && (
+          <div className="px-4 py-4">
+            <p className="text-[11px] font-semibold text-gray-400 dark:text-slate-500 uppercase tracking-wide mb-3">
+              ตัวอย่างโพสต์ในฟีด
+            </p>
+            <article className="bg-white dark:bg-slate-800 rounded-2xl border border-gray-100 dark:border-slate-700 overflow-hidden shadow-sm">
+              {/* Post header */}
+              <div className="flex items-center gap-3 px-4 pt-4 pb-3">
+                <Avatar src={avatarUrl} name={displayName} className="w-9 h-9" />
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-semibold text-gray-900 dark:text-slate-100 leading-none">{displayName}</p>
+                  {location && (
+                    <div className="flex items-center gap-1 text-[11px] text-[#398AB9] mt-0.5">
+                      <MapPin className="w-3 h-3" />{location}
+                    </div>
+                  )}
+                  {!location && <p className="text-[11px] text-gray-400 dark:text-slate-500 mt-0.5">เมื่อกี้นี้</p>}
+                </div>
+              </div>
+
+              {/* Images */}
+              {images.length > 0 && (
+                <div className={`grid gap-0.5 ${images.length === 1 ? "grid-cols-1" : images.length === 2 ? "grid-cols-2" : "grid-cols-2"}`}>
+                  {images.slice(0, 4).map((img, i) => (
+                    <div key={i} className={`relative overflow-hidden bg-gray-100 dark:bg-slate-700 ${
+                      images.length === 1 ? "aspect-video" :
+                      images.length === 3 && i === 0 ? "row-span-2 aspect-square" : "aspect-square"
+                    }`}>
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img src={img.url} alt="" className="w-full h-full object-cover" referrerPolicy="no-referrer" />
+                      {i === 3 && images.length > 4 && (
+                        <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
+                          <span className="text-white text-xl font-bold">+{images.length - 4}</span>
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              {/* Content */}
+              {content.trim() && (
+                <p className="px-4 pt-3 pb-1 text-sm text-gray-800 dark:text-slate-200 leading-relaxed whitespace-pre-wrap">
+                  {content.split(/(@\w+|#\w+)/).map((part, i) =>
+                    part.startsWith("@") || part.startsWith("#")
+                      ? <span key={i} className="text-[#398AB9] font-medium">{part}</span>
+                      : part
+                  )}
+                </p>
+              )}
+
+              {/* Tags */}
+              {tags.length > 0 && (
+                <div className="px-4 pt-1 pb-2 flex flex-wrap gap-1.5">
+                  {tags.map((t) => (
+                    <span key={t} className="text-[11px] text-[#398AB9] bg-[#398AB9]/8 px-2 py-0.5 rounded-full">#{t}</span>
+                  ))}
+                </div>
+              )}
+
+              {/* Action bar */}
+              <div className="flex items-center gap-4 px-4 py-3 border-t border-gray-50 dark:border-slate-700 mt-1">
+                <button className="flex items-center gap-1.5 text-xs text-gray-400 dark:text-slate-500">
+                  <Heart className="w-4 h-4" /><span>0</span>
+                </button>
+                <button className="flex items-center gap-1.5 text-xs text-gray-400 dark:text-slate-500">
+                  <MessageCircle className="w-4 h-4" /><span>0</span>
+                </button>
+                <button className="ml-auto text-gray-400 dark:text-slate-500">
+                  <Bookmark className="w-4 h-4" />
+                </button>
+                <button className="text-gray-400 dark:text-slate-500">
+                  <Share2 className="w-4 h-4" />
+                </button>
+              </div>
+            </article>
+
+            {!content.trim() && images.length === 0 && (
+              <p className="text-center text-xs text-gray-400 dark:text-slate-500 mt-4">เขียนอะไรสักอย่างหรืออัปโหลดรูปก่อนดูตัวอย่าง</p>
+            )}
+          </div>
+        )}
+
+        <div className={`px-4 py-4 space-y-4 ${showPreview ? "hidden" : ""}`}>
           {/* Author row */}
           <div className="flex items-start gap-3">
             <Avatar src={avatarUrl} name={displayName} />
@@ -262,8 +361,8 @@ export default function CreatePage() {
           </div>
         </div>
 
-        {/* Bottom toolbar */}
-        <div className="sticky bottom-20 md:bottom-4 bg-white dark:bg-slate-800 border-t border-gray-100 dark:border-slate-700 px-4 py-3">
+        {/* Bottom toolbar — hidden in preview mode */}
+        <div className={`sticky bottom-20 md:bottom-4 bg-white dark:bg-slate-800 border-t border-gray-100 dark:border-slate-700 px-4 py-3 ${showPreview ? "hidden" : ""}`}>
           <div className="flex items-center gap-4">
             <button className="text-sm text-gray-500 dark:text-slate-400 hover:text-[#398AB9] transition">
               <Smile className="w-5 h-5" />
