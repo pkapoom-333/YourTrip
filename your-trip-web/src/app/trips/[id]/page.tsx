@@ -142,7 +142,6 @@ function getFullRouteUrl(items: TripItem[]): string {
 }
 
 // ─── Google Places Autocomplete ───────────────────────────────────────────────
-// TODO: Add NEXT_PUBLIC_GOOGLE_MAPS_API_KEY to .env.local to enable this picker
 
 function GooglePlacesPicker({
   onSelect,
