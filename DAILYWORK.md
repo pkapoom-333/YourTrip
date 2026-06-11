@@ -25,6 +25,10 @@ PROGRESS ██████████████████████ 98% 
 | S14-1 | **Feed mobile nav wired** — Search→/explore, Bell→/notifications | 50 | ✅ |
 | S14-2 | **Trip destination suggestions** — saved places → suggest trip destinations | 100 | ✅ |
 | S14-3 | **trips/new URL prefill** — ?destination= param pre-fills wizard | 50 | ✅ |
+| S14-4 | **create post URL prefill** — ?tag= + ?placeId= pre-fills form | 50 | ✅ |
+| S14-5 | **Province page trip CTA** — "วางแผนทริป[province]" button in hero | 50 | ✅ |
+| S14-6 | **Loading skeletons** — /explore/[province] + /profile/[userId] | 50 | ✅ |
+| S14-7 | **Landing destination links** — cards link to province pages not /explore | 30 | ✅ |
 
 ---
 
