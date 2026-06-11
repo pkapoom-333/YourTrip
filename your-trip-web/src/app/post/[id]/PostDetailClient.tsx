@@ -42,9 +42,11 @@ function renderCaption(text: string) {
 export default function PostDetailClient({
   post: initialPost,
   meId,
+  related = [],
 }: {
   post: PostDetail;
   meId?: string;
+  related?: Array<{ id: string; images: string[]; likesCount: number; user: { name: string | null; avatarUrl: string | null } }>;
 }) {
   const router = useRouter();
   const { user: me } = useUser();
@@ -289,6 +291,37 @@ export default function PostDetailClient({
         <div className="bg-white dark:bg-slate-800 border-t border-gray-100 dark:border-slate-700">
           <CommentSection postId={post.id} initialCount={post.commentsCount} />
         </div>
+
+        {/* Related posts */}
+        {related.length > 0 && (
+          <div className="bg-white dark:bg-slate-800 mt-2 border-t border-gray-100 dark:border-slate-700 px-4 py-4">
+            <p className="text-xs font-bold text-gray-500 dark:text-slate-400 uppercase tracking-wide mb-3">โพสต์ที่คุณอาจชอบ</p>
+            <div className="grid grid-cols-2 gap-2">
+              {related.map((p) => (
+                <Link key={p.id} href={`/post/${p.id}`}
+                  className="group relative aspect-square rounded-2xl overflow-hidden bg-gray-100 dark:bg-slate-700">
+                  {p.images[0] ? (
+                    <img
+                      src={p.images[0]}
+                      alt=""
+                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                      referrerPolicy="no-referrer"
+                      loading="lazy"
+                      onError={(e) => { (e.target as HTMLImageElement).parentElement!.style.display = "none"; }}
+                    />
+                  ) : (
+                    <div className="w-full h-full flex items-center justify-center text-2xl">📸</div>
+                  )}
+                  <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition" />
+                  <div className="absolute bottom-2 left-2 flex items-center gap-1 text-white text-[10px] font-semibold drop-shadow">
+                    <Heart className="w-3 h-3 fill-white" />
+                    {p.likesCount}
+                  </div>
+                </Link>
+              ))}
+            </div>
+          </div>
+        )}
       </div>
     </AppShell>
   );

@@ -440,6 +440,37 @@ export async function getPostsByTag(
   }
 }
 
+export async function getRelatedPosts(postId: string, tags: string[], take = 4): Promise<{ data: Array<{ id: string; images: string[]; likesCount: number; user: { name: string | null; avatarUrl: string | null } }> }> {
+  try {
+    if (tags.length === 0) return { data: [] };
+    const posts = await prisma.post.findMany({
+      where: {
+        id: { not: postId },
+        tags: { hasSome: tags },
+        isPublic: true,
+      },
+      orderBy: { createdAt: "desc" },
+      take,
+      select: {
+        id: true,
+        images: true,
+        _count: { select: { likes: true } },
+        user: { select: { name: true, avatarUrl: true } },
+      },
+    });
+    return {
+      data: posts.map((p) => ({
+        id: p.id,
+        images: p.images,
+        likesCount: p._count.likes,
+        user: p.user,
+      })),
+    };
+  } catch {
+    return { data: [] };
+  }
+}
+
 export async function getPostById(postId: string): Promise<{ data: PostDetail | null }> {
   try {
     const supabase = await createServerClient();

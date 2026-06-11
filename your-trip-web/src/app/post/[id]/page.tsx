@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import AppShell from "@/components/AppShell";
-import { getPostById } from "@/server/actions/posts";
+import { getPostById, getRelatedPosts } from "@/server/actions/posts";
 import { createClient } from "@/lib/supabase/server";
 import PostDetailClient from "./PostDetailClient";
 
@@ -48,7 +48,9 @@ export default async function PostPage({ params }: { params: Promise<{ id: strin
 
   if (!post) notFound();
 
+  const { data: related } = await getRelatedPosts(id, post.tags ?? []);
+
   return (
-    <PostDetailClient post={post} meId={me?.id} />
+    <PostDetailClient post={post} meId={me?.id} related={related} />
   );
 }
