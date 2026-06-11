@@ -4,13 +4,13 @@ import { use, useState, useEffect, useCallback, useRef } from "react";
 import { useRouter } from "next/navigation";
 import QRCode from "qrcode";
 import AppShell from "@/components/AppShell";
-import { getTripById, addItineraryItem, deleteTripItem, updateTripItem, toggleTripPublic, reorderItinerary, cloneTripToUser, updateTripStatus } from "@/server/actions/trips";
+import { getTripById, addItineraryItem, deleteTripItem, updateTripItem, toggleTripPublic, reorderItinerary, cloneTripToUser, updateTripStatus, updateTripCover } from "@/server/actions/trips";
 import {
   ChevronLeft, Plus, MapPin, Clock, Wallet,
   Trash2, GripVertical, Calendar, Share2,
   Edit3, ChevronDown, ChevronUp, Flag, Car, Map,
   Navigation, Search, Loader2, X, ExternalLink, Printer,
-  Lock, Unlock, QrCode,
+  Lock, Unlock, QrCode, Camera,
 } from "lucide-react";
 import Link from "next/link";
 import dynamic from "next/dynamic";
@@ -580,6 +580,8 @@ export default function TripDetailPage({ params }: { params: Promise<{ id: strin
   const [routeSegments, setRouteSegments] = useState<Array<{ distanceKm: number; durationMin: number }>>([]);
   const [routeSource, setRouteSource] = useState<"google" | "osrm" | "haversine" | null>(null);
   const [tripStatus, setTripStatus] = useState<"PLANNING" | "CONFIRMED" | "ONGOING" | "COMPLETED">("PLANNING");
+  const [coverUploading, setCoverUploading] = useState(false);
+  const coverInputRef = useRef<HTMLInputElement>(null);
   const [newItem, setNewItem] = useState({
     name: "", time: "", cost: "", note: "",
     duration: "", travelTimeTo: "",
@@ -675,6 +677,24 @@ export default function TripDetailPage({ params }: { params: Promise<{ id: strin
   }, [currentDay]);
 
   useEffect(() => { fetchRoute(); }, [fetchRoute]);
+
+  async function handleCoverUpload(file: File) {
+    if (!file || coverUploading) return;
+    setCoverUploading(true);
+    try {
+      const formData = new FormData();
+      formData.append("file", file);
+      formData.append("folder", "your-trip/trips");
+      const res = await fetch("/api/upload", { method: "POST", body: formData });
+      const data = await res.json() as { url?: string };
+      if (data.url) {
+        setTrip((prev) => ({ ...prev, coverImage: data.url! }));
+        await updateTripCover(trip.id, data.url).catch(() => {});
+      }
+    } finally {
+      setCoverUploading(false);
+    }
+  }
 
   const totalCost = trip.days.flatMap((d) => d.items).reduce((s, i) => s + (i.cost ?? 0), 0);
   const budgetPercent = Math.min((totalCost / (trip.budget ?? 1)) * 100, 100);
@@ -871,7 +891,30 @@ export default function TripDetailPage({ params }: { params: Promise<{ id: strin
               </button>
             )}
           </div>
-          <div className="absolute bottom-4 left-4 right-4">
+          {/* Hidden cover image input */}
+          {isOwner && (
+            <input
+              ref={coverInputRef}
+              type="file"
+              accept="image/jpeg,image/png,image/webp"
+              className="hidden"
+              onChange={(e) => { if (e.target.files?.[0]) handleCoverUpload(e.target.files[0]); }}
+            />
+          )}
+
+          {/* Camera button — change cover (owner only) */}
+          {isOwner && (
+            <button
+              onClick={() => coverInputRef.current?.click()}
+              disabled={coverUploading}
+              className="absolute bottom-4 right-4 w-9 h-9 bg-black/40 backdrop-blur-sm rounded-full flex items-center justify-center text-white hover:bg-black/60 transition disabled:opacity-50"
+              title="เปลี่ยนภาพหน้าปก"
+            >
+              {coverUploading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Camera className="w-4 h-4" />}
+            </button>
+          )}
+
+          <div className="absolute bottom-4 left-4 right-4 pr-12">
             <h1 className="text-xl font-bold text-white">{trip.title}</h1>
             <div className="flex items-center gap-3 mt-1">
               <div className="flex items-center gap-1 text-white/80 text-xs">

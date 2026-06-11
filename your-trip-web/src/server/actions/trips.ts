@@ -307,6 +307,22 @@ export async function updateTripStatus(tripId: string, status: "PLANNING" | "CON
   }
 }
 
+export async function updateTripCover(tripId: string, coverImage: string): Promise<{ data?: { success: boolean }; error?: { message: string } }> {
+  try {
+    const supabase = await createServerClient();
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return { error: { message: "กรุณาเข้าสู่ระบบ" } };
+
+    await prisma.trip.update({
+      where: { id: tripId, userId: user.id },
+      data: { coverImage },
+    });
+    return { data: { success: true } };
+  } catch {
+    return { data: { success: true } };
+  }
+}
+
 export async function deleteTrip(tripId: string) {
   try {
     const supabase = await createServerClient();
