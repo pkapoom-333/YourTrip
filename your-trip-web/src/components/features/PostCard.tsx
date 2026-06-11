@@ -3,7 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Heart, MessageCircle, Send, Bookmark, MapPin, MoreHorizontal, Flag, Link2, X } from "lucide-react";
+import { Heart, MessageCircle, Send, Bookmark, MapPin, MoreHorizontal, Flag, Link2, X, ChevronLeft, ChevronRight, Maximize2 } from "lucide-react";
 import { toggleLike, toggleSave, reportPost, REPORT_REASONS, type ReportReason } from "@/server/actions/posts";
 import { CommentSection } from "./CommentSection";
 import { Avatar } from "@/components/shared/Avatar";
@@ -64,6 +64,8 @@ export function PostCard({ post, onTagClick }: { post: PostCardData; onTagClick?
   const [saved, setSaved] = useState(post.saved);
   const [likeCount, setLikeCount] = useState(post.likes);
   const [isLiking, setIsLiking] = useState(false);
+  const [lightboxOpen, setLightboxOpen] = useState(false);
+  const [lightboxIdx, setLightboxIdx] = useState(0);
   const [menuOpen, setMenuOpen] = useState(false);
   const [reportOpen, setReportOpen] = useState(false);
   const [reportReason, setReportReason] = useState<ReportReason | "">("");
@@ -201,7 +203,7 @@ export function PostCard({ post, onTagClick }: { post: PostCardData; onTagClick?
       {/* Post image(s) / video */}
       {allImages.length > 0 && (
       <Link href={`/post/${post.id}`} className="block">
-      <div className={`relative overflow-hidden bg-gray-100 dark:bg-slate-700 ${isVideo(allImages[imgIndex]) ? "aspect-[9/16] max-h-[480px]" : "aspect-[4/3]"}`}>
+      <div className={`relative overflow-hidden bg-gray-100 dark:bg-slate-700 group/img ${isVideo(allImages[imgIndex]) ? "aspect-[9/16] max-h-[480px]" : "aspect-[4/3]"}`}>
         {isVideo(allImages[imgIndex]) ? (
           <video
             key={allImages[imgIndex]}
@@ -214,6 +216,7 @@ export function PostCard({ post, onTagClick }: { post: PostCardData; onTagClick?
             onClick={(e) => e.preventDefault()}
           />
         ) : (
+          <>
           <img
             src={allImages[imgIndex]}
             alt={post.title ?? ""}
@@ -221,6 +224,20 @@ export function PostCard({ post, onTagClick }: { post: PostCardData; onTagClick?
             referrerPolicy="no-referrer"
             onError={(e) => { (e.target as HTMLImageElement).parentElement!.style.display = "none"; }}
           />
+          {/* Zoom icon — opens lightbox */}
+          <button
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              setLightboxIdx(imgIndex);
+              setLightboxOpen(true);
+            }}
+            className="absolute top-2 right-2 w-8 h-8 rounded-full bg-black/40 backdrop-blur-sm text-white opacity-0 group-hover/img:opacity-100 transition-opacity flex items-center justify-center hover:bg-black/60"
+            title="ขยายภาพ"
+          >
+            <Maximize2 className="w-3.5 h-3.5" />
+          </button>
+          </>
         )}
         {/* Video badge */}
         {isVideo(allImages[imgIndex]) && (
@@ -317,6 +334,62 @@ export function PostCard({ post, onTagClick }: { post: PostCardData; onTagClick?
       {/* Comments */}
       <CommentSection postId={post.id} initialCount={post.comments} />
     </article>
+
+    {/* Image lightbox */}
+    {lightboxOpen && allImages.length > 0 && !isVideo(allImages[lightboxIdx]) && (
+      <div
+        className="fixed inset-0 z-[60] bg-black/95 flex items-center justify-center"
+        onClick={() => setLightboxOpen(false)}
+      >
+        {/* Close */}
+        <button
+          className="absolute top-4 right-4 z-10 w-10 h-10 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center text-white transition"
+          onClick={() => setLightboxOpen(false)}
+        >
+          <X className="w-5 h-5" />
+        </button>
+        {/* Counter */}
+        {allImages.length > 1 && (
+          <div className="absolute top-4 left-1/2 -translate-x-1/2 text-white/70 text-xs font-medium">
+            {lightboxIdx + 1} / {allImages.length}
+          </div>
+        )}
+        {/* Image */}
+        <img
+          src={allImages[lightboxIdx]}
+          alt=""
+          className="max-w-full max-h-full object-contain select-none"
+          referrerPolicy="no-referrer"
+          onClick={(e) => e.stopPropagation()}
+          draggable={false}
+        />
+        {/* Prev / Next */}
+        {allImages.length > 1 && (
+          <>
+            <button
+              className="absolute left-2 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center text-white transition"
+              onClick={(e) => { e.stopPropagation(); setLightboxIdx((i) => (i - 1 + allImages.length) % allImages.length); }}
+            >
+              <ChevronLeft className="w-5 h-5" />
+            </button>
+            <button
+              className="absolute right-2 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center text-white transition"
+              onClick={(e) => { e.stopPropagation(); setLightboxIdx((i) => (i + 1) % allImages.length); }}
+            >
+              <ChevronRight className="w-5 h-5" />
+            </button>
+          </>
+        )}
+        {/* View post link */}
+        <Link
+          href={`/post/${post.id}`}
+          className="absolute bottom-6 left-1/2 -translate-x-1/2 text-white/70 text-xs hover:text-white transition underline underline-offset-2"
+          onClick={(e) => e.stopPropagation()}
+        >
+          ดูโพสต์เต็ม →
+        </Link>
+      </div>
+    )}
 
     {/* Report modal */}
     {reportOpen && (

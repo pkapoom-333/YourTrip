@@ -13,6 +13,44 @@ PROGRESS ██████████████████████ 98% 
 
 ---
 
+## 🔥 QUEST BOARD — Sprint S13 "PRE-LAUNCH FINAL"
+**ช่วง:** 12–30 มิ.ย. 2026 | **MVP deadline:** 14 ก.ค. 2026
+
+### ⚔️ TIER S — ทำก่อนเลย
+
+| # | Quest | XP | Status |
+|---|-------|----|--------|
+| B3 | **Vercel deploy** — git push + env vars in dashboard | 500 | ⬜ (needs user) |
+| SD-3 | **Seed Supabase** — run seed-places-real.ts on production DB | 300 | ⬜ (needs user) |
+| S13-1 | **Vanity URLs** — /u/[username] → redirect to /profile/[userId] | 150 | ✅ |
+| S13-2 | **Feed lightbox** — click image in PostCard for fullscreen zoom view | 200 | ⬜ |
+| S13-3 | **Place rating badge on Explore card** — star count + rating trend % | 100 | ⬜ |
+
+### 🛡️ TIER A — Polish
+
+| # | Quest | XP | Status |
+|---|-------|----|--------|
+| A28 | **Travel stats card** — on profile: days traveled / places / avg days/trip + style badge | 150 | ✅ |
+| A29 | **User activity timeline** — profile กิจกรรม tab shows posts/trips/reviews | 150 | ✅ |
+| A30 | **OG metadata on trips** — layout.tsx generateMetadata for shared trip links | 100 | ✅ |
+
+### 🏹 TIER B — UX Details
+
+| # | Quest | XP | Status |
+|---|-------|----|--------|
+| S12-1 | Trending hashtags from DB (UNNEST SQL) | 100 | ✅ |
+| S12-2 | Trip cover image upload (camera button) | 100 | ✅ |
+| S12-5 | Related posts on post detail | 100 | ✅ |
+| S12-6 | Trip day notes (inline editor) | 100 | ✅ |
+| S12-7 | Place social sharing (LINE/Facebook/X) | 100 | ✅ |
+| S12-8 | Budget category breakdown chips | 100 | ✅ |
+| S12-9 | User activity timeline on own profile | 100 | ✅ |
+| S12-10 | Explore destination spotlight cards | 100 | ✅ |
+| S12-11 | Trip print/export copy-to-clipboard | 100 | ✅ |
+| S12-12 | Public profile activity timeline | 100 | ✅ |
+
+---
+
 ## 🔥 QUEST BOARD — Sprint S11 "POLISH & DEPLOY"
 **ช่วง:** 12–20 มิ.ย. 2026 | **MVP deadline:** 14 ก.ค. 2026
 
@@ -32,8 +70,8 @@ PROGRESS ██████████████████████ 98% 
 |---|-------|----|--------|
 | A23 | **Place photo lightbox** — fullscreen viewer with thumbnail strip | 150 | ✅ |
 | A24 | **AI caption assistant** — ✨ button in create post (claude-haiku) | 150 | ✅ |
-| A25 | **Notification preferences** — per-type toggle in /settings/notifications | 100 | ⬜ |
-| A26 | **Trip QR code share** — modal with QR code for public trips | 100 | ⬜ |
+| A25 | **Notification preferences** — per-type toggle in /settings/notifications | 100 | ✅ |
+| A26 | **Trip QR code share** — modal with QR code for public trips | 100 | ✅ |
 
 ### 🏹 TIER B — UX Details
 
@@ -41,8 +79,8 @@ PROGRESS ██████████████████████ 98% 
 |---|-------|----|--------|
 | B31 | **Post creation preview** — Eye/EyeOff toggle shows live PostCard | 100 | ✅ |
 | B35 | **Destination autocomplete** — Google Places in /trips/new | 100 | ✅ |
-| B36 | **Place reviews sort** — sort reviews by newest/highest/most liked | 50 | ⬜ |
-| B37 | **Feed video support** — show video player for mp4 posts | 100 | ⬜ |
+| B36 | **Place reviews sort** — sort reviews by newest/highest/most liked | 50 | ✅ |
+| B37 | **Feed video support** — show video player for mp4 posts | 100 | ✅ |
 
 ---
 
