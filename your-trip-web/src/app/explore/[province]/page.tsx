@@ -2,7 +2,7 @@ import AppShell from "@/components/AppShell";
 import { getPlaces } from "@/server/actions/places";
 import Link from "next/link";
 import type { Metadata } from "next";
-import { MapPin, Star, ChevronLeft, ArrowRight } from "lucide-react";
+import { MapPin, Star, ChevronLeft, ArrowRight, Plane } from "lucide-react";
 
 const PROVINCE_EMOJI: Record<string, string> = {
   "เชียงใหม่": "🌿", "กรุงเทพ": "🏙️", "กรุงเทพมหานคร": "🏙️",
@@ -69,9 +69,16 @@ export default async function ProvincePage(
             <span className="text-4xl">{emoji}</span>
             <h1 className="text-2xl font-bold">{decoded}</h1>
           </div>
-          <p className="text-white/80 text-sm">
+          <p className="text-white/80 text-sm mb-4">
             {allPlaces.length} สถานที่ · รีวิวโดยนักเดินทาง YourTrip
           </p>
+          <Link
+            href={`/trips/new?destination=${encodeURIComponent(decoded)}`}
+            className="inline-flex items-center gap-2 bg-white text-[#1C658C] text-sm font-semibold px-4 py-2 rounded-xl hover:bg-white/90 transition"
+          >
+            <Plane className="w-4 h-4" />
+            วางแผนทริป{decoded}
+          </Link>
         </div>
 
         <div className="px-4 py-6 space-y-8">
