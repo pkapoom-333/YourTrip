@@ -13,6 +13,21 @@ PROGRESS ██████████████████████ 98% 
 
 ---
 
+## 🔥 QUEST BOARD — Sprint S14 "LAUNCH POLISH"
+**ช่วง:** 12–30 มิ.ย. 2026 | **MVP deadline:** 14 ก.ค. 2026
+
+### ⚔️ TIER S — Launch Ready
+
+| # | Quest | XP | Status |
+|---|-------|----|--------|
+| B3 | **Vercel deploy** — git push + env vars in dashboard | 500 | ⬜ (needs user) |
+| SD-3 | **Seed Supabase** — run seed-places-real.ts on production DB | 300 | ⬜ (needs user) |
+| S14-1 | **Feed mobile nav wired** — Search→/explore, Bell→/notifications | 50 | ✅ |
+| S14-2 | **Trip destination suggestions** — saved places → suggest trip destinations | 100 | ✅ |
+| S14-3 | **trips/new URL prefill** — ?destination= param pre-fills wizard | 50 | ✅ |
+
+---
+
 ## 🔥 QUEST BOARD — Sprint S13 "PRE-LAUNCH FINAL"
 **ช่วง:** 12–30 มิ.ย. 2026 | **MVP deadline:** 14 ก.ค. 2026
 

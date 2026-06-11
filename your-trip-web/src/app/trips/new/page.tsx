@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef } from "react";
 import AppShell from "@/components/AppShell";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { createTrip } from "@/server/actions/trips";
 import { ImageUpload, type UploadedImage } from "@/components/ImageUpload";
 import {
@@ -93,10 +93,13 @@ function DestinationInput({
 
 export default function NewTripPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const prefilledDestination = searchParams.get("destination") ?? "";
+
   const [step, setStep] = useState(1);
   const [form, setForm] = useState({
     title: "",
-    destination: "",
+    destination: prefilledDestination,
     startDate: "",
     endDate: "",
     days: 3,
