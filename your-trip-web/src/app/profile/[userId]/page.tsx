@@ -7,17 +7,19 @@ import Link from "next/link";
 import {
   ChevronLeft, MapPin, Grid3X3, Star,
   Heart, UserPlus, UserCheck, MessageCircle, Map,
-  MoreVertical, ShieldOff, Shield, X,
+  MoreVertical, ShieldOff, Shield, X, Activity, Camera,
 } from "lucide-react";
 import {
   getProfile,
   getUserPosts,
+  getRecentActivity,
   followUser,
   unfollowUser,
   checkIsFollowing,
   blockUser,
   unblockUser,
   type PostGridItem,
+  type ActivityItem,
 } from "@/server/actions/profile";
 import { getUserPublicTrips, type PublicTripItem } from "@/server/actions/trips";
 import { Avatar } from "@/components/shared/Avatar";
@@ -49,7 +51,8 @@ export default function UserProfilePage() {
   const [profile, setProfile] = useState<ProfileState | null>(null);
   const [posts, setPosts] = useState<PostGridItem[]>([]);
   const [publicTrips, setPublicTrips] = useState<PublicTripItem[]>([]);
-  const [tab, setTab] = useState<"posts" | "trips" | "reviews">("posts");
+  const [tab, setTab] = useState<"posts" | "trips" | "reviews" | "activity">("posts");
+  const [activityItems, setActivityItems] = useState<ActivityItem[]>([]);
   const [isFollowing, setIsFollowing] = useState(false);
   const [followerCount, setFollowerCount] = useState(0);
   const [loading, setLoading] = useState(true);
@@ -70,7 +73,9 @@ export default function UserProfilePage() {
       getUserPosts(userId),
       checkIsFollowing(userId),
       getUserPublicTrips(userId),
-    ]).then(([profileRes, postsRes, followRes, tripsRes]) => {
+      getRecentActivity(userId),
+    ]).then(([profileRes, postsRes, followRes, tripsRes, activityRes]) => {
+      setActivityItems(activityRes.data);
       if (profileRes.data) {
         setProfile({
           id: profileRes.data.id ?? userId,
@@ -353,21 +358,22 @@ export default function UserProfilePage() {
         </div>
 
         {/* Tabs */}
-        <div className="flex bg-white dark:bg-slate-800 border-b border-gray-100 dark:border-slate-700">
+        <div className="flex overflow-x-auto scrollbar-none bg-white dark:bg-slate-800 border-b border-gray-100 dark:border-slate-700">
           {[
-            { key: "posts",   icon: Grid3X3, label: "โพสต์" },
-            { key: "trips",   icon: Map,     label: `ทริป${publicTrips.length > 0 ? ` (${publicTrips.length})` : ""}` },
-            { key: "reviews", icon: Star,    label: "รีวิว" },
+            { key: "posts",    icon: Grid3X3,  label: "โพสต์" },
+            { key: "trips",    icon: Map,      label: `ทริป${publicTrips.length > 0 ? ` (${publicTrips.length})` : ""}` },
+            { key: "reviews",  icon: Star,     label: "รีวิว" },
+            { key: "activity", icon: Activity, label: "กิจกรรม" },
           ].map(({ key, icon: Icon, label }) => (
             <button
               key={key}
               onClick={() => setTab(key as typeof tab)}
-              className={`flex-1 flex flex-col items-center gap-1 py-3 border-b-2 transition ${
+              className={`flex-none flex flex-col items-center gap-1 px-4 py-3 border-b-2 transition ${
                 tab === key ? "border-[#398AB9] text-[#398AB9]" : "border-transparent text-gray-400 dark:text-slate-500"
               }`}
             >
               <Icon className="w-4 h-4" />
-              <span className="text-[10px] font-medium">{label}</span>
+              <span className="text-[10px] font-medium whitespace-nowrap">{label}</span>
             </button>
           ))}
         </div>
@@ -458,6 +464,108 @@ export default function UserProfilePage() {
           <div className="flex flex-col items-center justify-center py-16 text-center px-8 bg-white dark:bg-slate-800">
             <Star className="w-12 h-12 text-gray-200 dark:text-slate-600 mb-4" />
             <p className="text-gray-500 dark:text-slate-400 font-medium">ยังไม่มีรีวิว</p>
+          </div>
+        )}
+
+        {/* Activity Timeline */}
+        {tab === "activity" && (
+          <div className="bg-white dark:bg-slate-800 min-h-[300px] px-4 py-5">
+            {activityItems.length === 0 ? (
+              <div className="flex flex-col items-center justify-center py-16 text-center px-8">
+                <Activity className="w-12 h-12 text-gray-200 dark:text-slate-600 mb-4" />
+                <p className="text-gray-500 dark:text-slate-400 font-medium">ยังไม่มีกิจกรรม</p>
+              </div>
+            ) : (
+              <div className="relative">
+                <div className="absolute left-4 top-0 bottom-0 w-px bg-gray-100 dark:bg-slate-700" />
+                <div className="space-y-5">
+                  {activityItems.map((item) => {
+                    const rel = (() => {
+                      const diff = Date.now() - new Date(item.createdAt).getTime();
+                      const mins = Math.floor(diff / 60000);
+                      const hrs  = Math.floor(diff / 3600000);
+                      const days = Math.floor(diff / 86400000);
+                      const months = Math.floor(days / 30);
+                      if (mins < 60) return `${mins} นาทีที่แล้ว`;
+                      if (hrs < 24)  return `${hrs} ชั่วโมงที่แล้ว`;
+                      if (days < 30) return `${days} วันที่แล้ว`;
+                      return `${months} เดือนที่แล้ว`;
+                    })();
+
+                    if (item.kind === "post") {
+                      return (
+                        <Link key={`post-${item.id}`} href={`/post/${item.id}`}
+                          className="flex gap-4 pl-10 relative hover:opacity-80 transition group">
+                          <div className="absolute left-0 w-8 h-8 rounded-full bg-[#398AB9]/10 border-2 border-white dark:border-slate-800 flex items-center justify-center flex-shrink-0 z-10">
+                            <Camera className="w-3.5 h-3.5 text-[#398AB9]" />
+                          </div>
+                          {item.image && (
+                            <div className="w-14 h-14 rounded-xl overflow-hidden flex-shrink-0 bg-gray-100 dark:bg-slate-700">
+                              <img src={item.image} alt="" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                                referrerPolicy="no-referrer"
+                                onError={(e) => { (e.target as HTMLImageElement).parentElement!.style.display="none"; }} />
+                            </div>
+                          )}
+                          <div className="flex-1 min-w-0 py-1">
+                            <p className="text-xs font-semibold text-gray-800 dark:text-slate-200">เพิ่มโพสต์ใหม่</p>
+                            <p className="text-[11px] text-gray-400 dark:text-slate-500 mt-0.5 line-clamp-1">{item.caption}</p>
+                            <div className="flex items-center gap-1 mt-1 text-[10px] text-gray-400 dark:text-slate-500">
+                              <Heart className="w-3 h-3" /> {item.likesCount}
+                              <span className="ml-auto">{rel}</span>
+                            </div>
+                          </div>
+                        </Link>
+                      );
+                    }
+                    if (item.kind === "trip") {
+                      return (
+                        <Link key={`trip-${item.id}`} href={`/trips/${item.id}`}
+                          className="flex gap-4 pl-10 relative hover:opacity-80 transition group">
+                          <div className="absolute left-0 w-8 h-8 rounded-full bg-emerald-50 dark:bg-emerald-900/30 border-2 border-white dark:border-slate-800 flex items-center justify-center flex-shrink-0 z-10">
+                            <Map className="w-3.5 h-3.5 text-emerald-500" />
+                          </div>
+                          {item.coverImage && (
+                            <div className="w-14 h-14 rounded-xl overflow-hidden flex-shrink-0 bg-gray-100 dark:bg-slate-700">
+                              <img src={item.coverImage} alt="" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                                referrerPolicy="no-referrer"
+                                onError={(e) => { (e.target as HTMLImageElement).parentElement!.style.display="none"; }} />
+                            </div>
+                          )}
+                          <div className="flex-1 min-w-0 py-1">
+                            <p className="text-xs font-semibold text-gray-800 dark:text-slate-200">สร้างแผนทริปใหม่</p>
+                            <p className="text-[11px] text-[#398AB9] font-medium mt-0.5 line-clamp-1">{item.title}</p>
+                            <div className="flex items-center gap-1 mt-1 text-[10px] text-gray-400 dark:text-slate-500">
+                              <MapPin className="w-3 h-3" /> {item.destination}
+                              <span className="ml-auto">{rel}</span>
+                            </div>
+                          </div>
+                        </Link>
+                      );
+                    }
+                    return (
+                      <Link key={`review-${item.id}`} href={`/place/${item.placeSlug}`}
+                        className="flex gap-4 pl-10 relative hover:opacity-80 transition">
+                        <div className="absolute left-0 w-8 h-8 rounded-full bg-amber-50 dark:bg-amber-900/30 border-2 border-white dark:border-slate-800 flex items-center justify-center flex-shrink-0 z-10">
+                          <Star className="w-3.5 h-3.5 text-amber-400 fill-amber-400" />
+                        </div>
+                        <div className="flex-1 min-w-0 py-1">
+                          <p className="text-xs font-semibold text-gray-800 dark:text-slate-200">รีวิว {item.placeName}</p>
+                          <div className="flex gap-0.5 mt-0.5">
+                            {Array.from({ length: 5 }).map((_, i) => (
+                              <Star key={i} className={`w-3 h-3 ${i < item.rating ? "fill-amber-400 text-amber-400" : "text-gray-200 dark:text-slate-600"}`} />
+                            ))}
+                          </div>
+                          {item.content && (
+                            <p className="text-[11px] text-gray-400 dark:text-slate-500 mt-0.5 line-clamp-1">{item.content}</p>
+                          )}
+                          <p className="text-[10px] text-gray-400 dark:text-slate-500 mt-0.5 text-right">{rel}</p>
+                        </div>
+                      </Link>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
           </div>
         )}
       </div>
