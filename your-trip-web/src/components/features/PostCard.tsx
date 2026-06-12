@@ -4,7 +4,17 @@ import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Heart, MessageCircle, Send, Bookmark, MapPin, MoreHorizontal, Flag, Link2, X, ChevronLeft, ChevronRight, Maximize2 } from "lucide-react";
-import { toggleLike, toggleSave, reportPost, REPORT_REASONS, type ReportReason } from "@/server/actions/posts";
+import { toggleLike, toggleSave, reportPost } from "@/server/actions/posts";
+
+const REPORT_REASONS = [
+  "สแปมหรือโฆษณา",
+  "เนื้อหาไม่เหมาะสม",
+  "ข้อมูลเท็จหรือหลอกลวง",
+  "การล่วงละเมิดหรือคุกคาม",
+  "ละเมิดลิขสิทธิ์",
+  "อื่นๆ",
+] as const;
+type ReportReason = (typeof REPORT_REASONS)[number];
 import { CommentSection } from "./CommentSection";
 import { Avatar } from "@/components/shared/Avatar";
 import { useToast } from "@/components/shared/Toast";

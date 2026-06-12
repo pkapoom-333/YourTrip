@@ -573,16 +573,7 @@ export async function searchPosts(
   }
 }
 
-export const REPORT_REASONS = [
-  "สแปมหรือโฆษณา",
-  "เนื้อหาไม่เหมาะสม",
-  "ข้อมูลเท็จหรือหลอกลวง",
-  "การล่วงละเมิดหรือคุกคาม",
-  "ละเมิดลิขสิทธิ์",
-  "อื่นๆ",
-] as const;
-
-export type ReportReason = (typeof REPORT_REASONS)[number];
+// REPORT_REASONS moved to PostCard.tsx — cannot export non-async values from "use server" files
 
 export async function getTrendingHashtags(take = 8): Promise<{ data: { tag: string; count: number }[] }> {
   try {
@@ -644,7 +635,7 @@ export async function getPostsByPlace(
 
 export async function reportPost(
   postId: string,
-  reason: ReportReason,
+  reason: string,
   note?: string,
 ): Promise<{ ok: boolean; error?: string }> {
   try {
