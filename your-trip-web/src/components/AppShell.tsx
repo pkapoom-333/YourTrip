@@ -63,11 +63,11 @@ function isNotifTypeAllowed(type: string): boolean {
   }
 }
 
+// Called ONCE in AppShell — never from Sidebar/BottomNav directly
 function useNotificationBadge() {
   const { user } = useUser();
   const [unread, setUnread] = useState(0);
   const { info } = useToast();
-  // Keep info in a ref so the realtime effect never needs it as a dep
   const infoRef = useRef(info);
   useEffect(() => { infoRef.current = info; }, [info]);
 
@@ -76,14 +76,12 @@ function useNotificationBadge() {
     getUnreadCount().then(({ count }) => setUnread(count)).catch(() => {});
   }, []);
 
-  // Supabase Realtime — increment badge and show toast on new notification
+  // Supabase Realtime — one channel per AppShell mount
   useEffect(() => {
     if (!user?.id) return;
     const supabase = createClient();
-    // Unique suffix prevents getting a cached already-subscribed channel
-    // when React Strict Mode double-invokes this effect
     const channel = supabase
-      .channel(`notif-badge-${user.id}-${Date.now()}`)
+      .channel(`notif-badge-${user.id}`)
       .on(
         "postgres_changes",
         { event: "INSERT", schema: "public", table: "notifications", filter: `userId=eq.${user.id}` },
@@ -98,19 +96,19 @@ function useNotificationBadge() {
       )
       .subscribe();
     return () => { supabase.removeChannel(channel); };
-  }, [user?.id]); // 'info' removed — stable via infoRef; channel name unique per mount
+  }, [user?.id]);
 
   return { unread, setUnread };
 }
 
+interface BadgeProps { unread: number; setUnread: (n: number) => void; }
+
 /** Desktop sidebar — hidden on mobile */
-function Sidebar() {
+function Sidebar({ unread, setUnread }: BadgeProps) {
   const path = usePathname();
   const router = useRouter();
   const { user } = useUser();
-  const { unread, setUnread } = useNotificationBadge();
 
-  // Reset badge when visiting notifications
   useEffect(() => {
     if (path === "/notifications") setUnread(0);
   }, [path, setUnread]);
@@ -218,9 +216,8 @@ function Sidebar() {
 }
 
 /** Mobile bottom nav — hidden on desktop */
-function BottomNav() {
+function BottomNav({ unread, setUnread }: BadgeProps) {
   const path = usePathname();
-  const { unread, setUnread } = useNotificationBadge();
 
   useEffect(() => {
     if (path === "/notifications") setUnread(0);
@@ -263,14 +260,17 @@ function BottomNav() {
 
 /** Wrap app pages with this */
 export default function AppShell({ children }: { children: React.ReactNode }) {
+  // Single notification badge subscription shared across Sidebar + BottomNav
+  const { unread, setUnread } = useNotificationBadge();
+
   return (
     <div className="min-h-screen bg-[#F8FAFC] dark:bg-slate-900">
-      <Sidebar />
+      <Sidebar unread={unread} setUnread={setUnread} />
       {/* main content shifts right on desktop */}
       <main className="md:pl-64 pb-20 md:pb-0 min-h-screen">
         {children}
       </main>
-      <BottomNav />
+      <BottomNav unread={unread} setUnread={setUnread} />
       <PWAInstallPrompt />
     </div>
   );
