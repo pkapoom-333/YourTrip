@@ -19,6 +19,7 @@
 → **DONE Day 16 sess 5**: Mock data audit complete — removed all MOCK_* constants from place, explore, feed, trips, landing, profile, notifications, buddy; seed-places-real.ts fixed (descriptionEen typo); 60 places in production DB; tsc 0 errors. 5 commits total.
 → **DONE Day 16 sess 6**: Final verification pass — found+fixed MOCK_TRIP (trips/[id]), MOCK_COMMENTS (CommentSection), 3 server action catch blocks returning fake mock IDs/data (createTrip→mock-trip-id, addItineraryItem→mock-item-id, getProfile→mock-id). Also removed dead `startsWith("mock")` guards. 2 more commits. tsc 0 errors.
 → **DONE Day 16 sess 7**: E2E Functional Test 5/5 PASSED. Fixed critical bugs: (1) `saved_places` column mismatch — added `@map("user_id")` + `@map("place_id")` + `@map("created_at")` to SavedPlace model; (2) noted `isGuide`/`isVerifiedGuide` missing from DB — needs SQL in Supabase SQL Editor (see below). tsc 0 errors.
+→ **DONE Day 16 sess 8**: Loading skeletons added to 6 previously-missing pages (tags/[tag], collections/[id], trending/places, followers, following, admin/guides). Fixed critical "use server" bug: `REPORT_REASONS` was exported as a const from posts.ts — invalid in "use server" files, caused 500 on all pages using PostCard (e.g. /tags/[tag], /feed). Moved to PostCard.tsx. Verified: /feed ✓, /tags ✓, /trending/places ✓. tsc 0 errors.
 → **NEXT**: git push + Vercel deploy (batch next session — user requested wait); set Vercel env vars; run isGuide SQL migration (see DAILYWORK.md blocked section)
 
 ---
@@ -109,6 +110,40 @@ ALTER TABLE "users"
 After running both SQL blocks:
 ```bash
 npx prisma migrate resolve --applied add_travel_fields
+```
+
+---
+
+## MVP Status — Day 16 (2026-06-12)
+
+> สถานะ: **Launch-Ready pending 2 user actions** | tsc: 0 errors | E2E: 5/5 ✅
+
+### ✅ สิ่งที่พร้อมแล้ว
+| Category | Status |
+|----------|--------|
+| UI Pages (20+) | ✅ ครบทุกหน้า + dark mode + loading skeletons |
+| Real DB wiring | ✅ ทุกหน้าดึงข้อมูลจาก Supabase — ไม่มี mock data เหลือ |
+| Auth (Google OAuth) | ✅ Supabase Auth + middleware guard |
+| Place data | ✅ 60 สถานที่จริง 10 จังหวัด ใน production DB |
+| Social features | ✅ Like / Comment / Save / Follow / Review / Buddy |
+| Trip planning | ✅ CRUD + AI planner + itinerary builder + Google Maps |
+| SEO | ✅ JSON-LD, sitemap, OG tags, canonical, robots.txt |
+| PWA | ✅ manifest + service worker + offline page |
+| Performance | ✅ Bundle analysis, lazy images, next/image |
+| E2E functional test | ✅ 5/5 flows pass against real DB |
+
+### ⏳ รอ User Action (2 รายการก่อน deploy)
+| # | Action | ผลกระทบ |
+|---|--------|---------|
+| 1 | รัน SQL `isGuide`/`isVerifiedGuide` ใน Supabase SQL Editor | ถ้าไม่รัน: หน้า /profile crash เมื่อมี user จริง |
+| 2 | git push → Vercel deploy + set env vars | Production launch |
+
+### SQL ที่ต้องรันก่อน deploy (CRITICAL)
+```sql
+-- Supabase SQL Editor → https://supabase.com/dashboard/project/wujunlagtipvbzappuwx/sql
+ALTER TABLE "users"
+  ADD COLUMN IF NOT EXISTS "isGuide"         BOOLEAN NOT NULL DEFAULT false,
+  ADD COLUMN IF NOT EXISTS "isVerifiedGuide"  BOOLEAN NOT NULL DEFAULT false;
 ```
 
 ---
