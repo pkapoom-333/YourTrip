@@ -40,93 +40,6 @@ interface BuddyProfile {
   photos: string[];
 }
 
-const MOCK_BUDDIES: BuddyProfile[] = [
-  {
-    id: "b1",
-    name: "สิริมา กันทา",
-    avatar: "สก",
-    age: 26,
-    location: "กรุงเทพฯ",
-    bio: "ชอบเที่ยวธรรมชาติ ไม่ชอบนักท่องเที่ยวเยอะ ชอบตื่นเช้าไปดูพระอาทิตย์ขึ้น ☀️",
-    destination: "เชียงใหม่",
-    travelDate: "15–18 มิ.ย. 2026",
-    travelStyle: ["ธรรมชาติ", "ถ่ายรูป", "ท่องเที่ยวช้าๆ"],
-    interests: ["Hiking", "Photography", "Coffee"],
-    tripCount: 23,
-    rating: 4.9,
-    isVerified: true,
-    isGuide: true,
-    isVerifiedGuide: true,
-    mutualFriends: 3,
-    photos: [
-      "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=200&h=200&fit=crop",
-      "https://images.unsplash.com/photo-1501854140801-50d01698950b?w=200&h=200&fit=crop",
-    ],
-  },
-  {
-    id: "b2",
-    name: "ณัฐพล วงค์ใจ",
-    avatar: "ณว",
-    age: 29,
-    location: "เชียงใหม่",
-    bio: "คนเชียงใหม่โดยกำเนิด รู้จักสถานที่ลับๆ เยอะมาก พาเที่ยวได้เลย 🏔️",
-    destination: "ดอยอ่างขาง",
-    travelDate: "20–22 มิ.ย. 2026",
-    travelStyle: ["ไกด์ท้องถิ่น", "Off-the-beaten-path", "Budget"],
-    interests: ["Local food", "Motorbike", "Culture"],
-    tripCount: 47,
-    rating: 4.8,
-    isVerified: true,
-    isGuide: true,
-    isVerifiedGuide: false,
-    mutualFriends: 1,
-    photos: [
-      "https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?w=200&h=200&fit=crop",
-    ],
-  },
-  {
-    id: "b3",
-    name: "มินตรา พลเยี่ยม",
-    avatar: "มต",
-    age: 24,
-    location: "ขอนแก่น",
-    bio: "Solo traveler ที่อยากหา buddy ไปด้วยกัน เที่ยวแบบ backpack สบายๆ 🎒",
-    destination: "ภูเก็ต",
-    travelDate: "1–7 ก.ค. 2026",
-    travelStyle: ["Backpacker", "ชายหาด", "Party"],
-    interests: ["Diving", "Nightlife", "Local market"],
-    tripCount: 12,
-    rating: 4.7,
-    isVerified: false,
-    isGuide: false,
-    isVerifiedGuide: false,
-    photos: [
-      "https://images.unsplash.com/photo-1537996194471-e657df975ab4?w=200&h=200&fit=crop",
-      "https://images.unsplash.com/photo-1518548419970-58e3b4079ab2?w=200&h=200&fit=crop",
-    ],
-  },
-  {
-    id: "b4",
-    name: "ภาณุวัฒน์ รัตนชาติ",
-    avatar: "ภว",
-    age: 32,
-    location: "กรุงเทพฯ",
-    bio: "ทำงาน remote ได้ ชอบนั่งคาเฟ่ทำงาน ถ้าไปด้วยกันต้องยอมรับว่าฉันทำงานบ้างนะ 💻",
-    destination: "บาหลี",
-    travelDate: "10–17 ก.ค. 2026",
-    travelStyle: ["Digital Nomad", "Luxury", "วัฒนธรรม"],
-    interests: ["Yoga", "Temple", "Fine dining"],
-    tripCount: 35,
-    rating: 4.6,
-    isVerified: true,
-    isGuide: false,
-    isVerifiedGuide: false,
-    photos: [
-      "https://images.unsplash.com/photo-1555400038-63f5ba517a47?w=200&h=200&fit=crop",
-    ],
-  },
-];
-
 const destinations = ["ทั้งหมด", "เชียงใหม่", "ภูเก็ต", "บาหลี", "ญี่ปุ่น", "กรุงเทพฯ"];
 const styles = ["ธรรมชาติ", "ชายหาด", "วัฒนธรรม", "Backpacker", "Luxury", "ถ่ายรูป"];
 
@@ -165,14 +78,14 @@ export default function BuddyPage() {
   const [passed, setPassed] = useState<Set<string>>(new Set());
   const [activeTab, setActiveTab] = useState<"discover" | "requests" | "matched">("discover");
   const [showFilter, setShowFilter] = useState(false);
-  const [discoverList, setDiscoverList] = useState<BuddyProfile[]>(MOCK_BUDDIES);
+  const [discoverList, setDiscoverList] = useState<BuddyProfile[]>([]);
   const [requests, setRequests] = useState<BuddyRequestItem[]>([]);
   const [matched, setMatched] = useState<BuddyRequestItem[]>([]);
 
   // Load real data from DB
   useEffect(() => {
     getDiscoverBuddies(30).then(({ data }) => {
-      if (data.length > 0) setDiscoverList(data.map(mapDbToBuddy));
+      setDiscoverList(data.map(mapDbToBuddy));
     });
     getIncomingRequests().then(({ data }) => setRequests(data));
     getMatchedBuddies().then(({ data }) => setMatched(data));

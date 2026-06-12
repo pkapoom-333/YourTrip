@@ -25,89 +25,6 @@ interface Notif {
   image?: string;
 }
 
-const MOCK: Notif[] = [
-  {
-    id: "1",
-    type: "like",
-    actor: "มินตรา พ.",
-    actorAvatar: "มต",
-    text: "ถูกใจโพสต์ของคุณ",
-    subtext: "\"วิวยามเช้าที่ดอยอ่างขาง 🌄 หนาวมากแต่สวยมาก\"",
-    time: "5 นาทีที่แล้ว",
-    isRead: false,
-    image: "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=80&h=80&fit=crop",
-  },
-  {
-    id: "2",
-    type: "comment",
-    actor: "ภาณุวัฒน์ ร.",
-    actorAvatar: "ภว",
-    text: "แสดงความคิดเห็นในโพสต์ของคุณ",
-    subtext: "\"แบ่งปันเส้นทางด้วยได้ไหมครับ?\"",
-    time: "12 นาทีที่แล้ว",
-    isRead: false,
-  },
-  {
-    id: "3",
-    type: "follow",
-    actor: "สิริมา ก.",
-    actorAvatar: "สก",
-    text: "เริ่มติดตามคุณ",
-    time: "1 ชั่วโมงที่แล้ว",
-    isRead: false,
-  },
-  {
-    id: "4",
-    type: "buddy",
-    actor: "ณัฐพล ว.",
-    actorAvatar: "ณว",
-    text: "ส่งคำขอร่วมทริปมาให้คุณ",
-    subtext: "เชียงใหม่ • 15–18 มิ.ย. 2026",
-    time: "2 ชั่วโมงที่แล้ว",
-    isRead: false,
-  },
-  {
-    id: "5",
-    type: "like",
-    actor: "พิมพ์พิศา ส.",
-    actorAvatar: "พส",
-    text: "และอีก 4 คนถูกใจโพสต์ของคุณ",
-    subtext: "\"คาเฟ่วิวดอยที่ต้องไป ☕\"",
-    time: "5 ชั่วโมงที่แล้ว",
-    isRead: true,
-    image: "https://images.unsplash.com/photo-1501339847302-ac426a4a7cbb?w=80&h=80&fit=crop",
-  },
-  {
-    id: "6",
-    type: "comment",
-    actor: "วราภรณ์ จ.",
-    actorAvatar: "วจ",
-    text: "ตอบกลับความคิดเห็นของคุณ",
-    subtext: "\"ใช่เลยค่ะ! ต้องจองล่วงหน้า\"",
-    time: "เมื่อวาน",
-    isRead: true,
-  },
-  {
-    id: "7",
-    type: "buddy",
-    actor: "ปิยะดา ล.",
-    actorAvatar: "ปล",
-    text: "ตอบรับคำขอร่วมทริปของคุณ",
-    subtext: "ภูเก็ต • 20–25 มิ.ย. 2026",
-    time: "เมื่อวาน",
-    isRead: true,
-  },
-  {
-    id: "8",
-    type: "system",
-    actor: "Your Trip",
-    actorAvatar: "YT",
-    text: "โปรไฟล์ของคุณได้รับการยืนยันแล้ว",
-    subtext: "คุณสามารถสร้างโพสต์และวางแผนทริปได้เต็มรูปแบบ",
-    time: "2 วันที่แล้ว",
-    isRead: true,
-  },
-];
 
 const iconMap: Record<NotifType, React.ElementType> = {
   like: Heart,
@@ -146,13 +63,12 @@ function fmtTime(d: Date): string {
 
 export default function NotificationsPage() {
   const router = useRouter();
-  const [notifs, setNotifs] = useState<Notif[]>(MOCK);
+  const [notifs, setNotifs] = useState<Notif[]>([]);
   const [filter, setFilter] = useState<"all" | "unread">("all");
 
   // Load real notifications from DB
   useEffect(() => {
     getNotifications(50).then(({ data }) => {
-      if (data.length === 0) return; // keep mock if empty
       setNotifs(data.map((n) => ({
         id: n.id,
         type: mapType(n.type),

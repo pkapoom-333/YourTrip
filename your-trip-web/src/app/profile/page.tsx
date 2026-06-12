@@ -55,37 +55,27 @@ function TravelStatsCard({ totalTripDays, placesVisited, tripsCount }: {
   );
 }
 
-// Mock fallback posts (shown when DB not configured)
-const MOCK_POSTS: PostGridItem[] = [
-  { id: "m1", images: ["https://images.unsplash.com/photo-1476514525405-8d4b4c284c1e?auto=format&fit=crop&w=400&q=80"], likesCount: 284, commentsCount: 12 },
-  { id: "m2", images: ["https://images.unsplash.com/photo-1537996194471-e657df975ab4?auto=format&fit=crop&w=400&q=80"], likesCount: 512, commentsCount: 24 },
-  { id: "m3", images: ["https://images.unsplash.com/photo-1570077188670-e3a8d69ac5ff?auto=format&fit=crop&w=400&q=80"], likesCount: 1024, commentsCount: 48 },
-  { id: "m4", images: ["https://images.unsplash.com/photo-1506905925346-21bda4d32df4?auto=format&fit=crop&w=400&q=80"], likesCount: 763, commentsCount: 31 },
-  { id: "m5", images: ["https://images.unsplash.com/photo-1552465011-b4e21bf6e79a?auto=format&fit=crop&w=400&q=80"], likesCount: 445, commentsCount: 18 },
-  { id: "m6", images: ["https://images.unsplash.com/photo-1528360983277-13d401cdc186?auto=format&fit=crop&w=400&q=80"], likesCount: 329, commentsCount: 9 },
-];
-
 export default function ProfilePage() {
   const router = useRouter();
   const { user } = useUser();
   const [tab, setTab] = useState<"posts" | "trips" | "saved" | "reviews" | "activity">("posts");
   const [profile, setProfile] = useState({
     id: "" as string,
-    name: "Your Trip User",
-    username: "yourtrip_user",
-    bio: "นักเดินทางสายธรรมชาติ ✈️ | ไปแล้ว 23 ประเทศ | กำลังวางแผนทริปต่อไป 🌍",
-    location: "เชียงใหม่, ไทย",
+    name: "",
+    username: "",
+    bio: "",
+    location: "",
     avatarUrl: null as string | null,
     isGuide: false,
     isVerifiedGuide: false,
-    postsCount: 48,
-    followersCount: 1200,
-    followingCount: 234,
+    postsCount: 0,
+    followersCount: 0,
+    followingCount: 0,
     tripsCount: 0,
     placesVisited: 0,
     totalTripDays: 0,
   });
-  const [myPosts, setMyPosts] = useState<PostGridItem[]>(MOCK_POSTS);
+  const [myPosts, setMyPosts] = useState<PostGridItem[]>([]);
   const [savedPosts, setSavedPosts] = useState<PostGridItem[]>([]);
   const [savedPlaces, setSavedPlaces] = useState<SavedPlaceItem[]>([]);
   const [myTrips, setMyTrips] = useState<Array<{
@@ -117,7 +107,7 @@ export default function ProfilePage() {
       });
     });
     getUserPosts().then(({ data }) => {
-      if (data.length > 0) setMyPosts(data);
+      setMyPosts(data);
     });
     getUserSavedPosts().then(({ data }) => setSavedPosts(data));
     getSavedPlaces().then(({ data }) => setSavedPlaces(data));
