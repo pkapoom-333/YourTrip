@@ -18,28 +18,6 @@ interface Comment {
   replies?: Comment[];
 }
 
-const MOCK_COMMENTS: Comment[] = [
-  {
-    id: "c1",
-    author: "wanderer",
-    avatar: "W",
-    avatarBg: "bg-emerald-400",
-    text: "สวยมากเลย! ไปช่วงไหนดีที่สุดครับ? 🏔️",
-    time: "1 ชม.",
-    likes: 12,
-    isLiked: false,
-  },
-  {
-    id: "c2",
-    author: "travelmate",
-    avatar: "TM",
-    avatarBg: "bg-violet-400",
-    text: "อยากไปมากเลย แต่ขับรถขึ้นยากไหมครับ?",
-    time: "45 นาที",
-    likes: 5,
-    isLiked: true,
-  },
-];
 
 function CommentItem({
   comment,
@@ -127,7 +105,7 @@ function fmtComment(d: Date): string {
 
 export function CommentSection({ postId, initialCount = 0 }: CommentSectionProps) {
   const { user: me } = useUser();
-  const [comments, setComments] = useState<Comment[]>(MOCK_COMMENTS);
+  const [comments, setComments] = useState<Comment[]>([]);
   const [input, setInput] = useState("");
   const [isExpanded, setIsExpanded] = useState(false);
   const [loaded, setLoaded] = useState(false);
@@ -137,10 +115,8 @@ export function CommentSection({ postId, initialCount = 0 }: CommentSectionProps
   useEffect(() => {
     if (!isExpanded || loaded) return;
     const id = typeof postId === "number" ? String(postId) : postId;
-    if (id.startsWith("mock")) return;
     setLoaded(true);
     getComments(id).then(({ data }) => {
-      if (data.length === 0) return;
       setComments(data.map((c) => ({
         id: c.id,
         userId: c.user.id,

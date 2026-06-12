@@ -48,57 +48,19 @@ interface GooglePlaceResult {
   lng?: number;
 }
 
-const MOCK_TRIP = {
-  id: "trip-1",
-  title: "เชียงใหม่ 4 วัน 3 คืน",
-  destination: "เชียงใหม่",
-  coverImage: "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=800&q=80",
-  startDate: "15 มิ.ย. 2026",
-  endDate: "18 มิ.ย. 2026",
+const FALLBACK_COVER = "https://images.unsplash.com/photo-1476514525405-8d4b4c284c1e?auto=format&fit=crop&w=800&q=80";
+
+const EMPTY_TRIP = {
+  id: "",
+  title: "",
+  destination: "",
+  coverImage: FALLBACK_COVER,
+  startDate: "—",
+  endDate: "—",
   status: "PLANNING" as const,
-  totalDays: 4,
-  budget: 12000,
-  days: [
-    {
-      day: 1,
-      date: "วันอาทิตย์ที่ 15 มิ.ย.",
-      items: [
-        { id: "i1", name: "ดอยสุเทพ", time: "07:00", duration: 120, travelTimeTo: 45, cost: 50, type: "place" as const, lat: 18.8048, lng: 98.9220 },
-        { id: "i2", name: "ข้าวมันไก่ป้าแดง", time: "10:00", duration: 45, travelTimeTo: 20, cost: 60, type: "food" as const, lat: 18.7883, lng: 98.9853 },
-        { id: "i3", name: "ตลาดวโรรส", time: "11:30", duration: 90, travelTimeTo: 30, cost: 200, type: "place" as const, lat: 18.7916, lng: 98.9946 },
-        { id: "i4", name: "เช็คอิน Akyra Manor", time: "14:00", duration: 30, travelTimeTo: 15, cost: 2800, type: "hotel" as const, lat: 18.7940, lng: 98.9927 },
-        { id: "i5", name: "ถนนคนเดินวันอาทิตย์", time: "17:00", duration: 180, cost: 300, type: "place" as const, lat: 18.7876, lng: 98.9877 },
-      ],
-    },
-    {
-      day: 2,
-      date: "วันจันทร์ที่ 16 มิ.ย.",
-      items: [
-        { id: "i6", name: "ดอยอ่างขาง", time: "06:00", duration: 240, travelTimeTo: 180, cost: 100, type: "place" as const, note: "ออกเร็วเพราะไกล ~3 ชม.", lat: 19.4895, lng: 99.0434 },
-        { id: "i7", name: "ข้าวเหนียวปิ้งไก่ข้างทาง", time: "13:00", duration: 30, travelTimeTo: 40, cost: 80, type: "food" as const },
-        { id: "i8", name: "น้ำพุร้อนฝาง", time: "15:00", duration: 60, cost: 100, type: "activity" as const, lat: 19.6172, lng: 99.0375 },
-      ],
-    },
-    {
-      day: 3,
-      date: "วันอังคารที่ 17 มิ.ย.",
-      items: [
-        { id: "i9", name: "คาเฟ่ริมนา Hygge", time: "08:00", duration: 90, travelTimeTo: 25, cost: 180, type: "food" as const, lat: 18.7650, lng: 98.9673 },
-        { id: "i10", name: "วัดอุโมงค์", time: "10:30", duration: 60, travelTimeTo: 30, cost: 0, type: "place" as const, lat: 18.7651, lng: 98.9693 },
-        { id: "i11", name: "ย่านนิมมานเหมินท์", time: "14:00", duration: 180, travelTimeTo: 20, cost: 500, type: "place" as const, lat: 18.7985, lng: 98.9652 },
-        { id: "i12", name: "ดินเนอร์ร้าน The Larder", time: "19:00", duration: 90, cost: 450, type: "food" as const, lat: 18.7981, lng: 98.9660 },
-      ],
-    },
-    {
-      day: 4,
-      date: "วันพุธที่ 18 มิ.ย.",
-      items: [
-        { id: "i13", name: "เช็คเอาท์ + ฝากกระเป๋า", time: "10:00", duration: 30, travelTimeTo: 15, cost: 0, type: "hotel" as const },
-        { id: "i14", name: "ตลาดสันป่าตอง", time: "10:30", duration: 120, travelTimeTo: 60, cost: 200, type: "place" as const, lat: 18.4828, lng: 98.9084 },
-        { id: "i15", name: "สนามบินเชียงใหม่", time: "15:00", duration: 60, cost: 200, type: "transport" as const, lat: 18.7667, lng: 98.9628 },
-      ],
-    },
-  ] as TripDay[],
+  totalDays: 1,
+  budget: 0,
+  days: [] as TripDay[],
 };
 
 const typeColors: Record<string, string> = {
@@ -564,7 +526,7 @@ function ItemCard({
 export default function TripDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
   const router = useRouter();
-  const [trip, setTrip] = useState(MOCK_TRIP);
+  const [trip, setTrip] = useState(EMPTY_TRIP);
   const [isOwner, setIsOwner] = useState(true); // assumed owner until DB confirms otherwise
   const [activeDay, setActiveDay] = useState(1);
   const [shareCopied, setShareCopied] = useState(false);
@@ -594,7 +556,7 @@ export default function TripDetailPage({ params }: { params: Promise<{ id: strin
   });
 
   useEffect(() => {
-    if (id && !id.startsWith("mock")) {
+    if (id) {
       getTripById(id).then(({ data, isOwner: owner }) => {
         if (!data) return;
         setIsOwner(owner ?? false);
@@ -605,10 +567,10 @@ export default function TripDetailPage({ params }: { params: Promise<{ id: strin
           id: data.id,
           title: data.title,
           destination: data.destination,
-          coverImage: data.coverImage ?? MOCK_TRIP.coverImage,
+          coverImage: data.coverImage ?? FALLBACK_COVER,
           startDate: data.startDate ? fmt.format(data.startDate) : "—",
           endDate: data.endDate ? fmt.format(data.endDate) : "—",
-          status: data.status as typeof MOCK_TRIP.status,
+          status: data.status as typeof EMPTY_TRIP.status,
           totalDays: data.days.length || 1,
           budget: data.budget ?? 0,
           days: data.days.map((d) => ({
