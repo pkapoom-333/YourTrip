@@ -104,7 +104,6 @@ export default function CreatePage() {
         return;
       }
       router.push("/feed");
-      router.refresh();
     } catch {
       setError("เกิดข้อผิดพลาด กรุณาลองใหม่");
     } finally {
