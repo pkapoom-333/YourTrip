@@ -19,6 +19,7 @@ import { getUserTrips, addItineraryItem } from "@/server/actions/trips";
 import { getUserCollections, addToCollection, type CollectionListItem } from "@/server/actions/collections";
 import { Avatar } from "@/components/shared/Avatar";
 import { useToast } from "@/components/shared/Toast";
+import { useUser } from "@/hooks/useUser";
 
 /* ── types ────────────────────────────────────────────────── */
 export interface PlaceData {
@@ -93,6 +94,7 @@ export default function PlaceDetailClient({ place, slug, initialSaved = false }:
   const [imgIndex, setImgIndex] = useState(0);
   const [saved, setSaved] = useState(initialSaved);
   const { success, error: toastError, info } = useToast();
+  const { user } = useUser();
   const [liked, setLiked] = useState(false);
   const [expanded, setExpanded] = useState(false);
   const [showReviewForm, setShowReviewForm] = useState(false);
@@ -148,6 +150,10 @@ export default function PlaceDetailClient({ place, slug, initialSaved = false }:
   }
 
   async function openAddToTrip() {
+    if (!user) {
+      window.location.href = `/login?next=${encodeURIComponent(window.location.pathname)}`;
+      return;
+    }
     setAddTripOpen(true);
     if (tripsList.length > 0) return;
     setTripsLoading(true);
@@ -199,7 +205,12 @@ export default function PlaceDetailClient({ place, slug, initialSaved = false }:
     if (!place.id) return;
     setReviewSubmitting(true);
     if (!place.id.startsWith("mock")) {
-      await createReview({ placeId: place.id, rating: reviewRating, content: reviewText });
+      const result = await createReview({ placeId: place.id, rating: reviewRating, content: reviewText });
+      if (result.error === "กรุณาเข้าสู่ระบบ") {
+        setReviewSubmitting(false);
+        window.location.href = `/login?next=${encodeURIComponent(window.location.pathname)}`;
+        return;
+      }
     }
     setReviewSubmitting(false);
     setReviewDone(true);
