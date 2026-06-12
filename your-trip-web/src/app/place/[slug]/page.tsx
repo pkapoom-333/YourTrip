@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { notFound } from "next/navigation";
 import { getPlaceBySlug, getPlaces, type PlaceDetail } from "@/server/actions/places";
 import { getSavedPlaceIds } from "@/server/actions/savedPlaces";
 import PlaceDetailClient, { type PlaceData } from "./PlaceDetailClient";
@@ -151,81 +152,6 @@ function mapToPlaceData(p: PlaceDetail): PlaceData {
   };
 }
 
-// ─── Mock fallback (shown when DB not configured) ─────────────────────────────
-const MOCK_PLACES: Record<string, PlaceData> = {
-  "doi-ang-khang": {
-    id: "mock-doi-ang-khang",
-    name: "ดอยอ่างขาง", category: "สถานที่เที่ยว", categoryEn: "Nature & Scenic",
-    location: "อำเภออางขาง, เชียงใหม่", rating: 4.8, reviewCount: 2840,
-    priceRange: "฿฿", priceNote: "ค่าเข้าชม 50฿ / คัน", isOpen: true, openUntil: "18:00",
-    phone: "053-450-107", website: "doiangkhang.com",
-    description: "ดอยอ่างขาง เป็นดอยที่อยู่บนเทือกเขาแดนลาวในอำเภออางขาง จังหวัดเชียงใหม่ ความสูงจากระดับน้ำทะเลประมาณ 1,400-1,928 เมตร อากาศหนาวเย็นตลอดปี โดยเฉพาะช่วงฤดูหนาว อุณหภูมิอาจลดลงต่ำกว่า 0°C",
-    descriptionEn: "Doi Ang Khang is a mountain in Ang Khang District, Chiang Mai Province, with elevation of 1,400–1,928 m. Known for cool weather year-round and beautiful flower gardens at the Royal Agricultural Station.",
-    hours: [{ day: "จันทร์–อาทิตย์", time: "06:00–18:00" }],
-    images: [
-      "https://images.unsplash.com/photo-1476514525405-8d4b4c284c1e?auto=format&fit=crop&w=1200&q=80",
-      "https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?auto=format&fit=crop&w=1200&q=80",
-      "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?auto=format&fit=crop&w=1200&q=80",
-    ],
-    mapEmbed: "https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d30552.07!2d99.0356!3d19.4954!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x30d86ef9e8be1d15%3A0x9a17e2aeefd4ca75!2z4Lio4Liy4Lij4LiH4LiI4Lin4Lix4LiH!5e0!3m2!1sth!2sth!4v1600000000000",
-    transport: {
-      car: "จากเชียงใหม่ใช้เส้นทาง 107 (เชียงใหม่–ฝาง) ถึงอำเภอฝาง แล้วเลี้ยวซ้ายเข้าทาง 1249 ขึ้นดอยอ่างขาง ระยะทางประมาณ 153 กม.",
-      motorcycle: "ถนนเป็นทางคดเคี้ยวและชัน ไม่แนะนำมอเตอร์ไซค์สำหรับผู้ขับขี่ไม่ชำนาญ",
-      bus: "นั่งรถทัวร์จากอาเขตเชียงใหม่ไปฝาง แล้วต่อสองแถวขึ้นดอย",
-      songthaew: "สองแถวท้องถิ่นจากตัวอำเภอฝาง ราคาประมาณ 80–120 บาท/คน",
-    },
-    caution: [
-      "ถนนขึ้นดอยคดเคี้ยวและชัน ควรขับรถช้าๆ และระวังรถสวนทาง",
-      "ช่วงฤดูหนาว (พ.ย.–ก.พ.) อากาศหนาวมาก ควรเตรียมเสื้อกันหนาวหนาๆ",
-      "ห้ามนำสุนัขหรือสัตว์เลี้ยงเข้าพื้นที่สถานีเกษตรหลวง",
-    ],
-    parking: { available: true, spaces: "มีลานจอดรถกว้างขวาง", fee: "ฟรี (รวมในค่าเข้าชม)" },
-    facilities: { wifi: false, ac: false, vegetarian: true, accessibility: false },
-    tags: ["เที่ยวเหนือ", "ธรรมชาติ", "ดอกไม้", "อากาศเย็น"],
-    nearby: [
-      { name: "ดอยอินทนนท์", category: "สถานที่เที่ยว", img: "https://images.unsplash.com/photo-1528360983277-13d401cdc186?auto=format&fit=crop&w=400&q=70", slug: "doi-inthanon" },
-      { name: "วัดร่องขุ่น", category: "สถานที่เที่ยว", img: "https://images.unsplash.com/photo-1548013146-72479768bada?auto=format&fit=crop&w=400&q=70", slug: "chiang-rai-white-temple" },
-    ],
-    reviews: [
-      { id: 1, user: "free people", bg: "bg-orange-400", initials: "FP", rating: 5, time: "2 วันที่แล้ว", text: "สวยมากๆ อากาศดีเย็นสบาย ดอกไม้บานสวยงาม แนะนำให้ไปช่วงเช้าตรู่ ❄️", likes: 24, photos: 3 },
-      { id: 2, user: "wanderer", bg: "bg-emerald-400", initials: "W", rating: 5, time: "1 สัปดาห์ที่แล้ว", text: "มาแล้วต้องมาอีก ทิวทัศน์สุดสวย การขับรถขึ้นดอยเป็นประสบการณ์ที่น่าตื่นเต้น", likes: 18, photos: 5 },
-    ],
-  },
-  "bali-ubud-terraces": {
-    id: "mock-bali-ubud-terraces",
-    name: "นาขั้นบันไดบาหลี", category: "สถานที่เที่ยว", categoryEn: "Cultural & Heritage",
-    location: "อูบุด, บาหลี, อินโดนีเซีย", rating: 4.9, reviewCount: 5120,
-    priceRange: "฿฿", priceNote: "เข้าชมฟรี / ค่าไกด์ประมาณ 200,000 IDR", isOpen: true, openUntil: "17:00",
-    phone: "+62-361-971-716", website: "baliwisata.com",
-    description: "นาขั้นบันได Tegalalang เป็นหนึ่งในภาพที่โด่งดังที่สุดของบาหลี ได้รับการขึ้นทะเบียนเป็นมรดกโลกของยูเนสโก",
-    descriptionEn: "Tegalalang Rice Terraces near Ubud is one of Bali's most iconic landscapes. A UNESCO World Heritage Site.",
-    hours: [{ day: "ทุกวัน", time: "08:00–17:00" }],
-    images: [
-      "https://images.unsplash.com/photo-1537996194471-e657df975ab4?auto=format&fit=crop&w=1200&q=80",
-      "https://images.unsplash.com/photo-1518548419970-58e3b4079ab2?auto=format&fit=crop&w=1200&q=80",
-    ],
-    mapEmbed: "https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3946.5!2d115.2776!3d-8.4313!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x2dd23d4b44aaa667%3A0x2b2b2b2b2b2b2b2b!2sTegalalang!5e0!3m2!1sth!2sth!4v1600000000000",
-    transport: {
-      car: "เช่ารถหรือใช้บริการ driver จากอูบุด ระยะทางประมาณ 10 กม.",
-      motorcycle: "เช่ามอเตอร์ไซค์ในอูบุดราคาประมาณ 60,000–80,000 IDR/วัน",
-      bus: "ไม่มีบริการรถสาธารณะโดยตรง แนะนำใช้ Grab หรือ Gojek",
-      songthaew: "ใช้ Grab/Gojek จากอูบุด ราคาประมาณ 30,000–50,000 IDR",
-    },
-    caution: [
-      "ระวังพ่อค้าแม่ค้าที่อาจเรียกเก็บค่าเดินเข้าพื้นที่",
-      "สวมเสื้อผ้าที่เหมาะสม อาจต้องคลุมสะโพกเมื่อเข้าพื้นที่ศักดิ์สิทธิ์",
-    ],
-    parking: { available: true, spaces: "มีลานจอดรถเล็กๆ ใกล้ทางเข้า", fee: "5,000–10,000 IDR" },
-    facilities: { wifi: true, ac: false, vegetarian: true, accessibility: false },
-    tags: ["บาหลี", "ต่างประเทศ", "UNESCO"],
-    nearby: [
-      { name: "Sacred Monkey Forest", category: "สถานที่เที่ยว", img: "https://images.unsplash.com/photo-1549477123-6b0a3fcfc15f?auto=format&fit=crop&w=400&q=70", slug: "monkey-forest" },
-    ],
-    reviews: [
-      { id: 1, user: "shy girl", bg: "bg-pink-400", initials: "SG", rating: 5, time: "3 วันที่แล้ว", text: "สวยงามมาก ต้องไปเช้าๆ แสงสวยมาก แนะนำ!", likes: 41, photos: 6 },
-    ],
-  },
-};
 
 // ─── JSON-LD schema type per category ────────────────────────────────────────
 const SCHEMA_TYPE: Record<string, string> = {
@@ -305,15 +231,5 @@ export default async function PlacePage({ params }: { params: Promise<{ slug: st
     );
   }
 
-  const placeData: PlaceData = MOCK_PLACES[slug] ?? MOCK_PLACES["doi-ang-khang"];
-  const jsonLd = buildJsonLd(placeData, slug);
-  return (
-    <>
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
-      />
-      <PlaceDetailClient place={placeData} slug={slug} />
-    </>
-  );
+  notFound();
 }

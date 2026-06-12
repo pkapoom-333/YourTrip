@@ -68,19 +68,10 @@ const steps = [
   { n: "03", title: "วางแผนและไป!",   desc: "สร้าง itinerary หาเพื่อนร่วมทริป แล้วออกเดินทาง" },
 ];
 
-const MOCK_GUIDES = [
-  { id: "g1", name: "ณัฐพล วงค์ใจ", username: "natthapol_guide", avatarUrl: null, bio: "ไกด์เชียงใหม่มืออาชีพ 8 ปี เชี่ยวชาญวัฒนธรรมล้านนา + ป่าเขา", location: "เชียงใหม่", tripsCount: 47 },
-  { id: "g2", name: "ภาณุวัฒน์ รัตนชาติ", username: "phanuwat_guide", avatarUrl: null, bio: "ไกด์กรุงเทพฯ ย่านเก่า ตลาด วัด ชุมชน 5 ปีประสบการณ์", location: "กรุงเทพฯ", tripsCount: 35 },
-  { id: "g3", name: "มินตรา พลเยี่ยม", username: "mintra_guide", avatarUrl: null, bio: "ไกด์ภาคใต้ ทะเล เกาะ ดำน้ำ ขนมจีน และอาหารใต้แท้", location: "สุราษฎร์ธานี", tripsCount: 28 },
-];
-
 export default async function LandingPage() {
   const { data: featuredPlaces } = await getPlaces({ featured: true, take: 4 });
   const { data: verifiedGuides } = await getVerifiedGuides(3);
-  // Fallback if DB is empty
-  const displayDestinations = featuredPlaces.length >= 4
-    ? featuredPlaces
-    : null;
+  const displayDestinations = featuredPlaces.length > 0 ? featuredPlaces : null;
 
   return (
     <div className="min-h-screen bg-white dark:bg-slate-900">
@@ -378,9 +369,9 @@ export default async function LandingPage() {
         </div>
       </section>
 
-      {/* ─── FEATURED GUIDES ─── */}
-      {(() => {
-        const guides = verifiedGuides.length >= 1 ? verifiedGuides : MOCK_GUIDES;
+      {/* ─── FEATURED GUIDES — only shown when real verified guides exist ─── */}
+      {verifiedGuides.length >= 1 && (() => {
+        const guides = verifiedGuides;
         return (
           <section className="px-6 py-20 bg-white dark:bg-slate-900">
             <div className="max-w-5xl mx-auto">

@@ -33,7 +33,7 @@ const PLACEHOLDER_IMG = "https://images.unsplash.com/photo-1476514525405-8d4b4c2
 
 export default function TripsClient({ initialTrips, communityTrips = [], destinationSuggestions = [] }: { initialTrips: TripSummary[]; communityTrips?: PublicTripItem[]; destinationSuggestions?: DestinationSuggestion[] }) {
   const [tab, setTab] = useState<"all" | "upcoming" | "planning" | "completed">("all");
-  const [trips, setTrips] = useState<TripSummary[]>(initialTrips.length > 0 ? initialTrips : MOCK_TRIPS);
+  const [trips, setTrips] = useState<TripSummary[]>(initialTrips);
   const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
   const [deleting, setDeleting] = useState(false);
   const [duplicatingId, setDuplicatingId] = useState<string | null>(null);
@@ -403,35 +403,6 @@ export default function TripsClient({ initialTrips, communityTrips = [], destina
     </div>
   );
 }
-
-// ─── Mock fallback (shown when DB not configured) ─────────────────────────────
-
-const MOCK_TRIPS: TripSummary[] = [
-  {
-    id: "mock-1", title: "เชียงใหม่ 3 วัน 2 คืน", status: "upcoming",
-    startDate: "15 มิ.ย. 2026", endDate: "17 มิ.ย. 2026",
-    startDateISO: "2026-06-15", endDateISO: "2026-06-17",
-    members: 3, places: 8,
-    img: "https://images.unsplash.com/photo-1528360983277-13d401cdc186?auto=format&fit=crop&w=800&q=80",
-    destinations: ["ดอยอินทนนท์", "วัดพระธาตุดอยสุเทพ", "ถนนคนเดิน"],
-  },
-  {
-    id: "mock-2", title: "บาหลี Solo Trip", status: "planning",
-    startDate: "10 ก.ค. 2026", endDate: "17 ก.ค. 2026",
-    startDateISO: "2026-07-10", endDateISO: "2026-07-17",
-    members: 1, places: 12,
-    img: "https://images.unsplash.com/photo-1537996194471-e657df975ab4?auto=format&fit=crop&w=800&q=80",
-    destinations: ["Tegalalang", "Ubud", "Seminyak", "Uluwatu"],
-  },
-  {
-    id: "mock-3", title: "ภูเก็ตกับครอบครัว", status: "completed",
-    startDate: "20 เม.ย. 2026", endDate: "24 เม.ย. 2026",
-    startDateISO: "2026-04-20", endDateISO: "2026-04-24",
-    members: 5, places: 6,
-    img: "https://images.unsplash.com/photo-1552465011-b4e21bf6e79a?auto=format&fit=crop&w=800&q=80",
-    destinations: ["หาดกะรน", "บิ๊กพุทธา", "ตลาดบางเหนียว"],
-  },
-];
 
 // ─── Calendar component ────────────────────────────────────────────────────────
 

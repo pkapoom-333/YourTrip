@@ -25,41 +25,6 @@ const STORY_BG_COLORS = [
   "bg-lime-500",   "bg-cyan-400",  "bg-fuchsia-400",
 ];
 
-// ─── Mock posts (shown when DB not configured) ────────────────────────────────
-const MOCK_POSTS: PostCardData[] = [
-  {
-    id: 1, slug: "doi-ang-khang",
-    user: { name: "free people", bg: "bg-orange-400", initials: "FP", location: "ดอยอ่างขาง, เชียงใหม่" },
-    caption: "ช่วงเช้าที่สวยงามบนยอดดอย อากาศเย็นสบาย ทิวทัศน์สุดสวย ❄️ ใครอยากสัมผัสธรรมชาติต้องมาที่นี่",
-    img: "https://images.unsplash.com/photo-1476514525405-8d4b4c284c1e?auto=format&fit=crop&w=800&q=80",
-    likes: 10200, comments: 534, shares: 128, liked: false, saved: false, time: "2 ชั่วโมงที่แล้ว",
-    tags: ["เที่ยวเหนือ", "ธรรมชาติ"],
-  },
-  {
-    id: 2, slug: "bali-terraces",
-    user: { name: "shy girl", bg: "bg-pink-400", initials: "SG", location: "บาหลี, อินโดนีเซีย" },
-    caption: "นาขั้นบันไดที่งดงามที่สุดในโลก สีเขียวสดชื่น น้ำใจของชาวบาหลีงดงามไม่แพ้กัน 🙏",
-    img: "https://images.unsplash.com/photo-1537996194471-e657df975ab4?auto=format&fit=crop&w=800&q=80",
-    likes: 8760, comments: 412, shares: 98, liked: false, saved: true, time: "5 ชั่วโมงที่แล้ว",
-    tags: ["บาหลี", "ต่างประเทศ"],
-  },
-  {
-    id: 3, slug: "swiss-alps",
-    user: { name: "wanderer", bg: "bg-emerald-400", initials: "W", location: "Swiss Alps, Switzerland" },
-    caption: "Hiking ที่ยากแต่คุ้มค่า ยอดเขา 4,000 เมตร อากาศบริสุทธิ์ ทุกก้าวคือความทรงจำที่ดีที่สุด",
-    img: "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?auto=format&fit=crop&w=800&q=80",
-    likes: 15400, comments: 867, shares: 234, liked: false, saved: false, time: "8 ชั่วโมงที่แล้ว",
-    tags: ["Hiking", "ยุโรป"],
-  },
-  {
-    id: 4, slug: "santorini",
-    user: { name: "travelmate", bg: "bg-violet-400", initials: "TM", location: "ซานโตรีนี, กรีซ" },
-    caption: "Santorini ในแสงยามเย็น สวยเกินจินตนาการ ขอบคุณโลกใบนี้ที่มีสถานที่แบบนี้ 🌅",
-    img: "https://images.unsplash.com/photo-1570077188670-e3a8d69ac5ff?auto=format&fit=crop&w=800&q=80",
-    likes: 22100, comments: 1240, shares: 567, liked: false, saved: false, time: "1 วันที่แล้ว",
-    tags: ["ยุโรป", "โรแมนติก"],
-  },
-];
 
 
 const fmtTime = (d: Date) => {
@@ -86,26 +51,24 @@ export default async function FeedPage() {
     getActiveUsers(12),
   ]);
 
-  const feedPosts: PostCardData[] = dbPosts.length > 0
-    ? dbPosts.map((p) => ({
-        id: p.id,
-        caption: p.content,
-        img: p.images?.[0] ?? undefined,
-        user: {
-          id: p.user?.id ?? undefined,
-          name: p.user?.name ?? "YourTrip User",
-          avatarUrl: p.user?.avatarUrl ?? undefined,
-          location: p.location ?? undefined,
-        },
-        likes: p.likesCount,
-        comments: p.commentsCount,
-        liked: p.likedByMe ?? false,
-        saved: p.savedByMe ?? false,
-        time: fmtTime(p.createdAt),
-        tags: p.tags ?? [],
-        place: p.place ?? null,
-      }))
-    : MOCK_POSTS;
+  const feedPosts: PostCardData[] = dbPosts.map((p) => ({
+    id: p.id,
+    caption: p.content,
+    img: p.images?.[0] ?? undefined,
+    user: {
+      id: p.user?.id ?? undefined,
+      name: p.user?.name ?? "YourTrip User",
+      avatarUrl: p.user?.avatarUrl ?? undefined,
+      location: p.location ?? undefined,
+    },
+    likes: p.likesCount,
+    comments: p.commentsCount,
+    liked: p.likedByMe ?? false,
+    saved: p.savedByMe ?? false,
+    time: fmtTime(p.createdAt),
+    tags: p.tags ?? [],
+    place: p.place ?? null,
+  }));
 
   return (
     <AppShell>
