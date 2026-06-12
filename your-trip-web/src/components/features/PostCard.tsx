@@ -5,6 +5,9 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Heart, MessageCircle, Send, Bookmark, MapPin, MoreHorizontal, Flag, Link2, X, ChevronLeft, ChevronRight, Maximize2 } from "lucide-react";
 import { toggleLike, toggleSave, reportPost } from "@/server/actions/posts";
+import { CommentSection } from "./CommentSection";
+import { Avatar } from "@/components/shared/Avatar";
+import { useToast } from "@/components/shared/Toast";
 
 const REPORT_REASONS = [
   "สแปมหรือโฆษณา",
@@ -15,9 +18,6 @@ const REPORT_REASONS = [
   "อื่นๆ",
 ] as const;
 type ReportReason = (typeof REPORT_REASONS)[number];
-import { CommentSection } from "./CommentSection";
-import { Avatar } from "@/components/shared/Avatar";
-import { useToast } from "@/components/shared/Toast";
 
 export interface PostCardData {
   id: number | string;

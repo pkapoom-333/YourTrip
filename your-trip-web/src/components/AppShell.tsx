@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import {
   Home, PlusSquare, MapPin, User,
   Compass, Bell, Settings, Users, LogOut, UserSearch, BookMarked, Search,
@@ -67,6 +67,9 @@ function useNotificationBadge() {
   const { user } = useUser();
   const [unread, setUnread] = useState(0);
   const { info } = useToast();
+  // Keep info in a ref so the realtime effect never needs it as a dep
+  const infoRef = useRef(info);
+  useEffect(() => { infoRef.current = info; }, [info]);
 
   // Initial fetch
   useEffect(() => {
@@ -77,8 +80,10 @@ function useNotificationBadge() {
   useEffect(() => {
     if (!user?.id) return;
     const supabase = createClient();
+    // Unique suffix prevents getting a cached already-subscribed channel
+    // when React Strict Mode double-invokes this effect
     const channel = supabase
-      .channel(`notif-badge-${user.id}`)
+      .channel(`notif-badge-${user.id}-${Date.now()}`)
       .on(
         "postgres_changes",
         { event: "INSERT", schema: "public", table: "notifications", filter: `userId=eq.${user.id}` },
@@ -86,15 +91,14 @@ function useNotificationBadge() {
           setUnread((n) => n + 1);
           const title = payload.new.title as string | undefined;
           const type = (payload.new.type as string | undefined) ?? "";
-          // Only show toast if the user has enabled this notification type
           if (title && isNotifTypeAllowed(type) && getNotifPref("settings_notif_push")) {
-            info(`🔔 ${title}`);
+            infoRef.current(`🔔 ${title}`);
           }
         }
       )
       .subscribe();
     return () => { supabase.removeChannel(channel); };
-  }, [user?.id, info]);
+  }, [user?.id]); // 'info' removed — stable via infoRef; channel name unique per mount
 
   return { unread, setUnread };
 }
