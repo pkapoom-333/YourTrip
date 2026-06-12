@@ -15,7 +15,30 @@
 → **DONE Day 16 sess 1**: Google Maps API key wired (GM-3 autocomplete active); GM-2 Google Directions API proxy + 3-tier fallback (Google→OSRM→haversine) with source badge; B31 post creation preview panel (Eye/EyeOff toggle, live PostCard mock); Sprint S11: S11-1 /explore/[province] SEO province pages + ExploreClient province chips, S11-2 cloneTripToUser + "บันทึกสำเนา" button on shared trips, A23 place photo lightbox (Maximize2 + fullscreen overlay + thumbnail strip), A24 AI caption assistant in create post (✨ generateCaption via claude-haiku), B35 Google Places autocomplete in /trips/new destination field. 0 TS errors.
 → **DONE Day 16 sess 2**: Sprint S12 A25-S12-12 (8 features) + Sprint S13 S13-1-5 (lightbox, explore rating badges, place community posts grid, feed stories wired to real users). 0 TS errors.
 → **DONE Day 16 sess 3**: Sprint S14 — S14-1 feed mobile nav linked (search→/explore, bell→/notifications), S14-2 trip destination suggestions from saved places (getDestinationSuggestions), S14-3 trips/new URL prefill ?destination=, S14-4 create post pre-fills ?tag= + ?placeId=, S14-5 province page "Plan trip" CTA, S14-6 landing page destination cards link to province pages, loading.tsx for /explore/[province] + /profile/[userId]. 0 TS errors.
-→ **NEXT**: Vercel deploy prep (git push + env vars in Vercel dashboard) — needs user confirm for push
+→ **DONE Day 16 sess 4**: fix openAddToTrip auth check (use useUser hook); DB migration add_travel_fields PENDING (see below)
+→ **NEXT**: Continue DAILYWORK.md remaining tasks; Vercel deploy prep (git push + env vars) — needs user confirm
+
+---
+
+## ⚠️ PENDING: DB Migration `add_travel_fields`
+
+`npx prisma migrate dev --name add_travel_fields` failed on Windows (node_modules file lock).
+
+**Run this SQL manually in Supabase SQL Editor:**
+
+```sql
+ALTER TABLE "trip_items"
+  ADD COLUMN IF NOT EXISTS "googlePlaceId" TEXT,
+  ADD COLUMN IF NOT EXISTS "travelTimeTo"  INTEGER,
+  ADD COLUMN IF NOT EXISTS "lat"           DOUBLE PRECISION,
+  ADD COLUMN IF NOT EXISTS "lng"           DOUBLE PRECISION;
+```
+
+After running the SQL, create a stub migration file so Prisma history stays in sync:
+```bash
+npx prisma migrate resolve --applied add_travel_fields
+```
+Or simply re-run `npx prisma migrate dev --name add_travel_fields` when dev server is not running (release file locks first).
 
 ---
 
