@@ -770,7 +770,7 @@ export default function PlaceDetailClient({ place, slug, initialSaved = false }:
           {place.nearby.length > 0 && (
             <section>
               <h2 className="text-base font-semibold text-gray-900 dark:text-slate-100 mb-3">สถานที่ใกล้เคียง</h2>
-              <div className="grid grid-cols-3 gap-3">
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
                 {place.nearby.map((n) => (
                   <Link key={n.slug} href={`/place/${n.slug}`}
                     className="group rounded-xl overflow-hidden border border-gray-100 dark:border-slate-700 bg-white dark:bg-slate-800 hover:shadow-md transition">

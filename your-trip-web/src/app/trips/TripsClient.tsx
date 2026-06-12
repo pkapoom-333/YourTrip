@@ -126,7 +126,7 @@ export default function TripsClient({ initialTrips, communityTrips = [], destina
       </div>
 
       {/* Stat strip */}
-      <div className="grid grid-cols-3 gap-3 mb-5">
+      <div className="grid grid-cols-3 gap-2 mb-5">
         {[
           { icon: Plane,    label: "ทริปทั้งหมด",    value: trips.length },
           { icon: MapPin,   label: "สถานที่",         value: totalPlaces },

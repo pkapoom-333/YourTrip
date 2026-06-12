@@ -1257,7 +1257,7 @@ export default function TripDetailPage({ params }: { params: Promise<{ id: strin
                   />
                 )}
 
-                <div className="flex gap-2">
+                <div className="flex flex-col sm:flex-row gap-2">
                   <div className="relative flex-1">
                     <Clock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
                     <input type="time" value={newItem.time}
@@ -1275,7 +1275,7 @@ export default function TripDetailPage({ params }: { params: Promise<{ id: strin
                 </div>
 
                 {/* Duration + Travel time */}
-                <div className="flex gap-2">
+                <div className="flex flex-col sm:flex-row gap-2">
                   <div className="relative flex-1">
                     <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-xs whitespace-nowrap">อยู่ที่นี่</span>
                     <input type="number" value={newItem.duration} placeholder="นาที"
