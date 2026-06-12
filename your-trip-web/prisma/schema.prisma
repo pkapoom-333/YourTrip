@@ -29,6 +29,7 @@ model User {
   isVerified      Boolean  @default(false)
   isGuide         Boolean  @default(false)
   isVerifiedGuide Boolean  @default(false)
+  // TODO: run add_travel_fields SQL in Supabase SQL Editor to add these columns to DB
 
   // Relations
   posts         Post[]
@@ -178,12 +179,12 @@ model PlaceImage {
 
 model SavedPlace {
   id      String @id @default(uuid())
-  userId  String
-  placeId String
+  userId  String @map("user_id")
+  placeId String @map("place_id")
   user    User   @relation(fields: [userId], references: [id], onDelete: Cascade)
   place   Place  @relation(fields: [placeId], references: [id], onDelete: Cascade)
 
-  createdAt DateTime @default(now())
+  createdAt DateTime @default(now()) @map("created_at")
 
   @@unique([userId, placeId])
   @@map("saved_places")

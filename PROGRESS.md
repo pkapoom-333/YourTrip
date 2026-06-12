@@ -18,7 +18,8 @@
 → **DONE Day 16 sess 4**: fix openAddToTrip auth check (use useUser hook); DB migration add_travel_fields PENDING (see below)
 → **DONE Day 16 sess 5**: Mock data audit complete — removed all MOCK_* constants from place, explore, feed, trips, landing, profile, notifications, buddy; seed-places-real.ts fixed (descriptionEen typo); 60 places in production DB; tsc 0 errors. 5 commits total.
 → **DONE Day 16 sess 6**: Final verification pass — found+fixed MOCK_TRIP (trips/[id]), MOCK_COMMENTS (CommentSection), 3 server action catch blocks returning fake mock IDs/data (createTrip→mock-trip-id, addItineraryItem→mock-item-id, getProfile→mock-id). Also removed dead `startsWith("mock")` guards. 2 more commits. tsc 0 errors.
-→ **NEXT**: git push + Vercel deploy (batch next session — user requested wait); set Vercel env vars (see DAILYWORK.md blocked section)
+→ **DONE Day 16 sess 7**: E2E Functional Test 5/5 PASSED. Fixed critical bugs: (1) `saved_places` column mismatch — added `@map("user_id")` + `@map("place_id")` + `@map("created_at")` to SavedPlace model; (2) noted `isGuide`/`isVerifiedGuide` missing from DB — needs SQL in Supabase SQL Editor (see below). tsc 0 errors.
+→ **NEXT**: git push + Vercel deploy (batch next session — user requested wait); set Vercel env vars; run isGuide SQL migration (see DAILYWORK.md blocked section)
 
 ---
 
@@ -65,11 +66,28 @@
 
 ---
 
-## ⚠️ PENDING: DB Migration `add_travel_fields`
+## E2E Functional Test (Day 16)
 
+> Run: `npx tsx prisma/test-e2e.ts` | Date: 2026-06-12 | Result: **5/5 PASSED** ✅
+
+| Flow | Status | Details |
+|------|--------|---------|
+| Post → Profile | ✅ | createPost → getUserPosts → postsCount via post.count |
+| Trip CRUD | ✅ | create w/ TripDays → addItineraryItem → update cost/note → delete |
+| Like / Comment / Save | ✅ | like→count→unlike; comment→DB; save post; save place ('ดอยอินทนนท์') |
+| Follow / Unfollow | ✅ | follow→count+1→unfollow→count restored |
+| Review → Avg Rating | ✅ | createReview(rating=4) → aggregate _avg=4.00 → visible in page query |
+
+**Bugs found and fixed:**
+1. `saved_places` table uses snake_case columns (`user_id`, `place_id`, `created_at`) but Prisma schema had no `@map` — fixed with `@map` annotations in `SavedPlace` model + `prisma generate`.
+2. `isGuide` / `isVerifiedGuide` in Prisma schema but missing from `users` table in DB — all `prisma.user.findUnique(...)` without explicit `select` will fail at runtime (breaks `getProfile`). Needs SQL migration (see below).
+
+---
+
+## ⚠️ PENDING: DB Migrations (run in Supabase SQL Editor)
+
+### 1. `add_travel_fields` — TripItem location columns
 `npx prisma migrate dev --name add_travel_fields` failed on Windows (node_modules file lock).
-
-**Run this SQL manually in Supabase SQL Editor:**
 
 ```sql
 ALTER TABLE "trip_items"
@@ -79,11 +97,19 @@ ALTER TABLE "trip_items"
   ADD COLUMN IF NOT EXISTS "lng"           DOUBLE PRECISION;
 ```
 
-After running the SQL, create a stub migration file so Prisma history stays in sync:
+### 2. `add_guide_fields` — User guide columns (CRITICAL — breaks getProfile until applied)
+`isGuide` and `isVerifiedGuide` are in Prisma schema but NOT in DB. Any page that renders a user profile will fail at runtime.
+
+```sql
+ALTER TABLE "users"
+  ADD COLUMN IF NOT EXISTS "isGuide"         BOOLEAN NOT NULL DEFAULT false,
+  ADD COLUMN IF NOT EXISTS "isVerifiedGuide"  BOOLEAN NOT NULL DEFAULT false;
+```
+
+After running both SQL blocks:
 ```bash
 npx prisma migrate resolve --applied add_travel_fields
 ```
-Or simply re-run `npx prisma migrate dev --name add_travel_fields` when dev server is not running (release file locks first).
 
 ---
 
