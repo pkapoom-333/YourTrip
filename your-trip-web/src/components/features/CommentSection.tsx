@@ -150,9 +150,7 @@ export function CommentSection({ postId, initialCount = 0 }: CommentSectionProps
   async function handleDelete(commentId: string) {
     setComments((prev) => prev.filter((c) => c.id !== commentId));
     const id = typeof postId === "number" ? String(postId) : postId;
-    if (!id.startsWith("mock")) {
-      await deleteComment(commentId).catch(() => {});
-    }
+    await deleteComment(commentId).catch(() => {});
   }
 
   function handleSubmit(e: React.FormEvent) {
@@ -175,14 +173,12 @@ export function CommentSection({ postId, initialCount = 0 }: CommentSectionProps
 
     // Wire to server action (fire-and-forget, replace optimistic ID if success)
     const id = typeof postId === "number" ? String(postId) : postId;
-    if (!id.startsWith("mock")) {
-      createComment(id, text).then(({ data }) => {
-        if (!data) return;
-        setComments((prev) =>
-          prev.map((c) => c.id === optimistic.id ? { ...c, id: data.id } : c)
-        );
-      }).catch(() => {});
-    }
+    createComment(id, text).then(({ data }) => {
+      if (!data) return;
+      setComments((prev) =>
+        prev.map((c) => c.id === optimistic.id ? { ...c, id: data.id } : c)
+      );
+    }).catch(() => {});
   }
 
   const totalCount = initialCount + comments.length;

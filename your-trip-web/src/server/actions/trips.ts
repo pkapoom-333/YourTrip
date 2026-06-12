@@ -46,7 +46,7 @@ export async function createTrip(input: CreateTripInput) {
 
     return { data: { id: trip.id, ...parsed.data } };
   } catch {
-    return { data: { id: "mock-trip-id", ...parsed.data } };
+    return { error: { message: "ไม่สามารถสร้างทริปได้ กรุณาลองใหม่" } };
   }
 }
 
@@ -244,7 +244,7 @@ export async function addItineraryItem(tripId: string, input: ItineraryItemInput
 
     return { data: { id: item.id, tripId, ...parsed.data } };
   } catch {
-    return { data: { id: "mock-item-id", tripId, ...parsed.data } };
+    return { error: { message: "ไม่สามารถเพิ่มรายการได้ กรุณาลองใหม่" } };
   }
 }
 

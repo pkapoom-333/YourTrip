@@ -127,27 +127,7 @@ export async function getProfile(userId?: string) {
       },
     };
   } catch {
-    // No DB — return mock
-    return {
-      data: {
-        id: "mock-id",
-        name: "Your Trip User",
-        username: "yourtrip_user",
-        bio: "นักเดินทางสายธรรมชาติ ✈️",
-        location: "เชียงใหม่, ไทย",
-        website: "",
-        avatarUrl: null,
-        isVerified: false,
-        isGuide: false,
-        isVerifiedGuide: false,
-        postsCount: 48,
-        followersCount: 1200,
-        followingCount: 234,
-        tripsCount: 3,
-        placesVisited: 12,
-        totalTripDays: 24,
-      },
-    };
+    return { data: null };
   }
 }
 
