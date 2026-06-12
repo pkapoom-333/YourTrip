@@ -16,7 +16,8 @@
 → **DONE Day 16 sess 2**: Sprint S12 A25-S12-12 (8 features) + Sprint S13 S13-1-5 (lightbox, explore rating badges, place community posts grid, feed stories wired to real users). 0 TS errors.
 → **DONE Day 16 sess 3**: Sprint S14 — S14-1 feed mobile nav linked (search→/explore, bell→/notifications), S14-2 trip destination suggestions from saved places (getDestinationSuggestions), S14-3 trips/new URL prefill ?destination=, S14-4 create post pre-fills ?tag= + ?placeId=, S14-5 province page "Plan trip" CTA, S14-6 landing page destination cards link to province pages, loading.tsx for /explore/[province] + /profile/[userId]. 0 TS errors.
 → **DONE Day 16 sess 4**: fix openAddToTrip auth check (use useUser hook); DB migration add_travel_fields PENDING (see below)
-→ **NEXT**: Continue DAILYWORK.md remaining tasks; Vercel deploy prep (git push + env vars) — needs user confirm
+→ **DONE Day 16 sess 5**: Mock data audit complete — removed all MOCK_* constants from place, explore, feed, trips, landing, profile, notifications, buddy; seed-places-real.ts fixed (descriptionEen typo); 60 places in production DB; tsc 0 errors. 5 commits total.
+→ **NEXT**: git push + Vercel deploy (batch next session — user requested wait); set Vercel env vars (see DAILYWORK.md blocked section)
 
 ---
 

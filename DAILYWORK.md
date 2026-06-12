@@ -20,8 +20,8 @@ PROGRESS ██████████████████████ 98% 
 
 | # | Quest | XP | Status |
 |---|-------|----|--------|
-| B3 | **Vercel deploy** — git push + env vars in dashboard | 500 | ⬜ (needs user) |
-| SD-3 | **Seed Supabase** — run seed-places-real.ts on production DB | 300 | ⬜ (needs user) |
+| B3 | **Vercel deploy** — git push + env vars in dashboard | 500 | ⬜ (batch next session) |
+| SD-3 | **Seed Supabase** — run seed-places-real.ts on production DB | 300 | ✅ 60 places |
 | S14-1 | **Feed mobile nav wired** — Search→/explore, Bell→/notifications | 50 | ✅ |
 | S14-2 | **Trip destination suggestions** — saved places → suggest trip destinations | 100 | ✅ |
 | S14-3 | **trips/new URL prefill** — ?destination= param pre-fills wizard | 50 | ✅ |
@@ -39,8 +39,8 @@ PROGRESS ██████████████████████ 98% 
 
 | # | Quest | XP | Status |
 |---|-------|----|--------|
-| B3 | **Vercel deploy** — git push + env vars in dashboard | 500 | ⬜ (needs user) |
-| SD-3 | **Seed Supabase** — run seed-places-real.ts on production DB | 300 | ⬜ (needs user) |
+| B3 | **Vercel deploy** — git push + env vars in dashboard | 500 | ⬜ (batch next session) |
+| SD-3 | **Seed Supabase** — run seed-places-real.ts on production DB | 300 | ✅ 60 places |
 | S13-1 | **Vanity URLs** — /u/[username] → redirect to /profile/[userId] | 150 | ✅ |
 | S13-2 | **Feed lightbox** — click image in PostCard for fullscreen zoom view | 200 | ✅ |
 | S13-3 | **Place rating badge on Explore card** — star count + rating trend % | 100 | ✅ |
@@ -617,5 +617,5 @@ User เปิด /feed
 |---|------|--------|
 | SD-1 | หาข้อมูลสถานที่จริงจาก web research (ไม่ต้อง API key) → สร้าง seed script ครบ 10 จังหวัด | ✅ |
 | SD-2 | เพิ่ม lat/lng ครบทุกสถานที่ (ใช้กับ map + geolocation sort) | ✅ |
-| SD-3 | รัน seed script บน Supabase จริง | ⬜ blocked (ต้องการ DATABASE_URL ที่ active) |
+| SD-3 | รัน seed script บน Supabase จริง | ✅ Done — 60 places in production (Day 16 sess 5) |
 
