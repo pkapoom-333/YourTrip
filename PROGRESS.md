@@ -17,7 +17,51 @@
 → **DONE Day 16 sess 3**: Sprint S14 — S14-1 feed mobile nav linked (search→/explore, bell→/notifications), S14-2 trip destination suggestions from saved places (getDestinationSuggestions), S14-3 trips/new URL prefill ?destination=, S14-4 create post pre-fills ?tag= + ?placeId=, S14-5 province page "Plan trip" CTA, S14-6 landing page destination cards link to province pages, loading.tsx for /explore/[province] + /profile/[userId]. 0 TS errors.
 → **DONE Day 16 sess 4**: fix openAddToTrip auth check (use useUser hook); DB migration add_travel_fields PENDING (see below)
 → **DONE Day 16 sess 5**: Mock data audit complete — removed all MOCK_* constants from place, explore, feed, trips, landing, profile, notifications, buddy; seed-places-real.ts fixed (descriptionEen typo); 60 places in production DB; tsc 0 errors. 5 commits total.
+→ **DONE Day 16 sess 6**: Final verification pass — found+fixed MOCK_TRIP (trips/[id]), MOCK_COMMENTS (CommentSection), 3 server action catch blocks returning fake mock IDs/data (createTrip→mock-trip-id, addItineraryItem→mock-item-id, getProfile→mock-id). Also removed dead `startsWith("mock")` guards. 2 more commits. tsc 0 errors.
 → **NEXT**: git push + Vercel deploy (batch next session — user requested wait); set Vercel env vars (see DAILYWORK.md blocked section)
+
+---
+
+## Verification Report (Day 16 final)
+
+> tsc: 0 errors | สำรวจทุกหน้าหลัก | commit: 393e715
+
+| หน้า | Data source | Loading | Empty state | Error | Status | หมายเหตุ |
+|------|------------|---------|-------------|-------|--------|---------|
+| `/` (landing) | `getPlaces` + `getVerifiedGuides` | — | Sections hidden when empty | — | ✅ | testimonials = static marketing copy (ตั้งใจ) |
+| `/feed` | `getFeed` + `getActiveUsers` + `getTrendingHashtags` + `getPlaces` + `getPublicTrips` | `loading.tsx` ✅ | `FeedEmptyState` ✅ | — | ✅ | Stories fallback to initials-only when no real users |
+| `/explore` | `getPlaces` + `getSavedPlaceIds` | `loading.tsx` ✅ | "ไม่พบสถานที่" ✅ | — | ✅ | ExploreClient รับ real initialPlaces |
+| `/explore/[province]` | `getPlaces` ×3 (attraction/restaurant/cafe) | `loading.tsx` ✅ | Section hidden when empty ✅ | — | ✅ | SEO metadata จาก province param |
+| `/place/[slug]` | `getPlaceBySlug` + `getSavedPlaceIds` | `loading.tsx` ✅ | `notFound()` ✅ | `notFound()` ✅ | ✅ | reviews/nearby จาก DB จริง |
+| `/trips` | `getUserTrips` + `getPublicTrips` + `getDestinationSuggestions` | `loading.tsx` ✅ | "ยังไม่มีทริป" ✅ | — | ✅ | |
+| `/trips/[id]` | `getTripById` (useEffect) | `loading.tsx` ✅ | empty days array | — | ✅ | Fixed: ลบ MOCK_TRIP ใช้ EMPTY_TRIP แทน |
+| `/trips/new` | client-side form | — | — | toast | ✅ | Fixed: createTrip catch ส่ง error แทน mock-trip-id |
+| `/profile` | `getProfile` + `getUserPosts` + `getSavedPlaces` + `getUserTrips` | `loading.tsx` ✅ | empty grids | — | ✅ | Fixed: getProfile catch ส่ง null แทน mock data |
+| `/profile/[userId]` | `getProfile` + `getUserPosts` + `getUserPublicTrips` | `loading.tsx` ✅ | empty grids | — | ✅ | |
+| `/notifications` | `getNotifications` (useEffect) | `loading.tsx` ✅ | "ยังไม่มีการแจ้งเตือน" ✅ | — | ✅ | Fixed: ลบ MOCK + ลบ guard |
+| `/buddy` | `getDiscoverBuddies` + `getIncomingRequests` + `getMatchedBuddies` | `loading.tsx` ✅ | แยก 3 tabs ✅ | — | ✅ | Fixed: ลบ MOCK_BUDDIES |
+| `/post/[id]` | `getPostById` + `getRelatedPosts` | `loading.tsx` ✅ | `notFound()` ✅ | `notFound()` ✅ | ✅ | |
+| `/tags/[tag]` | `getPostsByTag` | — | "ยังไม่มีโพสต์" ✅ | — | ⚠️ | ไม่มี loading.tsx |
+| `/search/posts` | `searchPosts` (client) | — | empty state | — | ✅ | |
+| `/search/users` | `searchUsers` (client) | — | empty state | — | ✅ | |
+| `/trending/places` | `getTrendingPlaces` | — | — | — | ✅ | |
+| `/collections` | `getUserCollections` (useEffect) | `loading.tsx` ✅ | "ยังไม่มี collection" ✅ | — | ✅ | |
+| `/collections/[id]` | `getCollectionById` (useEffect) | — | — | — | ⚠️ | ไม่มี loading.tsx, ไม่มี notFound |
+| **CommentSection** | `getComments` (lazy on expand) | — | empty list | — | ✅ | Fixed: ลบ MOCK_COMMENTS + guards |
+
+### Issues Fixed ในรอบนี้
+| ไฟล์ | ปัญหา | การแก้ไข |
+|------|------|---------|
+| `trips/[id]/page.tsx` | `useState(MOCK_TRIP)` — แสดง "เชียงใหม่ 4 วัน 3 คืน" ปลอมระหว่าง load | เปลี่ยนเป็น `EMPTY_TRIP` (blank state) |
+| `trips/[id]/page.tsx` | `id.startsWith("mock")` guard — block real data load | ลบออก |
+| `CommentSection.tsx` | `MOCK_COMMENTS` initial state — แสดง "wanderer", "travelmate" ปลอม | `useState([])` |
+| `CommentSection.tsx` | `startsWith("mock")` guards ×3 — block createComment/deleteComment | ลบออก |
+| `server/actions/trips.ts` | `createTrip` catch → `{ id: "mock-trip-id" }` — navigate ไป broken URL | เปลี่ยนเป็น `{ error }` |
+| `server/actions/trips.ts` | `addItineraryItem` catch → `{ id: "mock-item-id" }` — orphan item ID ใน state | เปลี่ยนเป็น `{ error }` |
+| `server/actions/profile.ts` | `getProfile` catch → fake 48 posts / 1200 followers | เปลี่ยนเป็น `{ data: null }` |
+
+### Dead code remaining (harmless, ไม่ใช้ไม่แก้)
+- `PlaceDetailClient.tsx` — `startsWith("mock")` guards ×4 (place.id มาจาก DB จริงเสมอแล้ว ไม่มีทางเป็น "mock-xxx")
 
 ---
 
