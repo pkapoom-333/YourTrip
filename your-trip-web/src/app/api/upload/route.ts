@@ -47,16 +47,12 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: `ไฟล์ต้องไม่เกิน ${isVideo ? "50" : "10"} MB` }, { status: 400 });
     }
 
-    // If Cloudinary not configured, return a mock URL for development
+    // Cloudinary not configured yet (Phase 2) — tell the user clearly
     if (!CLOUDINARY_CONFIGURED) {
-      const mockUrl = `https://images.unsplash.com/photo-1506905925346-21bda4d32df4?auto=format&fit=crop&w=800&q=80`;
-      return NextResponse.json({
-        url: mockUrl,
-        publicId: `mock-${Date.now()}`,
-        width: 800,
-        height: 600,
-        mock: true,
-      });
+      return NextResponse.json(
+        { error: "ฟีเจอร์อัปโหลดรูปภาพจะเปิดใช้งานเร็วๆ นี้" },
+        { status: 501 }
+      );
     }
 
     // Convert file to buffer

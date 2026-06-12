@@ -30,6 +30,7 @@ export function ImageUpload({
 }: ImageUploadProps) {
   const [uploading, setUploading] = useState<number>(0); // count of in-progress uploads
   const [error, setError] = useState<string | null>(null);
+  const [unavailable, setUnavailable] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
 
   const uploadFile = useCallback(async (file: File): Promise<UploadedImage | null> => {
@@ -44,7 +45,9 @@ export function ImageUpload({
       const data = await res.json();
 
       if (!res.ok) {
-        setError(data.error ?? "อัปโหลดล้มเหลว");
+        const msg = data.error ?? "อัปโหลดล้มเหลว";
+        if (res.status === 501) setUnavailable(true);
+        setError(msg);
         URL.revokeObjectURL(preview);
         return null;
       }
@@ -96,7 +99,7 @@ export function ImageUpload({
     e.preventDefault();
   }
 
-  const canAdd = value.length < maxImages && uploading === 0;
+  const canAdd = value.length < maxImages && uploading === 0 && !unavailable;
 
   return (
     <div className={`space-y-2 ${className}`}>
@@ -158,12 +161,26 @@ export function ImageUpload({
       {/* Drop zone (shown when no images yet) */}
       {value.length === 0 && (
         <div
-          onDrop={handleDrop}
-          onDragOver={handleDragOver}
-          onClick={() => inputRef.current?.click()}
-          className="border-2 border-dashed border-gray-200 dark:border-slate-600 rounded-2xl p-8 flex flex-col items-center justify-center gap-2 cursor-pointer hover:border-[#398AB9] hover:bg-[#398AB9]/5 transition group"
+          onDrop={unavailable ? undefined : handleDrop}
+          onDragOver={unavailable ? undefined : handleDragOver}
+          onClick={unavailable ? undefined : () => inputRef.current?.click()}
+          className={`border-2 border-dashed rounded-2xl p-8 flex flex-col items-center justify-center gap-2 transition group ${
+            unavailable
+              ? "border-gray-100 dark:border-slate-700 cursor-not-allowed opacity-60"
+              : "border-gray-200 dark:border-slate-600 cursor-pointer hover:border-[#398AB9] hover:bg-[#398AB9]/5"
+          }`}
         >
-          {uploading > 0 ? (
+          {unavailable ? (
+            <>
+              <div className="w-12 h-12 bg-gray-100 dark:bg-slate-700 rounded-2xl flex items-center justify-center">
+                <ImageIcon className="w-6 h-6 text-gray-300 dark:text-slate-600" />
+              </div>
+              <p className="text-sm font-medium text-gray-400 dark:text-slate-500">อัปโหลดรูปภาพ</p>
+              <span className="text-xs bg-amber-50 dark:bg-amber-900/30 text-amber-600 dark:text-amber-400 border border-amber-200 dark:border-amber-700 px-2.5 py-1 rounded-full font-medium">
+                เปิดใช้งานเร็วๆ นี้
+              </span>
+            </>
+          ) : uploading > 0 ? (
             <>
               <Loader2 className="w-8 h-8 text-[#398AB9] animate-spin" />
               <p className="text-sm text-[#398AB9] font-medium">กำลังอัปโหลด...</p>

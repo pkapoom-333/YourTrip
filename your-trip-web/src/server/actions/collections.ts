@@ -171,7 +171,8 @@ export async function createCollection(input: {
       },
     });
     return { data: { id: c.id } };
-  } catch {
+  } catch (e) {
+    console.error("[createCollection]", e);
     return { error: "ไม่สามารถสร้างคอลเลกชันได้" };
   }
 }

@@ -100,11 +100,11 @@ export default function TripsClient({ initialTrips, communityTrips = [], destina
 
   const totalPlaces = trips.reduce((s: number, t: TripSummary) => s + t.places, 0);
   const totalDays   = trips.reduce((s: number, t: TripSummary) => {
-    if (!t.startDate || !t.endDate) return s;
-    try {
-      const diff = new Date(t.endDate).getTime() - new Date(t.startDate).getTime();
-      return s + Math.max(1, Math.ceil(diff / 86_400_000) + 1);
-    } catch { return s; }
+    // Use ISO fields — startDate/endDate are Thai-formatted display strings (NaN with new Date)
+    if (!t.startDateISO || !t.endDateISO) return s;
+    const diff = new Date(t.endDateISO).getTime() - new Date(t.startDateISO).getTime();
+    if (isNaN(diff)) return s;
+    return s + Math.max(1, Math.ceil(diff / 86_400_000) + 1);
   }, 0);
 
   return (
