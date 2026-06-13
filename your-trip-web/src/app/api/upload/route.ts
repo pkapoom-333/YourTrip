@@ -47,12 +47,16 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: `ไฟล์ต้องไม่เกิน ${isVideo ? "50" : "10"} MB` }, { status: 400 });
     }
 
-    // Cloudinary not configured yet (Phase 2) — tell the user clearly
+    // TODO: Cloudinary Phase 2 — mock upload returns a picsum placeholder
     if (!CLOUDINARY_CONFIGURED) {
-      return NextResponse.json(
-        { error: "ฟีเจอร์อัปโหลดรูปภาพจะเปิดใช้งานเร็วๆ นี้" },
-        { status: 501 }
-      );
+      const seed = encodeURIComponent(file.name.replace(/\.[^.]+$/, ""));
+      const mockUrl = `https://picsum.photos/seed/${seed}/800/600`;
+      return NextResponse.json({
+        url: mockUrl,
+        publicId: `mock/${seed}`,
+        width: 800,
+        height: 600,
+      });
     }
 
     // Convert file to buffer
