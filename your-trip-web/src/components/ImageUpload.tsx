@@ -36,6 +36,16 @@ export function ImageUpload({
   const uploadFile = useCallback(async (file: File): Promise<UploadedImage | null> => {
     const preview = URL.createObjectURL(file);
 
+    // When Cloudinary is not configured, skip the server entirely — no Vercel size limit hit
+    if (!process.env.NEXT_PUBLIC_CLOUDINARY_CONFIGURED) {
+      const seed = encodeURIComponent(file.name.replace(/\.[^.]+$/, ""));
+      return {
+        url: `https://picsum.photos/seed/${seed}/800/600`,
+        publicId: `mock/${seed}`,
+        preview,
+      };
+    }
+
     const formData = new FormData();
     formData.append("file", file);
     formData.append("folder", folder);
