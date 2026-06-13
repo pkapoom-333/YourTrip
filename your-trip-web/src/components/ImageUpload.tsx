@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useRef, useCallback } from "react";
+import { upload as blobUpload } from "@vercel/blob/client";
 import { Camera, X, Image as ImageIcon, Loader2, AlertCircle, Video } from "lucide-react";
 
 function isVideoFile(url: string) {
@@ -35,43 +36,56 @@ export function ImageUpload({
 
   const uploadFile = useCallback(async (file: File): Promise<UploadedImage | null> => {
     const preview = URL.createObjectURL(file);
+    const CLOUDINARY_ON = !!process.env.NEXT_PUBLIC_CLOUDINARY_CONFIGURED;
+    const BLOB_ON = !!process.env.NEXT_PUBLIC_BLOB_ENABLED;
 
-    // When Cloudinary is not configured, skip the server entirely — no Vercel size limit hit
-    if (!process.env.NEXT_PUBLIC_CLOUDINARY_CONFIGURED) {
-      const seed = encodeURIComponent(file.name.replace(/\.[^.]+$/, ""));
-      return {
-        url: `https://picsum.photos/seed/${seed}/800/600`,
-        publicId: `mock/${seed}`,
-        preview,
-      };
-    }
-
-    const formData = new FormData();
-    formData.append("file", file);
-    formData.append("folder", folder);
-
-    try {
-      const res = await fetch("/api/upload", { method: "POST", body: formData });
-
-      // Vercel returns plain text for 413 — parse safely
-      let data: Record<string, unknown> = {};
-      try { data = await res.json(); } catch { /* non-JSON body */ }
-
-      if (!res.ok) {
-        const msg = res.status === 413
-          ? "ไฟล์ใหญ่เกินไป กรุณาใช้ไฟล์ไม่เกิน 4 MB"
-          : (data.error as string) ?? "อัปโหลดล้มเหลว";
-        setError(msg);
+    // ── Vercel Blob: file goes browser → Vercel storage directly, no 4.5 MB limit ──
+    if (!CLOUDINARY_ON && BLOB_ON) {
+      try {
+        const blob = await blobUpload(
+          `your-trip/posts/${Date.now()}-${file.name}`,
+          file,
+          { access: "public", handleUploadUrl: "/api/upload" }
+        );
+        return { url: blob.url, publicId: blob.pathname, preview };
+      } catch {
+        setError("อัปโหลดล้มเหลว กรุณาลองใหม่");
         URL.revokeObjectURL(preview);
         return null;
       }
-
-      return { url: data.url as string, publicId: data.publicId as string, preview };
-    } catch {
-      setError("ไม่สามารถเชื่อมต่อได้ กรุณาลองใหม่");
-      URL.revokeObjectURL(preview);
-      return null;
     }
+
+    // ── Cloudinary (Phase 2) ──────────────────────────────────────────────────
+    if (CLOUDINARY_ON) {
+      const formData = new FormData();
+      formData.append("file", file);
+      formData.append("folder", folder);
+      try {
+        const res = await fetch("/api/upload", { method: "POST", body: formData });
+        let data: Record<string, unknown> = {};
+        try { data = await res.json(); } catch { /* non-JSON */ }
+        if (!res.ok) {
+          setError(res.status === 413
+            ? "ไฟล์ใหญ่เกินไป กรุณาใช้ไฟล์ไม่เกิน 4 MB"
+            : (data.error as string) ?? "อัปโหลดล้มเหลว");
+          URL.revokeObjectURL(preview);
+          return null;
+        }
+        return { url: data.url as string, publicId: data.publicId as string, preview };
+      } catch {
+        setError("ไม่สามารถเชื่อมต่อได้ กรุณาลองใหม่");
+        URL.revokeObjectURL(preview);
+        return null;
+      }
+    }
+
+    // ── Mock fallback (no storage configured) ────────────────────────────────
+    const seed = encodeURIComponent(file.name.replace(/\.[^.]+$/, ""));
+    return {
+      url: `https://picsum.photos/seed/${seed}/800/600`,
+      publicId: `mock/${seed}`,
+      preview,
+    };
   }, [folder]);
 
   async function handleFiles(files: FileList | null) {
