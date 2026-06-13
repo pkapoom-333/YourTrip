@@ -14,7 +14,7 @@ const CLOUDINARY_CONFIGURED =
   !!process.env.CLOUDINARY_API_KEY &&
   !!process.env.CLOUDINARY_API_SECRET;
 
-const IMAGE_MAX_BYTES = 10 * 1024 * 1024;  // 10 MB
+const IMAGE_MAX_BYTES = 4 * 1024 * 1024;   // 4 MB (Vercel serverless limit ~4.5 MB)
 const VIDEO_MAX_BYTES = 50 * 1024 * 1024;  // 50 MB
 const ALLOWED_IMAGE_TYPES = ["image/jpeg", "image/png", "image/webp", "image/gif"];
 const ALLOWED_VIDEO_TYPES = ["video/mp4", "video/webm", "video/quicktime", "video/ogg"];

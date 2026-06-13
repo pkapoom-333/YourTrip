@@ -42,17 +42,21 @@ export function ImageUpload({
 
     try {
       const res = await fetch("/api/upload", { method: "POST", body: formData });
-      const data = await res.json();
+
+      // Vercel returns plain text for 413 — parse safely
+      let data: Record<string, unknown> = {};
+      try { data = await res.json(); } catch { /* non-JSON body */ }
 
       if (!res.ok) {
-        const msg = data.error ?? "อัปโหลดล้มเหลว";
-        if (res.status === 501) setUnavailable(true);
+        const msg = res.status === 413
+          ? "ไฟล์ใหญ่เกินไป กรุณาใช้ไฟล์ไม่เกิน 4 MB"
+          : (data.error as string) ?? "อัปโหลดล้มเหลว";
         setError(msg);
         URL.revokeObjectURL(preview);
         return null;
       }
 
-      return { url: data.url, publicId: data.publicId, preview };
+      return { url: data.url as string, publicId: data.publicId as string, preview };
     } catch {
       setError("ไม่สามารถเชื่อมต่อได้ กรุณาลองใหม่");
       URL.revokeObjectURL(preview);
@@ -71,6 +75,15 @@ export function ImageUpload({
     }
 
     const selected = Array.from(files).slice(0, available);
+
+    // Validate size before upload — Vercel serverless limit ~4.5 MB
+    const MAX_BYTES = 4 * 1024 * 1024;
+    const oversized = selected.find((f) => f.size > MAX_BYTES);
+    if (oversized) {
+      setError(`ไฟล์ "${oversized.name}" ใหญ่เกิน 4 MB กรุณาบีบอัดหรือเลือกไฟล์อื่น`);
+      return;
+    }
+
     setUploading((n) => n + selected.length);
 
     const results = await Promise.all(selected.map(uploadFile));
