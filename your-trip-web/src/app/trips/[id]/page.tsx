@@ -1,6 +1,7 @@
 "use client";
 
 import { use, useState, useEffect, useCallback, useRef } from "react";
+import { upload as blobUpload } from "@vercel/blob/client";
 import { useRouter } from "next/navigation";
 import QRCode from "qrcode";
 import AppShell from "@/components/AppShell";
@@ -646,15 +647,34 @@ export default function TripDetailPage({ params }: { params: Promise<{ id: strin
     if (!file || coverUploading) return;
     setCoverUploading(true);
     try {
-      const formData = new FormData();
-      formData.append("file", file);
-      formData.append("folder", "your-trip/trips");
-      const res = await fetch("/api/upload", { method: "POST", body: formData });
-      const data = await res.json() as { url?: string };
-      if (data.url) {
-        setTrip((prev) => ({ ...prev, coverImage: data.url! }));
-        await updateTripCover(trip.id, data.url).catch(() => {});
+      // Ask server which storage backend is active
+      const modeRes = await fetch("/api/upload");
+      const { mode } = await modeRes.json() as { mode: "blob" | "cloudinary" | "unavailable" };
+
+      let url: string | null = null;
+
+      if (mode === "blob") {
+        const blob = await blobUpload(
+          `your-trip/trips/${Date.now()}-${file.name}`,
+          file,
+          { access: "public", handleUploadUrl: "/api/upload" }
+        );
+        url = blob.url;
+      } else if (mode === "cloudinary") {
+        const formData = new FormData();
+        formData.append("file", file);
+        formData.append("folder", "your-trip/trips");
+        const res = await fetch("/api/upload", { method: "POST", body: formData });
+        const data = await res.json() as { url?: string };
+        url = data.url ?? null;
       }
+
+      if (url) {
+        setTrip((prev) => ({ ...prev, coverImage: url! }));
+        await updateTripCover(trip.id, url).catch(() => {});
+      }
+    } catch {
+      // silent — camera button will re-enable on next click
     } finally {
       setCoverUploading(false);
     }
@@ -1262,14 +1282,14 @@ export default function TripDetailPage({ params }: { params: Promise<{ id: strin
                     <Clock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
                     <input type="time" value={newItem.time}
                       onChange={(e) => setNewItem((p) => ({ ...p, time: e.target.value }))}
-                      className="w-full pl-9 pr-3 py-3 border border-gray-200 rounded-xl text-sm focus:outline-none focus:border-[#398AB9]"
+                      className="w-full pl-9 pr-3 py-3 border border-gray-200 dark:border-slate-600 dark:bg-slate-700/50 dark:text-slate-200 rounded-xl text-sm focus:outline-none focus:border-[#398AB9]"
                     />
                   </div>
                   <div className="relative flex-1">
                     <Wallet className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
                     <input type="number" value={newItem.cost} placeholder="ค่าใช้จ่าย ฿"
                       onChange={(e) => setNewItem((p) => ({ ...p, cost: e.target.value }))}
-                      className="w-full pl-9 pr-3 py-3 border border-gray-200 rounded-xl text-sm focus:outline-none focus:border-[#398AB9]"
+                      className="w-full pl-9 pr-3 py-3 border border-gray-200 dark:border-slate-600 dark:bg-slate-700/50 dark:text-slate-200 dark:placeholder:text-slate-500 rounded-xl text-sm focus:outline-none focus:border-[#398AB9]"
                     />
                   </div>
                 </div>
@@ -1277,17 +1297,17 @@ export default function TripDetailPage({ params }: { params: Promise<{ id: strin
                 {/* Duration + Travel time */}
                 <div className="flex flex-col sm:flex-row gap-2">
                   <div className="relative flex-1">
-                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-xs whitespace-nowrap">อยู่ที่นี่</span>
+                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 dark:text-slate-500 text-xs whitespace-nowrap">อยู่ที่นี่</span>
                     <input type="number" value={newItem.duration} placeholder="นาที"
                       onChange={(e) => setNewItem((p) => ({ ...p, duration: e.target.value }))}
-                      className="w-full pl-16 pr-3 py-3 border border-gray-200 rounded-xl text-sm focus:outline-none focus:border-[#398AB9]"
+                      className="w-full pl-16 pr-3 py-3 border border-gray-200 dark:border-slate-600 dark:bg-slate-700/50 dark:text-slate-200 dark:placeholder:text-slate-500 rounded-xl text-sm focus:outline-none focus:border-[#398AB9]"
                     />
                   </div>
                   <div className="relative flex-1">
                     <Car className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
                     <input type="number" value={newItem.travelTimeTo} placeholder="เดินทางถัดไป (นาที)"
                       onChange={(e) => setNewItem((p) => ({ ...p, travelTimeTo: e.target.value }))}
-                      className="w-full pl-9 pr-3 py-3 border border-gray-200 rounded-xl text-sm focus:outline-none focus:border-[#398AB9]"
+                      className="w-full pl-9 pr-3 py-3 border border-gray-200 dark:border-slate-600 dark:bg-slate-700/50 dark:text-slate-200 dark:placeholder:text-slate-500 rounded-xl text-sm focus:outline-none focus:border-[#398AB9]"
                     />
                   </div>
                 </div>
@@ -1295,7 +1315,7 @@ export default function TripDetailPage({ params }: { params: Promise<{ id: strin
                 <textarea value={newItem.note}
                   onChange={(e) => setNewItem((p) => ({ ...p, note: e.target.value }))}
                   placeholder="หมายเหตุ (ไม่บังคับ)" rows={2}
-                  className="w-full px-4 py-3 border border-gray-200 rounded-xl text-sm focus:outline-none focus:border-[#398AB9] resize-none"
+                  className="w-full px-4 py-3 border border-gray-200 dark:border-slate-600 dark:bg-slate-700/50 dark:text-slate-200 dark:placeholder:text-slate-500 rounded-xl text-sm focus:outline-none focus:border-[#398AB9] resize-none"
                 />
               </div>
 

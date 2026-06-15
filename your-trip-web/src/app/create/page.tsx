@@ -263,8 +263,8 @@ export default function CreatePage() {
               className="w-full text-sm text-gray-800 dark:text-slate-200 placeholder:text-gray-400 dark:placeholder:text-slate-500 resize-none outline-none leading-relaxed bg-transparent"
               autoFocus
             />
-            <div className={`text-right text-xs mt-1 ${remaining < 50 ? "text-[#FF4F4F]" : "text-gray-300 dark:text-slate-600"}`}>
-              {remaining}
+            <div className={`text-right text-xs mt-1 tabular-nums ${remaining < 50 ? "text-[#FF4F4F] font-medium" : "text-gray-300 dark:text-slate-600"}`}>
+              {content.length} / {MAX_CHARS}
             </div>
           </div>
 

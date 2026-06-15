@@ -31,6 +31,19 @@ const statusConfig: Record<TripSummary["status"], { label: string; color: string
 
 const PLACEHOLDER_IMG = "https://images.unsplash.com/photo-1476514525405-8d4b4c284c1e?auto=format&fit=crop&w=800&q=80";
 
+function formatDays(days: number): string {
+  if (days < 7) return `${days} วัน`;
+  const weeks = Math.floor(days / 7);
+  const rem = days % 7;
+  return rem === 0 ? `${weeks} สัปดาห์` : `${weeks} สัปดาห์ ${rem} วัน`;
+}
+
+function tripDuration(startISO?: string, endISO?: string): number {
+  if (!startISO || !endISO) return 0;
+  const diff = new Date(endISO).getTime() - new Date(startISO).getTime();
+  return isNaN(diff) ? 0 : Math.max(1, Math.ceil(diff / 86_400_000) + 1);
+}
+
 export default function TripsClient({ initialTrips, communityTrips = [], destinationSuggestions = [] }: { initialTrips: TripSummary[]; communityTrips?: PublicTripItem[]; destinationSuggestions?: DestinationSuggestion[] }) {
   const [tab, setTab] = useState<"all" | "upcoming" | "planning" | "completed">("all");
   const [trips, setTrips] = useState<TripSummary[]>(initialTrips);
@@ -128,13 +141,13 @@ export default function TripsClient({ initialTrips, communityTrips = [], destina
       {/* Stat strip */}
       <div className="grid grid-cols-3 gap-2 mb-5">
         {[
-          { icon: Plane,    label: "ทริปทั้งหมด",    value: trips.length },
-          { icon: MapPin,   label: "สถานที่",         value: totalPlaces },
-          { icon: Calendar, label: "วันที่เดินทาง",  value: totalDays },
+          { icon: Plane,    label: "ทริปทั้งหมด",   value: String(trips.length) },
+          { icon: MapPin,   label: "สถานที่",        value: String(totalPlaces) },
+          { icon: Calendar, label: "วันเดินทาง",    value: formatDays(totalDays) },
         ].map((s) => (
           <div key={s.label} className="bg-white dark:bg-slate-800 rounded-2xl border border-gray-100 dark:border-slate-700 p-2 sm:p-3 text-center">
             <s.icon className="w-4 h-4 sm:w-5 sm:h-5 text-[#398AB9] mx-auto mb-1" />
-            <p className="text-lg sm:text-xl font-bold text-gray-900 dark:text-slate-100">{s.value}</p>
+            <p className="text-base sm:text-lg font-bold text-gray-900 dark:text-slate-100 leading-tight">{s.value}</p>
             <p className="text-[9px] sm:text-[10px] text-gray-400 dark:text-slate-500">{s.label}</p>
           </div>
         ))}
@@ -282,13 +295,18 @@ export default function TripsClient({ initialTrips, communityTrips = [], destina
               </div>
 
               <div className="px-4 py-3">
-                <div className="flex items-center gap-4 text-xs text-gray-500 dark:text-slate-400 mb-3">
+                <div className="flex items-center gap-3 text-xs text-gray-500 dark:text-slate-400 mb-3">
                   <span className="flex items-center gap-1">
                     <Users className="w-3.5 h-3.5" /> {trip.members} คน
                   </span>
                   <span className="flex items-center gap-1">
                     <MapPin className="w-3.5 h-3.5" /> {trip.places} สถานที่
                   </span>
+                  {tripDuration(trip.startDateISO, trip.endDateISO) > 0 && (
+                    <span className="flex items-center gap-1">
+                      <Calendar className="w-3.5 h-3.5" /> {formatDays(tripDuration(trip.startDateISO, trip.endDateISO))}
+                    </span>
+                  )}
                 </div>
 
                 {trip.destinations.length > 0 && (

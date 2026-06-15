@@ -112,7 +112,12 @@ function NewCollectionModal({ onClose, onCreate }: { onClose: () => void; onCrea
           </div>
 
           <div>
-            <label className="text-xs text-gray-500 dark:text-slate-400 font-medium block mb-1">ชื่อคอลเลกชัน *</label>
+            <div className="flex items-center justify-between mb-1">
+              <label className="text-xs text-gray-500 dark:text-slate-400 font-medium">ชื่อคอลเลกชัน *</label>
+              <span className={`text-xs tabular-nums ${title.length > 50 ? "text-[#FF4F4F] font-medium" : "text-gray-300 dark:text-slate-600"}`}>
+                {title.length} / 60
+              </span>
+            </div>
             <input
               autoFocus
               value={title}
