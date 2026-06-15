@@ -4,6 +4,20 @@ import { useState, useRef, useCallback } from "react";
 import { upload as blobUpload } from "@vercel/blob/client";
 import { Camera, X, Image as ImageIcon, Loader2, AlertCircle, Video } from "lucide-react";
 
+type UploadMode = "blob" | "cloudinary" | "unavailable";
+let cachedMode: UploadMode | null = null;
+async function getUploadMode(): Promise<UploadMode> {
+  if (cachedMode) return cachedMode;
+  try {
+    const res = await fetch("/api/upload");
+    const data = await res.json() as { mode: UploadMode };
+    cachedMode = data.mode;
+  } catch {
+    cachedMode = "unavailable";
+  }
+  return cachedMode;
+}
+
 function isVideoFile(url: string) {
   return /\.(mp4|webm|mov|ogg)(\?.*)?$/i.test(url);
 }
@@ -36,11 +50,11 @@ export function ImageUpload({
 
   const uploadFile = useCallback(async (file: File): Promise<UploadedImage | null> => {
     const preview = URL.createObjectURL(file);
-    const CLOUDINARY_ON = !!process.env.NEXT_PUBLIC_CLOUDINARY_CONFIGURED;
-    const BLOB_ON = !!process.env.NEXT_PUBLIC_BLOB_ENABLED;
 
-    // ── Vercel Blob: file goes browser → Vercel storage directly, no 4.5 MB limit ──
-    if (!CLOUDINARY_ON && BLOB_ON) {
+    const mode = await getUploadMode();
+
+    // ── Vercel Blob: browser uploads directly to Vercel — no 4.5 MB server limit ──
+    if (mode === "blob") {
       try {
         const blob = await blobUpload(
           `your-trip/posts/${Date.now()}-${file.name}`,
@@ -56,7 +70,7 @@ export function ImageUpload({
     }
 
     // ── Cloudinary (Phase 2) ──────────────────────────────────────────────────
-    if (CLOUDINARY_ON) {
+    if (mode === "cloudinary") {
       const formData = new FormData();
       formData.append("file", file);
       formData.append("folder", folder);
@@ -79,13 +93,10 @@ export function ImageUpload({
       }
     }
 
-    // ── Mock fallback (no storage configured) ────────────────────────────────
-    const seed = encodeURIComponent(file.name.replace(/\.[^.]+$/, ""));
-    return {
-      url: `https://picsum.photos/seed/${seed}/800/600`,
-      publicId: `mock/${seed}`,
-      preview,
-    };
+    // ── Storage ไม่ได้ตั้งค่า — แสดง error แทน silent mock ─────────────────
+    setError("ฟีเจอร์อัปโหลดรูปภาพยังไม่พร้อมใช้งาน");
+    URL.revokeObjectURL(preview);
+    return null;
   }, [folder]);
 
   async function handleFiles(files: FileList | null) {

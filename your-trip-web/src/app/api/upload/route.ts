@@ -20,6 +20,15 @@ const ALLOWED_IMAGE_TYPES = ["image/jpeg", "image/png", "image/webp", "image/gif
 const ALLOWED_VIDEO_TYPES = ["video/mp4", "video/webm", "video/quicktime", "video/ogg"];
 const ALLOWED_TYPES = [...ALLOWED_IMAGE_TYPES, ...ALLOWED_VIDEO_TYPES];
 
+// Client calls GET first to learn which storage backend is active,
+// then chooses the correct upload path without needing NEXT_PUBLIC_ vars.
+export async function GET() {
+  const mode = CLOUDINARY_CONFIGURED ? "cloudinary"
+    : process.env.BLOB_READ_WRITE_TOKEN ? "blob"
+    : "unavailable";
+  return NextResponse.json({ mode });
+}
+
 export async function POST(req: NextRequest) {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
