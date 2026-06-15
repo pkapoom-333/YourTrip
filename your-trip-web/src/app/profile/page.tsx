@@ -133,7 +133,7 @@ export default function ProfilePage() {
         <div className="bg-white dark:bg-slate-800 border-b border-gray-100 dark:border-slate-700 px-4 md:px-6 pt-4 pb-5 md:rounded-t-2xl">
           <div className="flex items-center justify-between mb-4">
             <Avatar src={profile.avatarUrl} name={profile.name} className="w-20 h-20 text-2xl" />
-            <div className="flex flex-wrap gap-x-3 gap-y-1 text-center justify-end">
+            <div className="flex flex-wrap gap-x-2 sm:gap-x-3 gap-y-1 text-center justify-end">
               <div>
                 <p className="text-xl font-bold text-gray-900 dark:text-slate-100">{profile.postsCount}</p>
                 <p className="text-xs text-gray-400 dark:text-slate-500">โพสต์</p>

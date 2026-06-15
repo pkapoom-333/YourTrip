@@ -54,7 +54,7 @@ export default function RegisterPage() {
           <p className="text-white/65 text-sm mt-1">สังคมแห่งการท่องเที่ยว</p>
         </div>
 
-        <div className="bg-white dark:bg-slate-800 rounded-3xl p-8 shadow-2xl">
+        <div className="bg-white dark:bg-slate-800 rounded-3xl p-5 sm:p-8 shadow-2xl">
           <h2 className="text-2xl font-bold text-[#398AB9] text-center mb-6">Sign Up</h2>
 
           {error && (

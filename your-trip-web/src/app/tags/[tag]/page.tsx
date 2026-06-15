@@ -28,7 +28,7 @@ export default async function TagPage({ params }: Props) {
         <div className="mb-5">
           <div className="flex items-center gap-2 mb-1">
             <span className="text-3xl font-black text-[#398AB9]">#</span>
-            <h1 className="text-xl font-bold text-gray-900 dark:text-slate-100 break-all">
+            <h1 className="text-xl font-bold text-gray-900 dark:text-slate-100 break-words">
               {decoded}
             </h1>
           </div>

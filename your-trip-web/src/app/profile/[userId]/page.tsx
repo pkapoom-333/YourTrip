@@ -268,7 +268,7 @@ export default function UserProfilePage() {
             <Avatar src={profile.avatarUrl} name={profile.name} className="w-20 h-20 text-2xl" />
 
             {/* Stats */}
-            <div className="flex flex-wrap gap-x-6 gap-y-1 text-center justify-end">
+            <div className="flex flex-wrap gap-x-3 sm:gap-x-6 gap-y-1 text-center justify-end">
               <div>
                 <p className="text-xl font-bold text-gray-900 dark:text-slate-100">{profile.postsCount}</p>
                 <p className="text-xs text-gray-400 dark:text-slate-500">โพสต์</p>

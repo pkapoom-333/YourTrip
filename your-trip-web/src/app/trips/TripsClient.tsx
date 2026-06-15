@@ -132,10 +132,10 @@ export default function TripsClient({ initialTrips, communityTrips = [], destina
           { icon: MapPin,   label: "สถานที่",         value: totalPlaces },
           { icon: Calendar, label: "วันที่เดินทาง",  value: totalDays },
         ].map((s) => (
-          <div key={s.label} className="bg-white dark:bg-slate-800 rounded-2xl border border-gray-100 dark:border-slate-700 p-3 text-center">
-            <s.icon className="w-5 h-5 text-[#398AB9] mx-auto mb-1" />
-            <p className="text-xl font-bold text-gray-900 dark:text-slate-100">{s.value}</p>
-            <p className="text-[10px] text-gray-400 dark:text-slate-500">{s.label}</p>
+          <div key={s.label} className="bg-white dark:bg-slate-800 rounded-2xl border border-gray-100 dark:border-slate-700 p-2 sm:p-3 text-center">
+            <s.icon className="w-4 h-4 sm:w-5 sm:h-5 text-[#398AB9] mx-auto mb-1" />
+            <p className="text-lg sm:text-xl font-bold text-gray-900 dark:text-slate-100">{s.value}</p>
+            <p className="text-[9px] sm:text-[10px] text-gray-400 dark:text-slate-500">{s.label}</p>
           </div>
         ))}
       </div>

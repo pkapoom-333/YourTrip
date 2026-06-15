@@ -133,7 +133,7 @@ export default async function LandingPage() {
           </div>
 
           {/* Stats */}
-          <div className="flex gap-10 mt-14 text-center">
+          <div className="flex gap-4 sm:gap-10 mt-14 text-center">
             {[
               { v: "10K+", l: "นักเดินทาง" },
               { v: "50K+", l: "สถานที่" },
@@ -224,7 +224,7 @@ export default async function LandingPage() {
             แบ่งปันเส้นทาง บันทึกทริป และเชื่อมต่อกับนักเดินทางที่มีใจรักการผจญภัยเหมือนกัน
           </p>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-5 mb-12">
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3 sm:gap-5 mb-12">
             {features.map((f) => (
               <div key={f.title}
                 className="bg-white dark:bg-slate-700/50 rounded-2xl p-6 text-left shadow-sm hover:shadow-md hover:-translate-y-1 transition-all duration-200">
@@ -444,7 +444,7 @@ export default async function LandingPage() {
       {/* ─── FOOTER ─── */}
       <footer className="bg-[#1F1F1F] text-white/50 py-12 px-6">
         <div className="max-w-5xl mx-auto">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-8 mb-10">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 sm:gap-8 mb-10">
             <div className="col-span-2 md:col-span-1">
               <p className="text-[#398AB9] font-bold text-xl mb-3">Your Trip</p>
               <p className="text-sm text-white/40 leading-relaxed">
