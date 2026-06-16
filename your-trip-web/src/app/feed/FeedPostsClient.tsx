@@ -270,9 +270,9 @@ export function FeedPostsClient({ initialPosts, initialCursor, initialHasMore = 
           <span className="text-4xl">👥</span>
           <p className="text-sm font-bold text-gray-900 dark:text-slate-100">ยังไม่มีโพสต์จากคนที่คุณติดตาม</p>
           <p className="text-xs text-gray-400 dark:text-slate-500 max-w-xs">ติดตามนักเดินทางเพื่อดูโพสต์ของพวกเขาที่นี่</p>
-          <a href="/search/users" className="mt-1 bg-[#398AB9] text-white text-sm font-medium px-5 py-2 rounded-xl hover:bg-[#1C658C] transition">
+          <Link href="/search/users" className="mt-1 bg-[#398AB9] text-white text-sm font-medium px-5 py-2 rounded-xl hover:bg-[#1C658C] transition">
             ค้นหาคน
-          </a>
+          </Link>
         </div>
       )}
       {posts.length === 0 && !loading && activeTab === "forYou" && <FeedEmptyState />}
@@ -314,5 +314,6 @@ export function FeedPostsClient({ initialPosts, initialCursor, initialHasMore = 
         </p>
       )}
     </div>
-  );
+  )
+;
 }

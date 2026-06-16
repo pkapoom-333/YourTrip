@@ -81,7 +81,7 @@ function RowLink({
   if (onClick) {
     return <button onClick={onClick} className={cls}>{inner}</button>;
   }
-  return <a href={href ?? "#"} className={cls}>{inner}</a>;
+  return <Link href={href ?? "#"} className={cls}>{inner}</Link>;
 }
 
 function RowToggle({
@@ -266,5 +266,5 @@ export default function SettingsPage() {
         </Section>
       </div>
     </AppShell>
-  );
+ );
 }

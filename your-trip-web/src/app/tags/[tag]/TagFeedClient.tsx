@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef, useCallback } from "react";
+import Link from "next/link";
 import { PostCard, type PostCardData } from "@/components/features/PostCard";
 import { getPostsByTag } from "@/server/actions/posts";
 import { Loader2, Hash } from "lucide-react";
@@ -92,9 +93,9 @@ export default function TagFeedClient({ tag, initialPosts, initialCursor, initia
         <Hash className="w-12 h-12 opacity-30" />
         <p className="text-sm font-medium">ยังไม่มีโพสต์ในแท็ก #{tag}</p>
         <p className="text-xs text-center">เป็นคนแรกที่แชร์ด้วยแท็กนี้!</p>
-        <a href="/create" className="mt-2 bg-[#398AB9] text-white text-sm font-medium px-5 py-2 rounded-xl hover:bg-[#1C658C] transition">
+        <Link href="/create" className="mt-2 bg-[#398AB9] text-white text-sm font-medium px-5 py-2 rounded-xl hover:bg-[#1C658C] transition">
           สร้างโพสต์
-        </a>
+        </Link>
       </div>
     );
   }
@@ -116,7 +117,7 @@ export default function TagFeedClient({ tag, initialPosts, initialCursor, initia
       {!hasMore && posts.length > 0 && (
         <p className="text-center text-xs text-gray-400 dark:text-slate-500 py-4">
           โพสต์ทั้งหมดในแท็ก #{tag} 🎉
-        </p>
+          </p>
       )}
     </div>
   );
