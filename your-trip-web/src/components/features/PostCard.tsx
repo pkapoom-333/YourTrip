@@ -81,6 +81,7 @@ export function PostCard({ post, onTagClick }: { post: PostCardData; onTagClick?
   const [reportReason, setReportReason] = useState<ReportReason | "">("");
   const [reportSubmitting, setReportSubmitting] = useState(false);
   const [reported, setReported] = useState(false);
+  const [commentCount, setCommentCount] = useState(post.comments);
   const { success, error, info } = useToast();
   const router = useRouter();
 
@@ -311,7 +312,7 @@ export function PostCard({ post, onTagClick }: { post: PostCardData; onTagClick?
         <Link href={`/post/${post.id}`}
           className="flex items-center gap-1.5 px-2 py-1.5 rounded-xl text-gray-400 dark:text-slate-500 hover:text-[#398AB9] hover:bg-[#398AB9]/5 transition">
           <MessageCircle className="w-5 h-5" />
-          <span className="text-xs font-medium">{fmt(post.comments)}</span>
+          <span className="text-xs font-medium">{fmt(commentCount)}</span>
         </Link>
         <button
           onClick={handleShare}
@@ -342,7 +343,7 @@ export function PostCard({ post, onTagClick }: { post: PostCardData; onTagClick?
       </div>
 
       {/* Comments */}
-      <CommentSection postId={post.id} initialCount={post.comments} />
+      <CommentSection postId={post.id} initialCount={post.comments} onCommentCountChange={setCommentCount} />
     </article>
 
     {/* Image lightbox */}

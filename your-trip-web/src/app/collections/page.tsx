@@ -217,4 +217,9 @@ export default function CollectionsPage() {
       {showNew && (
         <NewCollectionModal
           onClose={() => setShowNew(false)}
-          onCreate={(col) => setCollections((prev) => [col, ...prev])
+          onCreate={(col) => setCollections((prev) => [col, ...prev])}
+        />
+      )}
+    </AppShell>
+  );
+}
