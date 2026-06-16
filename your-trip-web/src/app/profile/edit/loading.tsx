@@ -1,22 +1,10 @@
-import AppShell from "@/components/AppShell";
-
 export default function EditProfileLoading() {
   return (
-    <AppShell>
-      <div className="max-w-lg mx-auto animate-pulse">
-        <div className="h-14 bg-gray-100 dark:bg-slate-700 border-b border-gray-100" />
-        <div className="px-4 py-8 space-y-6">
-          <div className="flex justify-center">
-            <div className="w-24 h-24 bg-gray-200 dark:bg-slate-700 rounded-full" />
-          </div>
-          {[1, 2, 3, 4].map((i) => (
-            <div key={i} className="space-y-2">
-              <div className="h-3.5 bg-gray-200 dark:bg-slate-700 rounded w-24" />
-              <div className="h-12 bg-gray-100 dark:bg-slate-700 rounded-xl" />
-            </div>
-          ))}
-        </div>
+    <div className="min-h-screen bg-[#F8FAFC] dark:bg-slate-900 flex items-center justify-center md:pl-64">
+      <div className="flex flex-col items-center gap-3">
+        <div className="w-10 h-10 rounded-full border-4 border-[#398AB9]/20 border-t-[#398AB9] animate-spin" />
+        <p className="text-sm text-gray-400">Loading...</p>
       </div>
-    </AppShell>
+    </div>
   );
 }

@@ -1,33 +1,10 @@
-import AppShell from "@/components/AppShell";
-
-function Skeleton({ className }: { className?: string }) {
-  return <div className={`animate-pulse bg-gray-100 dark:bg-slate-700 rounded-lg ${className}`} />;
-}
-
 export default function NotificationsLoading() {
   return (
-    <AppShell>
-      <div className="max-w-2xl mx-auto">
-        <div className="border-b border-gray-100 dark:border-slate-700 px-4 py-4">
-          <Skeleton className="h-7 w-40 mb-3" />
-          <div className="flex gap-2">
-            <Skeleton className="h-8 w-24 rounded-full" />
-            <Skeleton className="h-8 w-32 rounded-full" />
-          </div>
-        </div>
-        <div className="divide-y divide-gray-50 dark:divide-slate-700">
-          {[...Array(6)].map((_, i) => (
-            <div key={i} className="flex items-start gap-3 px-4 py-4">
-              <Skeleton className="w-11 h-11 rounded-full flex-shrink-0" />
-              <div className="flex-1 space-y-2">
-                <Skeleton className="h-4 w-3/4" />
-                <Skeleton className="h-3 w-1/2" />
-                <Skeleton className="h-3 w-16" />
-              </div>
-            </div>
-          ))}
-        </div>
+    <div className="min-h-screen bg-[#F8FAFC] dark:bg-slate-900 flex items-center justify-center md:pl-64">
+      <div className="flex flex-col items-center gap-3">
+        <div className="w-10 h-10 rounded-full border-4 border-[#398AB9]/20 border-t-[#398AB9] animate-spin" />
+        <p className="text-sm text-gray-400">Loading...</p>
       </div>
-    </AppShell>
+    </div>
   );
 }

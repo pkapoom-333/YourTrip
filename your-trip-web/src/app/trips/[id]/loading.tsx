@@ -1,28 +1,10 @@
-import AppShell from "@/components/AppShell";
-
 export default function TripDetailLoading() {
   return (
-    <AppShell>
-      <div className="max-w-2xl mx-auto animate-pulse">
-        <div className="h-52 bg-gray-200 dark:bg-slate-700" />
-        <div className="bg-white dark:bg-slate-800 border-b border-gray-100 dark:border-slate-700 px-4 py-3 space-y-2">
-          <div className="flex justify-between">
-            <div className="h-3 bg-gray-200 dark:bg-slate-700 rounded w-24" />
-            <div className="h-3 bg-gray-100 dark:bg-slate-700 rounded w-20" />
-          </div>
-          <div className="h-2 bg-gray-100 dark:bg-slate-700 rounded-full w-full" />
-        </div>
-        <div className="flex gap-2 p-4">
-          {[1, 2, 3].map((i) => (
-            <div key={i} className="w-16 h-16 bg-gray-100 dark:bg-slate-700 rounded-xl flex-shrink-0" />
-          ))}
-        </div>
-        <div className="px-4 space-y-3">
-          {[1, 2, 3].map((i) => (
-            <div key={i} className="h-20 bg-white dark:bg-slate-800 rounded-2xl border border-gray-100 dark:border-slate-700" />
-          ))}
-        </div>
+    <div className="min-h-screen bg-[#F8FAFC] dark:bg-slate-900 flex items-center justify-center md:pl-64">
+      <div className="flex flex-col items-center gap-3">
+        <div className="w-10 h-10 rounded-full border-4 border-[#398AB9]/20 border-t-[#398AB9] animate-spin" />
+        <p className="text-sm text-gray-400">Loading...</p>
       </div>
-    </AppShell>
+    </div>
   );
 }
