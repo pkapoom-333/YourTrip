@@ -832,9 +832,9 @@ export default function PlaceDetailClient({ place, slug, initialSaved = false }:
             ) : tripsList.length === 0 ? (
               <div className="text-center py-8">
                 <p className="text-sm text-gray-400 dark:text-slate-500 mb-4">ยังไม่มีทริป</p>
-                <a href="/trips/new" className="text-sm text-[#398AB9] font-medium hover:underline">
+                <Link href="/trips/new" className="text-sm text-[#398AB9] font-medium hover:underline">
                   สร้างทริปใหม่ →
-                </a>
+                </Link>
               </div>
             ) : (
               <div className="space-y-4">
@@ -912,7 +912,7 @@ export default function PlaceDetailClient({ place, slug, initialSaved = false }:
             ) : colList.length === 0 ? (
               <div className="text-center py-8">
                 <p className="text-sm text-gray-400 dark:text-slate-500 mb-4">ยังไม่มีคอลเลกชัน</p>
-                <a href="/collections" className="text-sm text-[#398AB9] font-medium hover:underline">สร้างคอลเลกชัน →</a>
+                <Link href="/collections" className="text-sm text-[#398AB9] font-medium hover:underline">สร้างคอลเลกชัน →</Link>
               </div>
             ) : (
               <div className="space-y-4">

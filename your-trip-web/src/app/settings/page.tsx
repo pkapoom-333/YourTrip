@@ -1,6 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import AppShell from "@/components/AppShell";
 import {
   User, Bell, Lock, Globe, Smartphone,
@@ -157,12 +158,12 @@ export default function SettingsPage() {
             <p className="font-semibold text-gray-900 dark:text-slate-100">{displayName}</p>
             <p className="text-sm text-gray-400 dark:text-slate-500">@{username}</p>
           </div>
-          <a
+          <Link
             href="/profile/edit"
             className="text-sm text-[#398AB9] font-medium hover:text-[#1C658C] transition"
           >
             แก้ไข
-          </a>
+          </Link>
         </div>
 
         {/* Account */}
