@@ -3,16 +3,27 @@ import { v2 as cloudinary } from "cloudinary";
 import { handleUpload, type HandleUploadBody } from "@vercel/blob/client";
 import { createClient } from "@/lib/supabase/server";
 
-cloudinary.config({
-  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
-  api_key: process.env.CLOUDINARY_API_KEY,
-  api_secret: process.env.CLOUDINARY_API_SECRET,
-});
-
+// ── Storage detection (evaluated once at cold start) ─────────────────────────
+// Priority: Blob > Cloudinary > unavailable
+// Blob wins because it's client-side upload (no 4.5 MB server body limit).
+const BLOB_CONFIGURED = !!process.env.BLOB_READ_WRITE_TOKEN;
 const CLOUDINARY_CONFIGURED =
   !!process.env.CLOUDINARY_CLOUD_NAME &&
   !!process.env.CLOUDINARY_API_KEY &&
   !!process.env.CLOUDINARY_API_SECRET;
+
+type UploadMode = "blob" | "cloudinary" | "unavailable";
+const UPLOAD_MODE: UploadMode = BLOB_CONFIGURED ? "blob"
+  : CLOUDINARY_CONFIGURED ? "cloudinary"
+  : "unavailable";
+
+if (CLOUDINARY_CONFIGURED) {
+  cloudinary.config({
+    cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+    api_key: process.env.CLOUDINARY_API_KEY,
+    api_secret: process.env.CLOUDINARY_API_SECRET,
+  });
+}
 
 const IMAGE_MAX_BYTES = 4 * 1024 * 1024;
 const VIDEO_MAX_BYTES = 50 * 1024 * 1024;
@@ -20,15 +31,12 @@ const ALLOWED_IMAGE_TYPES = ["image/jpeg", "image/png", "image/webp", "image/gif
 const ALLOWED_VIDEO_TYPES = ["video/mp4", "video/webm", "video/quicktime", "video/ogg"];
 const ALLOWED_TYPES = [...ALLOWED_IMAGE_TYPES, ...ALLOWED_VIDEO_TYPES];
 
-// Client calls GET first to learn which storage backend is active,
-// then chooses the correct upload path without needing NEXT_PUBLIC_ vars.
+// ── GET — mode probe ──────────────────────────────────────────────────────────
 export async function GET() {
-  const mode = CLOUDINARY_CONFIGURED ? "cloudinary"
-    : process.env.BLOB_READ_WRITE_TOKEN ? "blob"
-    : "unavailable";
-  return NextResponse.json({ mode });
+  return NextResponse.json({ mode: UPLOAD_MODE });
 }
 
+// ── POST — upload handler ─────────────────────────────────────────────────────
 export async function POST(req: NextRequest) {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
@@ -38,11 +46,8 @@ export async function POST(req: NextRequest) {
 
   const contentType = req.headers.get("content-type") ?? "";
 
-  // ── Vercel Blob client-upload token flow ──────────────────────────────────
-  // Browser sends JSON handshake; we generate a short-lived upload token.
-  // The actual file bytes go directly from the browser to Vercel Blob —
-  // never through this function — so there is no 4.5 MB body limit.
-  if (!CLOUDINARY_CONFIGURED && contentType.includes("application/json")) {
+  // ── Vercel Blob: JSON handshake → client uploads directly to Vercel ─────────
+  if (UPLOAD_MODE === "blob" && contentType.includes("application/json")) {
     const body = (await req.json()) as HandleUploadBody;
     try {
       const response = await handleUpload({
@@ -57,12 +62,12 @@ export async function POST(req: NextRequest) {
       return NextResponse.json(response);
     } catch (err) {
       console.error("[upload] blob token error:", err);
-      return NextResponse.json({ error: "อัปโหลดล้มเหลว" }, { status: 400 });
+      return NextResponse.json({ error: "อัปโหลดล้มเหลว กรุณาลองใหม่" }, { status: 500 });
     }
   }
 
-  // ── Cloudinary path (Phase 2) ─────────────────────────────────────────────
-  if (CLOUDINARY_CONFIGURED) {
+  // ── Cloudinary: receive file, forward to Cloudinary ──────────────────────────
+  if (UPLOAD_MODE === "cloudinary") {
     try {
       const formData = await req.formData();
       const file = formData.get("file") as File | null;
@@ -113,7 +118,10 @@ export async function POST(req: NextRequest) {
   }
 
   // ── No storage configured ─────────────────────────────────────────────────
-  return NextResponse.json({ error: "Storage not configured" }, { status: 503 });
+  return NextResponse.json(
+    { error: "ยังไม่ได้ตั้งค่า storage — กรุณาตั้งค่า Vercel Blob หรือ Cloudinary" },
+    { status: 503 }
+  );
 }
 
 export const config = {
