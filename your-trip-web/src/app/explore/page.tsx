@@ -6,7 +6,7 @@ import { getPlaces } from "@/server/actions/places";
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? "https://your-trip-nu.vercel.app";
 
 export const metadata: Metadata = {
-  title: "สำรวจสถานที่ | Your Trip",
+  title: "สำรวจสถานที่",
   description: "ค้นพบสถานที่ท่องเที่ยว ร้านอาหาร คาเฟ่ พร้อมรีวิวจากชุมชนนักเดินทางจริง",
   alternates: { canonical: `${SITE_URL}/explore` },
 };

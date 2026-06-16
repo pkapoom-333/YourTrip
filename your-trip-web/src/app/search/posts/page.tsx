@@ -1,7 +1,7 @@
 import AppShell from "@/components/AppShell";
 import PostSearchClient from "./PostSearchClient";
 
-export const metadata = { title: "ค้นหาโพสต์ | Your Trip" };
+export const metadata = { title: "ค้นหาโพสต์" };
 
 export default function SearchPostsPage() {
   return (

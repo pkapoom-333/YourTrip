@@ -11,9 +11,9 @@ export async function generateMetadata(
 ): Promise<Metadata> {
   const { slug } = await params;
   const { data: place } = await getPlaceBySlug(slug);
-  if (!place) return { title: "สถานที่ท่องเที่ยว | Your Trip" };
+  if (!place) return { title: "สถานที่ท่องเที่ยว" };
 
-  const title = `${place.name} — ${place.province ?? "ท่องเที่ยว"} | Your Trip`;
+  const title = `${place.name} — ${place.province ?? "ท่องเที่ยว"}`;
   const description = place.description?.slice(0, 160) ??
     `ข้อมูลสถานที่ ${place.name} รีวิว เวลาเปิด ราคา และการเดินทาง`;
   const image = place.images[0]?.url;

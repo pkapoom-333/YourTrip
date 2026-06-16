@@ -6,7 +6,7 @@ import { Search, Bell, TrendingUp } from "lucide-react";
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? "https://your-trip-nu.vercel.app";
 
 export const metadata: Metadata = {
-  title: "ฟีด | Your Trip",
+  title: "ฟีด",
   description: "ดูโพสต์จากนักเดินทางทั่วโลก แชร์ประสบการณ์ และสร้างแรงบันดาลใจในการเดินทาง",
   alternates: { canonical: `${SITE_URL}/feed` },
 };

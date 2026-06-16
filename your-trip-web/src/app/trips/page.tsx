@@ -7,7 +7,7 @@ import { getDestinationSuggestions, type DestinationSuggestion } from "@/server/
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? "https://your-trip-nu.vercel.app";
 
 export const metadata: Metadata = {
-  title: "ทริปของฉัน | Your Trip",
+  title: "ทริปของฉัน",
   description: "วางแผนทริป สร้าง itinerary รายวัน ติดตามงบประมาณ และจัดการการเดินทางของคุณ",
   alternates: { canonical: `${SITE_URL}/trips` },
 };

@@ -12,9 +12,9 @@ export async function generateMetadata(
 ): Promise<Metadata> {
   const { id } = await params;
   const { data: post } = await getPostById(id);
-  if (!post) return { title: "โพสต์ | Your Trip" };
+  if (!post) return { title: "โพสต์" };
 
-  const title = `${post.user.name ?? "นักเดินทาง"} — Your Trip`;
+  const title = `${post.user.name ?? "นักเดินทาง"} — โพสต์`;
   const description = post.content.slice(0, 160) || "ดูโพสต์บน Your Trip";
   const image = post.images[0];
 

@@ -3,7 +3,7 @@ import AppShell from "@/components/AppShell";
 import { getGuideApplications } from "@/server/actions/admin";
 import GuideReviewClient from "./GuideReviewClient";
 
-export const metadata = { title: "Admin — Guide Applications | Your Trip" };
+export const metadata = { title: "Admin — Guide Applications" };
 
 export default async function AdminGuidesPage() {
   let pending: Awaited<ReturnType<typeof getGuideApplications>>["pending"] = [];

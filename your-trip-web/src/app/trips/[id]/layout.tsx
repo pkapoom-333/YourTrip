@@ -11,10 +11,10 @@ export async function generateMetadata(
   const { data: trip } = await getTripById(id);
 
   if (!trip || !trip.isPublic) {
-    return { title: "ทริป | Your Trip" };
+    return { title: "ทริป" };
   }
 
-  const title = `${trip.title} | Your Trip`;
+  const title = `${trip.title}`;
   const description = trip.description
     ?? `แผนทริป ${trip.destination} ${trip.days.length} วัน`;
   const image = trip.coverImage ?? DEFAULT_COVER;
