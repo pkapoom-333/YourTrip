@@ -91,7 +91,6 @@ function CommentItem({
 interface CommentSectionProps {
   postId: string | number;
   initialCount?: number;
-  onCommentCountChange?: (newCount: number) => void;
 }
 
 function fmtComment(d: Date): string {
@@ -104,7 +103,7 @@ function fmtComment(d: Date): string {
   return `${Math.floor(hrs / 24)} วัน`;
 }
 
-export function CommentSection({ postId, initialCount = 0, onCommentCountChange }: CommentSectionProps) {
+export function CommentSection({ postId, initialCount = 0 }: CommentSectionProps) {
   const { user: me } = useUser();
   const [comments, setComments] = useState<Comment[]>([]);
   const [input, setInput] = useState("");
@@ -169,11 +168,7 @@ export function CommentSection({ postId, initialCount = 0, onCommentCountChange 
       likes: 0,
       isLiked: false,
     };
-    setComments((prev) => {
-      const updated = [...prev, optimistic];
-      onCommentCountChange?.(initialCount + updated.length);
-      return updated;
-    });
+    setComments((prev) => [...prev, optimistic]);
     setInput("");
 
     // Wire to server action (fire-and-forget, replace optimistic ID if success)
@@ -232,4 +227,11 @@ export function CommentSection({ postId, initialCount = 0, onCommentCountChange 
         <button
           type="submit"
           disabled={!input.trim()}
-     
+          className="text-[#398AB9] disabled:text-gray-300 hover:text-[#1C658C] transition"
+        >
+          <Send className="w-4 h-4" />
+        </button>
+      </form>
+    </div>
+  );
+}
