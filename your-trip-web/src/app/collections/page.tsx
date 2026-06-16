@@ -158,7 +158,9 @@ export default function CollectionsPage() {
   const [showNew, setShowNew] = useState(false);
 
   useEffect(() => {
-    getUserCollections().then((r) => { setCollections(r.data); setLoading(false); });
+    getUserCollections()
+      .then((r) => { setCollections(r.data); setLoading(false); })
+      .catch(() => setLoading(false));
   }, []);
 
   return (
@@ -215,9 +217,4 @@ export default function CollectionsPage() {
       {showNew && (
         <NewCollectionModal
           onClose={() => setShowNew(false)}
-          onCreate={(col) => setCollections((prev) => [col, ...prev])}
-        />
-      )}
-    </AppShell>
-  );
-}
+          onCreate={(col) => setCollections((prev) => [col, ...prev])

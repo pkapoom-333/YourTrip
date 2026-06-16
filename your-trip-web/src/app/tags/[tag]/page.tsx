@@ -11,7 +11,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { tag } = await params;
   const decoded = decodeURIComponent(tag);
   return {
-    title: `#${decoded} | YourTrip`,
+    title: `#${decoded}`,
     description: `โพสต์และสถานที่ท่องเที่ยวที่แท็ก #${decoded} บน YourTrip`,
   };
 }

@@ -4,7 +4,7 @@ import TrendingPlacesClient from "./TrendingPlacesClient";
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "สถานที่ยอดนิยม | YourTrip",
+  title: "สถานที่ยอดนิยม",
   description: "สถานที่ท่องเที่ยวยอดนิยมที่นักเดินทางชาว YourTrip บันทึกและรีวิวมากที่สุด",
 };
 

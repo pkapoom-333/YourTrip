@@ -3,7 +3,7 @@ import UserSearchClient from "@/components/features/UserSearchClient";
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "ค้นหาผู้ใช้ | YourTrip",
+  title: "ค้นหาผู้ใช้",
   description: "ค้นหานักท่องเที่ยวและมัคคุเทศก์ใน YourTrip",
 };
 

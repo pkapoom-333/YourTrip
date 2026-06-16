@@ -29,7 +29,7 @@ export async function generateMetadata(
   const { province } = await params;
   const decoded = decodeURIComponent(province);
   return {
-    title: `ที่เที่ยว${decoded} | YourTrip`,
+    title: `ที่เที่ยว${decoded} `,
     description: `สถานที่ท่องเที่ยว ร้านอาหาร และคาเฟ่ใน${decoded} รีวิวโดยนักเดินทาง YourTrip`,
     alternates: { canonical: `/explore/${province}` },
   };

@@ -1,9 +1,21 @@
 # PROGRESS.md
 # Travel Community App — Dev Log
 
-## Status: Phase 2 | Day 16 | 2026-06-12
+## Status: Phase 2 | Day 18 | 2026-06-16
 
 ## Current sprint task
+→ **DONE Day 18 QA Loop (2026-06-16)**: Full codebase QA sweep (continuous loop). Fixed:
+  - **React 19 streaming bug (CRITICAL)**: Removed AppShell from ALL 18 loading.tsx files — React 19 $RC mechanism failed when loading fallback contained hydrated client components. Replaced with minimal spinner.
+  - **`<a>` → `<Link>` sweep**: Fixed hard navigation in PlaceDetailClient (2×), settings/page.tsx RowLink, FeedPostsClient, TagFeedClient — all internal routes now use Next.js Link for SPA navigation
+  - **place/[slug] perf fix**: getNearbyPlaces() replaces getPlaces({ take: 50 }) — targeted 3-place query
+  - **feed/page.tsx**: Added `images[]` array to SSR PostCardData mapping (was missing — multi-image carousel broken on first load)
+  - **TagFeedClient**: Added `images[]` + Link import
+  - All commits: 6dae4ac, 1f75d5b, 3366d63, 98bd51e, 6fac177
+
+→ **PENDING USER**: `git push github main` from local machine — deploys 5 commits to Vercel
+→ **PENDING DB**: buddy_requests / collections / collection_places SQL migration (see below)
+→ **PENDING VERCEL**: Set `BLOB_READ_WRITE_TOKEN` env var for image upload
+
 → **DONE Day 13 sess 1**: B16 dark mode (ThemeProvider + anti-FOUC + AppShell + Settings + Feed + PostCard + Explore + Toast + Trips), B18 PWA SVG icon
 → **DONE Day 13 sess 2**: Sprint S6 ALL TIER S cleared + Tier A + Tier B + Extras (see session log)
 → **DONE Day 13 sess 3**: Full dark mode sweep — PlaceDetailClient, FeedPostsClient, SuggestedUsers, UserListRow, ResetPassword, ImageUpload, PWAInstallPrompt, not-found, all 10 loading skeletons, ExploreClient, TripsClient, create page, notifications, buddy/BuddyCard, profile/edit. Prisma client regenerated for lat/lng/googlePlaceId on TripItem.
