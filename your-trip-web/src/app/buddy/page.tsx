@@ -86,9 +86,9 @@ export default function BuddyPage() {
   useEffect(() => {
     getDiscoverBuddies(30).then(({ data }) => {
       setDiscoverList(data.map(mapDbToBuddy));
-    });
-    getIncomingRequests().then(({ data }) => setRequests(data));
-    getMatchedBuddies().then(({ data }) => setMatched(data));
+    }).catch(() => {});
+    getIncomingRequests().then(({ data }) => setRequests(data)).catch(() => {});
+    getMatchedBuddies().then(({ data }) => setMatched(data)).catch(() => {});
   }, []);
 
   const visible = discoverList.filter((b) => {

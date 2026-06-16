@@ -19,7 +19,14 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 export default async function TagPage({ params }: Props) {
   const { tag } = await params;
   const decoded = decodeURIComponent(tag);
-  const { data: initialPosts, nextCursor, hasMore } = await getPostsByTag(decoded, undefined, 12);
+  let initialPosts: Awaited<ReturnType<typeof getPostsByTag>>["data"] = [];
+  let nextCursor: string | undefined;
+  let hasMore = false;
+  try {
+    ({ data: initialPosts, nextCursor, hasMore } = await getPostsByTag(decoded, undefined, 12));
+  } catch {
+    initialPosts = [];
+  }
 
   return (
     <AppShell>

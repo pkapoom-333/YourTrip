@@ -108,14 +108,21 @@ export default function ProfilePage() {
     });
     getUserPosts().then(({ data }) => {
       setMyPosts(data);
+      // Sync postsCount with actual loaded count (getProfile _count may lag)
+      setProfile((prev) => ({ ...prev, postsCount: Math.max(prev.postsCount, data.length) }));
     });
     getUserSavedPosts().then(({ data }) => setSavedPosts(data));
     getSavedPlaces().then(({ data }) => setSavedPlaces(data));
-    getUserTrips().then(({ data }) => setMyTrips(data.map((t) => ({
-      id: t.id, title: t.title, destination: t.destination,
-      coverImage: t.coverImage, isPublic: t.isPublic,
-      days: t.days,
-    }))));
+    getUserTrips().then(({ data }) => {
+      const trips = data.map((t) => ({
+        id: t.id, title: t.title, destination: t.destination,
+        coverImage: t.coverImage, isPublic: t.isPublic,
+        days: t.days,
+      }));
+      setMyTrips(trips);
+      // Sync tripsCount with actual loaded count (getProfile _count may lag)
+      setProfile((prev) => ({ ...prev, tripsCount: Math.max(prev.tripsCount, trips.length) }));
+    });
     getRecentActivity().then(({ data }) => setActivityItems(data));
   }, []);
 

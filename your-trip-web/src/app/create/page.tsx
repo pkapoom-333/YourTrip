@@ -391,12 +391,6 @@ export default function CreatePage() {
               {aiLoading ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Sparkles className="w-3.5 h-3.5" />}
               AI เขียนให้
             </button>
-            <div className="ml-auto flex items-center gap-1.5">
-              <div className={`w-1.5 h-1.5 rounded-full ${remaining < 50 ? "bg-[#FF4F4F]" : remaining < 150 ? "bg-amber-400" : "bg-emerald-400"}`} />
-              <span className={`text-xs font-medium ${remaining < 50 ? "text-[#FF4F4F]" : "text-gray-400 dark:text-slate-500"}`}>
-                {remaining}
-              </span>
-            </div>
           </div>
         </div>
       </div>

@@ -81,7 +81,7 @@ export default function NotificationsPage() {
         actionUrl: n.actionUrl ?? undefined,
         image: n.imageUrl ?? undefined,
       })));
-    });
+    }).catch(() => {});
   }, []);
 
   const unreadCount = notifs.filter((n) => !n.isRead).length;

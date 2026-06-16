@@ -9,7 +9,12 @@ export const metadata: Metadata = {
 };
 
 export default async function TrendingPlacesPage() {
-  const { data: places } = await getTrendingPlaces(30);
+  let places: Awaited<ReturnType<typeof getTrendingPlaces>>["data"] = [];
+  try {
+    ({ data: places } = await getTrendingPlaces(30));
+  } catch {
+    places = [];
+  }
 
   return (
     <AppShell>

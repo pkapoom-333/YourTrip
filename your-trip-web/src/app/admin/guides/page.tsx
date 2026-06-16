@@ -6,7 +6,14 @@ import GuideReviewClient from "./GuideReviewClient";
 export const metadata = { title: "Admin — Guide Applications | Your Trip" };
 
 export default async function AdminGuidesPage() {
-  const { pending, approved } = await getGuideApplications();
+  let pending: Awaited<ReturnType<typeof getGuideApplications>>["pending"] = [];
+  let approved: Awaited<ReturnType<typeof getGuideApplications>>["approved"] = [];
+  try {
+    ({ pending, approved } = await getGuideApplications());
+  } catch {
+    pending = [];
+    approved = [];
+  }
 
   return (
     <AppShell>

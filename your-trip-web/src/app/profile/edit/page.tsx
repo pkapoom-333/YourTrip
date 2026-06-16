@@ -4,6 +4,7 @@ import { useState, useRef, useEffect } from "react";
 import AppShell from "@/components/AppShell";
 import { useRouter } from "next/navigation";
 import { updateProfile, getProfile } from "@/server/actions/profile";
+import { upload as blobUpload } from "@vercel/blob/client";
 import {
   ChevronLeft, Camera, User, Globe,
   MapPin, FileText, Save, Link as LinkIcon, Loader2,
@@ -50,7 +51,7 @@ export default function EditProfilePage() {
         setAvatarUrl(data.avatarUrl);
         setAvatarPreview(data.avatarUrl);
       }
-    });
+    }).catch(() => {});
   }, []);
 
   const set = (key: string) => (
@@ -65,17 +66,34 @@ export default function EditProfilePage() {
     const objectUrl = URL.createObjectURL(file);
     setAvatarPreview(objectUrl);
 
-    // Upload
+    // Upload via mode-aware path (Blob > Cloudinary)
     setUploading(true);
     setErrorMsg(null);
     try {
-      const fd = new FormData();
-      fd.append("file", file);
-      fd.append("folder", "avatars");
-      const res = await fetch("/api/upload", { method: "POST", body: fd });
-      const json = await res.json() as { url?: string; error?: string };
-      if (!res.ok || !json.url) throw new Error(json.error ?? "อัพโหลดล้มเหลว");
-      setAvatarUrl(json.url);
+      const modeRes = await fetch("/api/upload");
+      const { mode } = await modeRes.json() as { mode: "blob" | "cloudinary" | "unavailable" };
+
+      let url: string | null = null;
+      if (mode === "blob") {
+        const blob = await blobUpload(
+          `your-trip/avatars/${Date.now()}-${file.name}`,
+          file,
+          { access: "public", handleUploadUrl: "/api/upload" }
+        );
+        url = blob.url;
+      } else if (mode === "cloudinary") {
+        const fd = new FormData();
+        fd.append("file", file);
+        fd.append("folder", "avatars");
+        const res = await fetch("/api/upload", { method: "POST", body: fd });
+        const json = await res.json() as { url?: string; error?: string };
+        if (!res.ok || !json.url) throw new Error(json.error ?? "อัพโหลดล้มเหลว");
+        url = json.url;
+      } else {
+        throw new Error("ฟีเจอร์อัปโหลดรูปภาพยังไม่พร้อมใช้งาน");
+      }
+
+      if (url) setAvatarUrl(url);
     } catch (err) {
       setErrorMsg(err instanceof Error ? err.message : "อัพโหลดล้มเหลว");
       setAvatarPreview(avatarUrl); // revert preview
