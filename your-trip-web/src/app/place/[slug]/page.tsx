@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
-import { getPlaceBySlug, getPlaces, type PlaceDetail } from "@/server/actions/places";
+import { getPlaceBySlug, getNearbyPlaces, type PlaceDetail } from "@/server/actions/places";
 import { getSavedPlaceIds } from "@/server/actions/savedPlaces";
 import PlaceDetailClient, { type PlaceData } from "./PlaceDetailClient";
 
@@ -195,28 +195,26 @@ function buildJsonLd(place: PlaceData, slug: string): Record<string, unknown> {
   }
   return ld;
 }
-
-// ─── Page ─────────────────────────────────────────────────────────────────────
+
+// ─── Page ─────────────────────────────────────────────
 export default async function PlacePage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
 
-  // Try DB first
-  const [{ data: dbPlace }, { data: allPlaces }, savedIds] = await Promise.all([
-    getPlaceBySlug(slug),
-    getPlaces({ take: 50 }),
-    getSavedPlaceIds().catch(() => [] as string[]),
-  ]);
+  // Fetch place first, then nearby + saved in parallel (replaces expensive getPlaces({ take: 50 }))
+  const { data: dbPlace } = await getPlaceBySlug(slug);
 
   if (dbPlace) {
-    const nearbyPlaces = allPlaces
-      .filter((p) => p.slug !== slug && (p.region === dbPlace.region || p.category === dbPlace.category))
-      .slice(0, 3)
-      .map((p) => ({
-        name: p.name,
-        category: p.category,
-        img: p.coverImage ?? "https://images.unsplash.com/photo-1476514525405-8d4b4c284c1e?auto=format&fit=crop&w=400&q=70",
-        slug: p.slug,
-      }));
+    const [{ data: nearbyRaw }, savedIds] = await Promise.all([
+      getNearbyPlaces({ excludeSlug: slug, region: dbPlace.region, category: dbPlace.category }),
+      getSavedPlaceIds().catch(() => [] as string[]),
+    ]);
+
+    const nearbyPlaces = nearbyRaw.map((p) => ({
+      name: p.name,
+      category: p.category,
+      img: p.coverImage ?? "https://images.unsplash.com/photo-1476514525405-8d4b4c284c1e?auto=format&fit=crop&w=400&q=70",
+      slug: p.slug,
+    }));
 
     const placeData = { ...mapToPlaceData(dbPlace), nearby: nearbyPlaces };
     const jsonLd = buildJsonLd(placeData, slug);

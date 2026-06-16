@@ -352,3 +352,67 @@ export async function getTrendingPlaces(take = 20): Promise<{ data: PlaceListIte
     return { data: [] };
   }
 }
+
+// ─── getNearbyPlaces ──────────────────────────────────────────────────────────
+// Efficient targeted query: find 3 nearby places in same region OR category.
+// Replaces the expensive getPlaces({ take: 50 }) call on place detail pages.
+
+export async function getNearbyPlaces(opts: {
+  excludeSlug: string;
+  region?: string | null;
+  category?: string | null;
+  take?: number;
+}): Promise<{ data: PlaceListItem[] }> {
+  const { excludeSlug, region, category, take = 3 } = opts;
+  try {
+    const places = await prisma.place.findMany({
+      where: {
+        isPublished: true,
+        slug: { not: excludeSlug },
+        OR: [
+          ...(region ? [{ region: region }] : []),
+          ...(category ? [{ category: category }] : []),
+        ],
+      },
+      take,
+      orderBy: [{ isFeatured: "desc" }, { createdAt: "desc" }],
+      include: {
+        images: { orderBy: { order: "asc" }, take: 1 },
+        _count: { select: { reviews: true } },
+        reviews: { select: { rating: true } },
+      },
+    });
+
+    return {
+      data: places.map((p) => {
+        const avgRating =
+          p.reviews.length > 0
+            ? p.reviews.reduce((sum, r) => sum + r.rating, 0) / p.reviews.length
+            : 0;
+        return {
+          id: p.id,
+          slug: p.slug,
+          name: p.name,
+          nameEn: p.nameEn,
+          category: p.category,
+          region: p.region,
+          province: p.province,
+          country: p.country,
+          priceRange: p.priceRange,
+          hasWifi: p.hasWifi,
+          hasParking: p.hasParking,
+          isAccessible: p.isAccessible,
+          isFeatured: p.isFeatured,
+          coverImage: p.images[0]?.url ?? null,
+          rating: Math.round(avgRating * 10) / 10,
+          reviewCount: p._count.reviews,
+          lat: p.lat,
+          lng: p.lng,
+          tags: deriveTags(p),
+        } satisfies PlaceListItem;
+      }),
+    };
+  } catch {
+    return { data: [] };
+  }
+}
