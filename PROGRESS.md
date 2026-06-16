@@ -1,9 +1,28 @@
 # PROGRESS.md
 # Travel Community App — Dev Log
 
-## Status: Phase 2 | Day 18 | 2026-06-16
+## Status: Phase 2 | Day 19 | 2026-06-17
 
 ## Current sprint task
+→ **DONE Day 19 QA Loop (2026-06-17)**: Continued full production QA — all pages verified. Fixed:
+  - **Duplicate page titles (round 2)**: Found 4 more pages using "| YourTrip" pattern (not fixed by b63449c): `/search/users` "ค้นหาผู้ใช้ | YourTrip", `/tags/[tag]` "#${tag} | YourTrip", `/trending/places` "สถานที่ยอดนิยม | YourTrip", `/explore/[province]` `ที่เที่ยว${province} | YourTrip` — all stripped to bare Thai title → fixed commit `aa78174`
+  - Post detail page `/post/[id]` ✅ confirmed working (like/comment/bookmark UI functional)
+  - Search pages (`/search/users`, `/search/posts`) ✅ both load correctly
+  - Trending places `/trending/places` ✅ full ranked list with images
+  - Profile edit `/profile/edit` ✅ form with name/bio/location/gender/birthday
+  - Trip detail `/trips/[id]` ✅ itinerary, budget tracker, status stepper, day-by-day places
+  - Tags feed `/tags/[tag]` ✅ posts loading
+  - Guide apply `/guide/apply` ✅ wizard loading
+  - Public user profile `/profile/[id]` ✅ real stats (Angelo: 10 posts, 0 followers, 1 following)
+  - All 20+ pages QA confirmed ✅
+
+→ **PENDING USER (CRITICAL)**: `git push github main` from local machine — deploys 9 commits:
+  - `aa78174` — fix duplicate page titles (tags/search/trending/province) ← new this session
+  - `b63449c` — fix duplicate page titles (feed/explore/trips/place/post/admin) + next.config EOF
+  - `136338c`, `6fac177`, `98bd51e`, `3366d63`, `1f75d5b`, `6dae4ac` — Day 18 fixes
+→ **PENDING DB**: buddy_requests / collections / collection_places SQL migration (see below)
+→ **PENDING VERCEL**: Set `BLOB_READ_WRITE_TOKEN` env var for image upload
+
 → **DONE Day 18 QA Loop (2026-06-16)**: Full codebase QA sweep (continuous loop). Fixed:
   - **React 19 streaming bug (CRITICAL)**: Removed AppShell from ALL 18 loading.tsx files — React 19 $RC mechanism failed when loading fallback contained hydrated client components. Replaced with minimal spinner.
   - **`<a>` → `<Link>` sweep**: Fixed hard navigation in PlaceDetailClient (2×), settings/page.tsx RowLink, FeedPostsClient, TagFeedClient — all internal routes now use Next.js Link for SPA navigation
@@ -297,6 +316,4 @@ ALTER TABLE "users"
 | 2026-06-09 | Day 14 sess 5: robots.ts /guide/ disallow; Featured Guides on landing page (getVerifiedGuides+FeaturedGuide+3-col cards+mock fallback+Shield CTA); Trips tab on /profile own page (grid+public/private badge+create tile); "Add to Trip" FAB on place detail (bottom sheet modal: trip+day selector→addItineraryItem+toast); Trips list search bar (visible when >3 trips, filters by title+destination); Explore map view (3rd toggle, Leaflet lazy init, markers+popup, auto fitBounds). 0 TS errors. | ~60% | git push → Vercel |
 | 2026-06-09 | Day 14 sess 6: Dark mode followers/following pages (profile/[userId]/followers + following — header, tab strip, empty state, divider rows). 0 TS errors. | ~40% | git push → Vercel |
 | 2026-06-10 | Day 14 sess 7: AI Trip Planner (AI-1→AI-4): @anthropic-ai/sdk, /trips/ai-plan 4-step UI (form→generating→preview→save), generateAITrip+saveAITrip server actions, TripsClient AI button+FAB. Real Thai places seed (SD-1+SD-2): 41 places 10 provinces all w/ lat/lng. 0 TS errors. | – | Sprint S7 User Search + Collections + Onboarding |
-| 2026-06-11 | Day 15: Sprint S9+S10 complete — B28 trip calendar view (monthly grid w/ dots), A15 block user (profile menu+blockUser action+middleware guard), A16 report post modal (reportPost+ReportModel in DB), S9-1 Supabase Realtime notification badge+toast in AppShell, S10-1 collections edit (rename/delete/create), S10-2 /settings/blocked users page, S10-3 @mention notifications (createPost+createComment), A19 landing page AI planner highlight+live badge section, B30 trip item drag-to-reorder (HTML5 drag API), A20 /offline.html PWA offline page + SW v3. 0 TS errors. | – | Sprint S11 + video support + AI caption |
-| 2026-06-11 | Day 16 sess 1: Google Maps API key wired (GM-3); GM-2 Google Directions proxy (3-tier: Google→OSRM→haversine+source badge); B31 post creation preview panel (Eye/EyeOff toggle, live PostCard mock); Sprint S11 — /explore/[province] SEO pages+province chips, cloneTripToUser+"บันทึกสำเนา" on shared trips, A23 place photo lightbox (Maximize2+fullscreen+thumbnail strip), A24 AI caption assistant in /create (✨ claude-haiku), B35 Google Places autocomplete in trips/new destination field. 0 TS errors. | – | S12 sprint: travel stats card, video support, notification prefs |
-| 2026-06-12 | Day 16 sess 2: A28 travel stats card on profile (TravelStatsCard+getTravelStyle badge: Explorer/Slow Traveler/Frequent Flyer/Adventure Seeker/New Traveler); B37 trip status tracker (PLANNING→CONFIRMED→ONGOING→COMPLETED stepper); B38 video support (PostCard video render+badge, ImageUpload video preview, /api/upload resource_type=auto, 50MB limit); A25 notification preferences (per-type toggle in AppShell — like/comment/follow/buddy, localStorage); S12-1 trending hashtags from DB (UNNEST SQL+getTrendingHashtags); S12-2 trip cover image upload (camera button+updateTripCover); S12-3 trip detail OG metadata (layout.tsx server component+generateMetadata); S12-4 sitemap expansion (provinces+publicTrips); S12-5 related posts on post detail (getRelatedPosts+2-col grid); S12-6 trip day notes (inline editor+updateTripDayNote); S12-7 place social sharing (LINE/Facebook/X links); fix: notification click navigates to actionUrl; S12-8 budget category breakdown chips. 0 TS errors. | – | S12 cont: activity timeline, explore regions, trip export |
+| 2026-06-11 | Day 15: Sprint S9+S10 complete — B28 trip calendar view (monthly grid w/ dots), A15 block user (profile menu+blockUser action+middleware guard), A16 report post modal (reportPost+ReportModel in DB), S9-1 Supabase Realtime notification badge+toast in AppShell, S10-1 collections edit (rename/delete/create), S10-2 /settings/blocked users page, S10-3 @mention notifications (createPost+createComment), A19 landing page AI planner highlight+live badge section, B30 trip item drag-to-reorder (HTML5 drag API), A20 /offline.html PWA offline page + SW v3. 0 TS e
