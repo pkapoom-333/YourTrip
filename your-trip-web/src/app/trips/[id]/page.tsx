@@ -1184,7 +1184,7 @@ export default function TripDetailPage({ params }: { params: Promise<{ id: strin
               <p className="text-xs text-gray-400 dark:text-slate-500 mb-4">สแกน QR Code เพื่อเปิดทริปนี้</p>
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img src={qrDataUrl} alt="QR Code" className="w-48 h-48 mx-auto rounded-xl" />
-              <p className="text-[11px] text-gray-400 dark:text-slate-500 mt-3 truncate px-2">{typeof window !== "undefined" ? window.location.href : ""}</p>
+              <p className="text-[11px] text-gray-400 dark:text-slate-500 mt-3 truncate px-2" suppressHydrationWarning>{typeof window !== "undefined" ? window.location.href : ""}</p>
               <button
                 onClick={async () => {
                   await navigator.clipboard.writeText(window.location.href).catch(() => {});

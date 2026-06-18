@@ -578,13 +578,13 @@ export default function PlaceDetailClient({ place, slug, initialSaved = false }:
           )}
 
           {/* ── Community Reviews ── */}
-          {place.reviews.length > 0 && (
-            <section>
-              <div className="flex items-center justify-between mb-3">
-                <div className="flex items-center gap-2">
-                  <MessageCircle className="w-4 h-4 text-[#398AB9]" />
-                  <h2 className="text-base font-semibold text-gray-900 dark:text-slate-100">รีวิวจากชุมชน</h2>
-                </div>
+          <section>
+            <div className="flex items-center justify-between mb-3">
+              <div className="flex items-center gap-2">
+                <MessageCircle className="w-4 h-4 text-[#398AB9]" />
+                <h2 className="text-base font-semibold text-gray-900 dark:text-slate-100">รีวิวจากชุมชน</h2>
+              </div>
+              {place.reviews.length > 0 && (
                 <div className="flex items-center gap-2">
                   <select
                     value={reviewSort}
@@ -602,106 +602,115 @@ export default function PlaceDetailClient({ place, slug, initialSaved = false }:
                     <span className="text-xs text-gray-400 dark:text-slate-500">({place.reviewCount.toLocaleString()})</span>
                   </div>
                 </div>
-              </div>
+              )}
+            </div>
 
-              <div className="space-y-3">
-                {[...place.reviews].sort((a, b) => {
-                  if (reviewSort === "newest") return new Date(b.time).getTime() - new Date(a.time).getTime();
-                  if (reviewSort === "highest") return b.rating - a.rating;
-                  if (reviewSort === "lowest") return a.rating - b.rating;
-                  return b.likes - a.likes; // helpful
-                }).map((r) => (
-                  <div key={r.id} className="bg-white dark:bg-slate-800 rounded-xl border border-gray-100 dark:border-slate-700 p-4">
-                    <div className="flex items-start justify-between gap-3">
-                      <div className="flex items-start gap-3">
-                        <Avatar src={r.avatarUrl} name={r.user} className="w-9 h-9 text-xs" />
-                        <div>
-                          <p className="text-sm font-semibold text-gray-900 dark:text-slate-100">{r.user}</p>
-                          <div className="flex items-center gap-2 mt-0.5">
-                            <StarRating rating={r.rating} />
-                            <span className="text-[10px] text-gray-400 dark:text-slate-500">{r.time}</span>
+            {place.reviews.length > 0 ? (
+              <>
+                <div className="space-y-3">
+                  {[...place.reviews].sort((a, b) => {
+                    if (reviewSort === "newest") return new Date(b.time).getTime() - new Date(a.time).getTime();
+                    if (reviewSort === "highest") return b.rating - a.rating;
+                    if (reviewSort === "lowest") return a.rating - b.rating;
+                    return b.likes - a.likes; // helpful
+                  }).map((r) => (
+                    <div key={r.id} className="bg-white dark:bg-slate-800 rounded-xl border border-gray-100 dark:border-slate-700 p-4">
+                      <div className="flex items-start justify-between gap-3">
+                        <div className="flex items-start gap-3">
+                          <Avatar src={r.avatarUrl} name={r.user} className="w-9 h-9 text-xs" />
+                          <div>
+                            <p className="text-sm font-semibold text-gray-900 dark:text-slate-100">{r.user}</p>
+                            <div className="flex items-center gap-2 mt-0.5">
+                              <StarRating rating={r.rating} />
+                              <span className="text-[10px] text-gray-400 dark:text-slate-500">{r.time}</span>
+                            </div>
                           </div>
                         </div>
+                        <button className="p-1 hover:bg-gray-50 dark:hover:bg-slate-700 rounded-full">
+                          <MoreHorizontal className="w-4 h-4 text-gray-300 dark:text-slate-600" />
+                        </button>
                       </div>
-                      <button className="p-1 hover:bg-gray-50 dark:hover:bg-slate-700 rounded-full">
-                        <MoreHorizontal className="w-4 h-4 text-gray-300 dark:text-slate-600" />
-                      </button>
+                      {r.text && <p className="text-sm text-gray-600 dark:text-slate-300 leading-relaxed mt-2">{r.text}</p>}
+                      <div className="flex items-center gap-4 mt-3">
+                        <button className="flex items-center gap-1.5 text-xs text-gray-400 dark:text-slate-500 hover:text-[#398AB9] transition">
+                          <ThumbsUp className="w-3.5 h-3.5" />
+                          <span>{r.likes}</span>
+                        </button>
+                        {r.photos > 0 && (
+                          <span className="flex items-center gap-1.5 text-xs text-gray-400 dark:text-slate-500">
+                            <Camera className="w-3.5 h-3.5" />
+                            {r.photos} รูป
+                          </span>
+                        )}
+                      </div>
                     </div>
-                    {r.text && <p className="text-sm text-gray-600 dark:text-slate-300 leading-relaxed mt-2">{r.text}</p>}
-                    <div className="flex items-center gap-4 mt-3">
-                      <button className="flex items-center gap-1.5 text-xs text-gray-400 dark:text-slate-500 hover:text-[#398AB9] transition">
-                        <ThumbsUp className="w-3.5 h-3.5" />
-                        <span>{r.likes}</span>
-                      </button>
-                      {r.photos > 0 && (
-                        <span className="flex items-center gap-1.5 text-xs text-gray-400 dark:text-slate-500">
-                          <Camera className="w-3.5 h-3.5" />
-                          {r.photos} รูป
-                        </span>
-                      )}
-                    </div>
-                  </div>
-                ))}
-              </div>
-
-              <button className="w-full mt-3 py-2.5 border border-gray-200 dark:border-slate-600 rounded-xl text-sm text-gray-500 dark:text-slate-400 hover:bg-gray-50 dark:hover:bg-slate-700 transition font-medium">
-                ดูรีวิวทั้งหมด ({place.reviewCount.toLocaleString()})
-              </button>
-
-              {/* Write review */}
-              {!reviewDone && !showReviewForm && (
-                <button
-                  onClick={() => setShowReviewForm(true)}
-                  className="w-full mt-2 py-2.5 bg-[#398AB9] text-white rounded-xl text-sm font-bold hover:bg-[#1C658C] transition flex items-center justify-center gap-2"
-                >
-                  <PenLine className="w-4 h-4" />
-                  เขียนรีวิว
+                  ))}
+                </div>
+                <button className="w-full mt-3 py-2.5 border border-gray-200 dark:border-slate-600 rounded-xl text-sm text-gray-500 dark:text-slate-400 hover:bg-gray-50 dark:hover:bg-slate-700 transition font-medium">
+                  ดูรีวิวทั้งหมด ({place.reviewCount.toLocaleString()})
                 </button>
-              )}
-              {reviewDone && (
-                <p className="text-center text-sm text-emerald-600 font-medium mt-2">✓ ขอบคุณสำหรับรีวิวของคุณ!</p>
-              )}
+              </>
+            ) : (
+              <div className="text-center py-8 text-gray-400 dark:text-slate-500">
+                <Star className="w-8 h-8 mx-auto mb-2 text-gray-200 dark:text-slate-700" />
+                <p className="text-sm">ยังไม่มีรีวิว</p>
+                <p className="text-xs mt-1">เป็นคนแรกที่แชร์ประสบการณ์!</p>
+              </div>
+            )}
 
-              {/* Review form */}
-              {showReviewForm && (
-                <form onSubmit={handleSubmitReview} className="mt-3 bg-[#398AB9]/5 dark:bg-[#398AB9]/10 rounded-2xl p-4 space-y-3">
-                  <p className="text-sm font-semibold text-gray-800 dark:text-slate-200">เขียนรีวิว</p>
-                  {/* Star picker */}
-                  <div className="flex items-center gap-1">
-                    {[1, 2, 3, 4, 5].map((s) => (
-                      <button key={s} type="button" onClick={() => setReviewRating(s)}>
-                        <Star className={`w-6 h-6 ${s <= reviewRating ? "fill-amber-400 text-amber-400" : "text-gray-300"}`} />
-                      </button>
-                    ))}
-                    <span className="text-sm text-gray-500 dark:text-slate-400 ml-1">{reviewRating}/5</span>
-                  </div>
-                  <textarea
-                    value={reviewText}
-                    onChange={(e) => setReviewText(e.target.value)}
-                    placeholder="เล่าประสบการณ์ของคุณ..."
-                    rows={3}
-                    className="w-full text-sm text-gray-700 dark:text-slate-200 bg-white dark:bg-slate-700/50 border border-gray-200 dark:border-slate-600 rounded-xl px-3 py-2.5 outline-none focus:border-[#398AB9] resize-none"
-                  />
-                  <div className="flex gap-2">
-                    <button
-                      type="button"
-                      onClick={() => setShowReviewForm(false)}
-                      className="flex-1 py-2 border border-gray-200 dark:border-slate-600 rounded-xl text-sm text-gray-500 dark:text-slate-400 hover:bg-gray-50 dark:hover:bg-slate-700 transition"
-                    >
-                      ยกเลิก
+            {/* Write review */}
+            {!reviewDone && !showReviewForm && (
+              <button
+                onClick={() => setShowReviewForm(true)}
+                className="w-full mt-2 py-2.5 bg-[#398AB9] text-white rounded-xl text-sm font-bold hover:bg-[#1C658C] transition flex items-center justify-center gap-2"
+              >
+                <PenLine className="w-4 h-4" />
+                เขียนรีวิว
+              </button>
+            )}
+            {reviewDone && (
+              <p className="text-center text-sm text-emerald-600 font-medium mt-2">✓ ขอบคุณสำหรับรีวิวของคุณ!</p>
+            )}
+
+            {/* Review form */}
+            {showReviewForm && (
+              <form onSubmit={handleSubmitReview} className="mt-3 bg-[#398AB9]/5 dark:bg-[#398AB9]/10 rounded-2xl p-4 space-y-3">
+                <p className="text-sm font-semibold text-gray-800 dark:text-slate-200">เขียนรีวิว</p>
+                {/* Star picker */}
+                <div className="flex items-center gap-1">
+                  {[1, 2, 3, 4, 5].map((s) => (
+                    <button key={s} type="button" onClick={() => setReviewRating(s)}>
+                      <Star className={`w-6 h-6 ${s <= reviewRating ? "fill-amber-400 text-amber-400" : "text-gray-300"}`} />
                     </button>
-                    <button
-                      type="submit"
-                      disabled={reviewSubmitting}
-                      className="flex-1 py-2 bg-[#398AB9] text-white rounded-xl text-sm font-bold hover:bg-[#1C658C] transition disabled:opacity-60"
-                    >
-                      {reviewSubmitting ? "กำลังส่ง..." : "ส่งรีวิว"}
-                    </button>
-                  </div>
-                </form>
-              )}
-            </section>
-          )}
+                  ))}
+                  <span className="text-sm text-gray-500 dark:text-slate-400 ml-1">{reviewRating}/5</span>
+                </div>
+                <textarea
+                  value={reviewText}
+                  onChange={(e) => setReviewText(e.target.value)}
+                  placeholder="เล่าประสบการณ์ของคุณ..."
+                  rows={3}
+                  className="w-full text-sm text-gray-700 dark:text-slate-200 bg-white dark:bg-slate-700/50 border border-gray-200 dark:border-slate-600 rounded-xl px-3 py-2.5 outline-none focus:border-[#398AB9] resize-none"
+                />
+                <div className="flex gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setShowReviewForm(false)}
+                    className="flex-1 py-2 border border-gray-200 dark:border-slate-600 rounded-xl text-sm text-gray-500 dark:text-slate-400 hover:bg-gray-50 dark:hover:bg-slate-700 transition"
+                  >
+                    ยกเลิก
+                  </button>
+                  <button
+                    type="submit"
+                    disabled={reviewSubmitting}
+                    className="flex-1 py-2 bg-[#398AB9] text-white rounded-xl text-sm font-bold hover:bg-[#1C658C] transition disabled:opacity-60"
+                  >
+                    {reviewSubmitting ? "กำลังส่ง..." : "ส่งรีวิว"}
+                  </button>
+                </div>
+              </form>
+            )}
+          </section>
 
           {/* ── Share Buttons ── */}
           <section className="py-2">

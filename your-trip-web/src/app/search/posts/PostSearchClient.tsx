@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
+import { useRouter } from "next/navigation";
 import { Search, X, FileText, Clock } from "lucide-react";
 import Link from "next/link";
 import { searchPosts, type PostSearchResult } from "@/server/actions/posts";
@@ -62,20 +63,16 @@ function PostSearchRow({ post }: { post: PostSearchResult }) {
   );
 }
 
-export default function PostSearchClient() {
-  const [query, setQuery] = useState("");
+export default function PostSearchClient({ initialQuery = "" }: { initialQuery?: string }) {
+  const router = useRouter();
+  const [query, setQuery] = useState(initialQuery);
   const [results, setResults] = useState<PostSearchResult[]>([]);
   const [loading, setLoading] = useState(false);
   const debounce = useRef<ReturnType<typeof setTimeout> | null>(null);
   const { history, add: addHistory, remove: removeHistory } = useSearchHistory("posts");
 
-  function submitQuery(q: string) {
-    if (q.trim()) addHistory(q.trim());
-  }
-
   useEffect(() => {
     if (!query.trim()) { setResults([]); return; }
-
     if (debounce.current) clearTimeout(debounce.current);
     debounce.current = setTimeout(async () => {
       setLoading(true);
@@ -84,26 +81,27 @@ export default function PostSearchClient() {
       setResults(data);
       setLoading(false);
     }, 800);
-
     return () => { if (debounce.current) clearTimeout(debounce.current); };
   }, [query]);
 
   return (
     <div>
-      {/* Search bar */}
       <div className="relative mb-4">
         <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 dark:text-slate-500" />
         <input
           type="search"
           value={query}
-          onChange={(e) => setQuery(e.target.value)}
+          onChange={(e) => {
+            setQuery(e.target.value);
+            router.replace(`/search/posts?q=${encodeURIComponent(e.target.value)}`, { scroll: false });
+          }}
           placeholder="ค้นหาโพสต์ คำบรรยาย หรือ #แท็ก..."
           autoFocus
           className="w-full pl-10 pr-10 py-3 bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-600 rounded-2xl text-sm text-gray-800 dark:text-slate-200 placeholder:text-gray-400 dark:placeholder:text-slate-500 focus:outline-none focus:border-[#398AB9] focus:ring-2 focus:ring-[#398AB9]/10 transition"
         />
         {query && (
           <button
-            onClick={() => setQuery("")}
+            onClick={() => { setQuery(""); router.replace("/search/posts", { scroll: false }); }}
             className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 dark:text-slate-500 hover:text-gray-600 dark:hover:text-slate-300 transition"
           >
             <X className="w-4 h-4" />
@@ -111,7 +109,6 @@ export default function PostSearchClient() {
         )}
       </div>
 
-      {/* Search history (shown when no query) */}
       {!query.trim() && history.length > 0 && (
         <div className="mb-4 bg-white dark:bg-slate-800 rounded-2xl border border-gray-100 dark:border-slate-700 overflow-hidden">
           <div className="flex items-center justify-between px-4 py-2.5 border-b border-gray-50 dark:border-slate-700/50">
@@ -120,7 +117,7 @@ export default function PostSearchClient() {
           {history.map((term) => (
             <button
               key={term}
-              onClick={() => setQuery(term)}
+              onClick={() => { setQuery(term); router.replace(`/search/posts?q=${encodeURIComponent(term)}`, { scroll: false }); }}
               className="flex items-center gap-3 w-full px-4 py-2.5 hover:bg-gray-50 dark:hover:bg-slate-700/50 text-left transition border-b border-gray-50 dark:border-slate-700/50 last:border-0"
             >
               <Clock className="w-3.5 h-3.5 text-gray-400 dark:text-slate-500 flex-shrink-0" />
@@ -136,7 +133,6 @@ export default function PostSearchClient() {
         </div>
       )}
 
-      {/* Results */}
       <div className="bg-white dark:bg-slate-800 rounded-2xl border border-gray-100 dark:border-slate-700 overflow-hidden">
         {loading ? (
           <div className="flex flex-col">

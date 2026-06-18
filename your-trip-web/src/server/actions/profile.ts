@@ -153,8 +153,9 @@ export async function followUser(targetId: string) {
       imageUrl: follower?.avatarUrl ?? undefined,
     });
     return { data: { following: true } };
-  } catch {
-    return { data: { following: true } };
+  } catch (e) {
+    const msg = e instanceof Error ? e.message : "เกิดข้อผิดพลาด";
+    return { error: { message: msg } };
   }
 }
 
@@ -168,8 +169,9 @@ export async function unfollowUser(targetId: string) {
       where: { followerId_followingId: { followerId: user.id, followingId: targetId } },
     });
     return { data: { following: false } };
-  } catch {
-    return { data: { following: false } };
+  } catch (e) {
+    const msg = e instanceof Error ? e.message : "เกิดข้อผิดพลาด";
+    return { error: { message: msg } };
   }
 }
 

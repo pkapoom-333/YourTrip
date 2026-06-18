@@ -7,7 +7,8 @@ export const metadata: Metadata = {
   description: "ค้นหานักท่องเที่ยวและมัคคุเทศก์ใน YourTrip",
 };
 
-export default function SearchUsersPage() {
+export default async function SearchUsersPage({ searchParams }: { searchParams: Promise<{ q?: string }> }) {
+  const { q } = await searchParams;
   return (
     <AppShell>
       <div className="flex flex-col h-full max-w-lg mx-auto w-full bg-white dark:bg-slate-800 min-h-screen">
@@ -21,7 +22,7 @@ export default function SearchUsersPage() {
           </p>
         </div>
 
-        <UserSearchClient />
+        <UserSearchClient initialQuery={q ?? ""} />
       </div>
     </AppShell>
   );

@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
+import { useRouter } from "next/navigation";
 import { Search, X, Users } from "lucide-react";
 import {
   searchUsers,
@@ -11,8 +12,9 @@ import UserListRow from "./UserListRow";
 
 const DEBOUNCE_MS = 300;
 
-export default function UserSearchClient() {
-  const [query, setQuery] = useState("");
+export default function UserSearchClient({ initialQuery = "" }: { initialQuery?: string }) {
+  const router = useRouter();
+  const [query, setQuery] = useState(initialQuery);
   const [results, setResults] = useState<UserCard[]>([]);
   const [suggested, setSuggested] = useState<UserCard[]>([]);
   const [loading, setLoading] = useState(false);
@@ -56,14 +58,20 @@ export default function UserSearchClient() {
           <input
             type="text"
             value={query}
-            onChange={(e) => setQuery(e.target.value)}
+            onChange={(e) => {
+              setQuery(e.target.value);
+              router.replace(`/search/users?q=${encodeURIComponent(e.target.value)}`, { scroll: false });
+            }}
             placeholder="ค้นหาชื่อหรือ @username…"
             autoFocus
             className="w-full pl-9 pr-10 py-2.5 rounded-xl bg-gray-100 dark:bg-slate-700 text-sm text-gray-900 dark:text-slate-100 placeholder-gray-400 dark:placeholder-slate-500 outline-none focus:ring-2 focus:ring-[#398AB9]/40"
           />
           {query && (
             <button
-              onClick={() => setQuery("")}
+              onClick={() => {
+                setQuery("");
+                router.replace("/search/users", { scroll: false });
+              }}
               className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 dark:text-slate-500 hover:text-gray-600 dark:hover:text-slate-300"
             >
               <X className="w-4 h-4" />
@@ -104,7 +112,7 @@ export default function UserSearchClient() {
           <div className="flex flex-col items-center justify-center py-20 gap-3 text-gray-400 dark:text-slate-500">
             <Users className="w-12 h-12 opacity-30" />
             <p className="text-sm font-medium">
-              {isSearching ? `ไม่พบผู้ใช้ "${query}"` : "ยังไม่มีคนแนะนำ"}
+                            {isSearching ? `ไม่พบผู้ใช้ "${query}"` : "ยังไม่มีคนแนะนำ"}
             </p>
             {isSearching && (
               <p className="text-xs text-center">ลองค้นหาด้วยชื่อหรือ @username</p>

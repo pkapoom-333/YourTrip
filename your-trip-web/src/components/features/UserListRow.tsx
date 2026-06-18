@@ -27,13 +27,20 @@ export default function UserListRow({ user, selfId }: Props) {
   async function toggle() {
     if (busy || isSelf) return;
     const next = !following;
-    setFollowing(next);
+    setFollowing(next); // optimistic
     setBusy(true);
     try {
-      if (next) await followUser(user.id);
-      else await unfollowUser(user.id);
+      const result = next
+        ? await followUser(user.id)
+        : await unfollowUser(user.id);
+      if ("error" in result && result.error) {
+        setFollowing(!next); // rollback
+        if (result.error.message === "กรุณาเข้าสู่ระบบ") {
+          window.location.href = "/login";
+        }
+      }
     } catch {
-      setFollowing(!next); // rollback
+      setFollowing(!next); // rollback on network error
     } finally {
       setBusy(false);
     }
