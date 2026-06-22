@@ -4,8 +4,6 @@ import { handleUpload, type HandleUploadBody } from "@vercel/blob/client";
 import { createClient } from "@/lib/supabase/server";
 
 // ── Storage detection (evaluated once at cold start) ─────────────────────────
-// Priority: Blob > Cloudinary > unavailable
-// Blob wins because it's client-side upload (no 4.5 MB server body limit).
 const BLOB_CONFIGURED = !!process.env.BLOB_READ_WRITE_TOKEN;
 const CLOUDINARY_CONFIGURED =
   !!process.env.CLOUDINARY_CLOUD_NAME &&
@@ -51,13 +49,15 @@ export async function POST(req: NextRequest) {
     const body = (await req.json()) as HandleUploadBody;
     try {
       const response = await handleUpload({
+        token: process.env.BLOB_READ_WRITE_TOKEN,
         body,
         request: req,
-        onBeforeGenerateToken: async () => ({
+        onBeforeGenerateToken: async (_pathname) => ({
           allowedContentTypes: ALLOWED_TYPES,
           maximumSizeInBytes: VIDEO_MAX_BYTES,
+          // No callbackUrl — skip onUploadCompleted to avoid token validation issues
         }),
-        onUploadCompleted: async () => {},
+        // onUploadCompleted intentionally omitted — avoids callback URL embed in token
       });
       return NextResponse.json(response);
     } catch (err) {
