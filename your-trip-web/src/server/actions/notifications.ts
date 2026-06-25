@@ -143,6 +143,3 @@ export async function deleteNotification(id: string): Promise<{ data: { success:
     return { data: { success: true } };
   }
 }
-ess: true } };
-  }
-}
