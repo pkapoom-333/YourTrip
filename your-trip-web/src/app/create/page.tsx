@@ -416,6 +416,3 @@ export default function CreatePage() {
     </AppShell>
   );
 }
- </AppShell>
-  );
-}

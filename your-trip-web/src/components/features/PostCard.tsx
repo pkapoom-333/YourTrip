@@ -520,10 +520,3 @@ export function PostCard({ post, onTagClick }: { post: PostCardData; onTagClick?
     </>
   );
 }
-ton>
-        </div>
-      </div>
-    )}
-    </>
-  );
-}
