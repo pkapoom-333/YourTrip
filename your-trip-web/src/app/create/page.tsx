@@ -263,9 +263,28 @@ export default function CreatePage() {
               className="w-full text-sm text-gray-800 dark:text-slate-200 placeholder:text-gray-400 dark:placeholder:text-slate-500 resize-none outline-none leading-relaxed bg-transparent"
               autoFocus
             />
-            <div className={`text-right text-xs mt-1 tabular-nums ${remaining < 50 ? "text-[#FF4F4F] font-medium" : "text-gray-300 dark:text-slate-600"}`}>
-              {content.length} / {MAX_CHARS}
-            </div>
+            {/* Character count — SVG ring (Twitter-style) */}
+            {content.length > 0 && (
+              <div className="flex items-center justify-end gap-2 mt-1">
+                {remaining < 50 && (
+                  <span className={`text-xs tabular-nums font-medium ${remaining < 10 ? "text-[#FF4F4F]" : "text-amber-500"}`}>
+                    {remaining}
+                  </span>
+                )}
+                <svg width="24" height="24" viewBox="0 0 24 24" aria-hidden="true">
+                  <circle cx="12" cy="12" r="10" fill="none" strokeWidth="2.5"
+                    className="stroke-gray-100 dark:stroke-slate-700" />
+                  <circle cx="12" cy="12" r="10" fill="none" strokeWidth="2.5"
+                    strokeDasharray={`${2 * Math.PI * 10}`}
+                    strokeDashoffset={`${2 * Math.PI * 10 * (1 - content.length / MAX_CHARS)}`}
+                    strokeLinecap="round"
+                    transform="rotate(-90 12 12)"
+                    style={{ transition: "stroke-dashoffset 0.15s ease" }}
+                    className={remaining < 10 ? "stroke-[#FF4F4F]" : remaining < 50 ? "stroke-amber-400" : "stroke-[#398AB9]"}
+                  />
+                </svg>
+              </div>
+            )}
           </div>
 
           {/* Image upload */}
@@ -395,5 +414,8 @@ export default function CreatePage() {
         </div>
       </div>
     </AppShell>
+  );
+}
+ </AppShell>
   );
 }

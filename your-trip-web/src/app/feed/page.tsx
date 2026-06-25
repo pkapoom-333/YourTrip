@@ -220,7 +220,6 @@ export default async function FeedPage() {
                           className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                           loading="lazy"
                           referrerPolicy="no-referrer"
-                          onError={(e) => { (e.target as HTMLImageElement).src = "https://images.unsplash.com/photo-1476514525405-8d4b4c284c1e?auto=format&fit=crop&w=200&q=80"; }}
                         />
                       </div>
                       <div className="flex-1 min-w-0">

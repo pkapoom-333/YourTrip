@@ -30,7 +30,8 @@
       "Bash(dir \"C:\\\\Users\\\\user\\\\.claude\\\\\" /b 2>/dev/null)",
       "Read(//mnt/c/Users/user/**)",
       "Read(//mnt/c/Users/user/.claude/**)",
-      "mcp__Claude_in_Chrome__browser_batch"
+      "mcp__Claude_in_Chrome__browser_batch",
+      "Bash(rm \"C:/Users/user/Documents/your-trip/.git/index.lock\" && echo \"removed\")"
     ]
   }
 }

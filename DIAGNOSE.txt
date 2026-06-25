@@ -1,0 +1,299 @@
+================================================================================
+YOUR-TRIP DEPLOY / GIT DIAGNOSIS
+Generated: 2026-06-23
+Repo: C:\Users\user\Documents\your-trip
+================================================================================
+
+ROOT CAUSE: **B + D (primary)**
+
+  B) route.ts blob fix exists on disk and is STAGED, but was NEVER COMMITTED.
+     Push is NOT failing — there is simply no new commit to push after 96d7563.
+
+  D) Cursor agent shell cannot reliably run git on your machine (no
+     git-push-output.txt, empty shell output). Automated .bat/.ps1 deploy
+     scripts must be run BY YOU locally (double-click or Git Bash).
+
+  NOT A) Blob fix is NOT in commit 96d7563.
+  NOT C) Push auth is fine — 96d7563 was pushed to GitHub 16 seconds after commit.
+  NOT primarily a Vercel-only issue for deploy — Vercel is correct at 96d7563
+     because no newer commit exists on github/main.
+
+After you commit + push the blob fix, you may STILL need BLOB_READ_WRITE_TOKEN
+set in Vercel for uploads to work (separate env issue, not missing commit).
+
+================================================================================
+1. DEPLOY SCRIPTS
+================================================================================
+
+push_blob_fix.bat
+  - cd to repo, delete .git\index.lock
+  - git add your-trip-web/src/app/api/upload/route.ts
+  - git commit -m "Day 19: fix: blob upload 400 — remove onUploadCompleted, pass token explicitly"
+  - git push github main
+  - pause
+
+do-deploy.ps1
+  - Same flow but git add -A (stages everything including .claude/settings.local.json)
+  - Logs to git-push-output.txt
+  - Compares LOCAL_HEAD vs GITHUB_HEAD at end
+
+do-deploy.bat
+  - Wrapper: runs do-deploy.ps1 via PowerShell
+
+git-push.bat (older)
+  - Commits truncated-file fixes (already in 96d7563), NOT blob fix
+  - push github main
+
+================================================================================
+2. GIT LOCK / INDEX FILES
+================================================================================
+
+.git/index.lock     → NOT PRESENT (no stale lock blocking git)
+.git/COMMIT_EDITMSG → Last commit message was 96d7563:
+                      "Day 19: fix: restore truncated files + hydration fix + follow auth guard"
+.git/index          → EXISTS (binary, normal)
+
+================================================================================
+3. GIT CONFIG / HEAD
+================================================================================
+
+.git/HEAD           → ref: refs/heads/main
+
+.git/config remotes:
+  origin  → git@gitlab.com:pakpoom3/your-trip.git   (SSH GitLab — often broken)
+  github  → https://github.com/pkapoom-333/YourTrip.git  (Vercel watches THIS)
+
+[branch "main"] tracks origin (GitLab), NOT github!
+  → Default `git push` goes to GitLab, NOT GitHub/Vercel.
+  → Always use: git push github main
+
+================================================================================
+4. REFS (local vs GitHub remote)
+================================================================================
+
+refs/heads/main              → 96d756360aa2e35fb5ac9b1a911554b9e5f06291
+refs/remotes/github/main     → 96d756360aa2e35fb5ac9b1a911554b9e5f06291
+
+LOCAL and GITHUB ARE IN SYNC at 96d7563.
+Vercel production at 96d7563 is CORRECT — nothing newer was ever pushed.
+
+================================================================================
+5. LAST 5 ENTRIES — .git/logs/HEAD
+================================================================================
+
+aa78174 → 40e2bd7  commit: Day 19: chore: update PROGRESS.md — full QA loop complete, 9 commits pending push
+40e2bd7 → aa78174  reset: moving to HEAD~1
+aa78174 → 45f0505  commit: Day 19: chore: update PROGRESS.md — full QA loop complete
+45f0505 → 42763ce  commit: Day 19: chore: update PROGRESS.md — QA loop complete + 10 commits pending push
+42763ce → 8fa2b2e  commit: Day 17: fix: comment count optimistic update + collections skeleton infinite load
+8fa2b2e → 96d7563  commit: Day 19: fix: restore truncated files + hydration fix + follow auth guard
+
+No commit after 96d7563. Blob fix commit never happened.
+
+GitHub push log (refs/remotes/github/main):
+  8fa2b2e → 96d7563  update by push  (+0700, ~16 sec after local commit)
+
+Push to github/main SUCCEEDED for 96d7563.
+
+================================================================================
+6. route.ts — BLOB FIX STATUS
+================================================================================
+
+WORKING TREE (disk) — HAS blob fix:
+  - token: process.env.BLOB_READ_WRITE_TOKEN  (line 52)
+  - onUploadCompleted intentionally omitted (lines 58-60)
+  - Comments about skipping onUploadCompleted to avoid token validation issues
+
+GIT STATUS (captured via agent subagent):
+  Changes to be committed (STAGED):
+    modified: your-trip-web/src/app/api/upload/route.ts
+
+  Changes not staged:
+    modified: .claude/settings.local.json
+    modified: your-trip-web/src/app/feed/page.tsx
+
+  Untracked: do-deploy.bat, do-deploy.ps1, git-push.bat, push_blob_fix.bat,
+             push_fix.bat, your-trip-web/scripts/check-*.mjs
+
+COMMIT 96d7563 — does NOT contain blob fix:
+  - 96d7563 message is "restore truncated files + hydration fix + follow auth guard"
+  - route.ts is listed as STAGED (modified vs HEAD) → changes are AFTER 96d7563
+  - Therefore production code on Vercel still has OLD upload handler (no explicit
+    token, likely still has onUploadCompleted callback URL in token)
+
+================================================================================
+7. GIT HOOKS
+================================================================================
+
+.git/hooks/ contains ONLY *.sample files (inactive):
+  pre-commit.sample, pre-push.sample, commit-msg.sample, etc.
+  → No active hooks blocking commit.
+
+================================================================================
+8. SHELL GIT COMMANDS (agent could not capture full output)
+================================================================================
+
+git status          → CAPTURED (see section 6)
+git diff route.ts   → NOT captured (likely empty — file only staged, not unstaged)
+git diff --cached   → NOT captured (contains blob fix diff vs 96d7563)
+git commit --dry-run → NOT captured (expected: would commit route.ts)
+index.lock          → NOT PRESENT
+
+git-push-output.txt → DOES NOT EXIST
+  → do-deploy.ps1 was never run successfully on your machine
+  → Agent background git jobs also failed to write output files
+
+================================================================================
+9. WHY VERCEL STUCK AT 96d7563
+================================================================================
+
+This is NOT a Vercel bug. Timeline:
+
+  1. User/git-push.bat committed 96d7563 locally
+  2. Push to github/main succeeded (remote ref updated)
+  3. Vercel deployed 96d7563 (correct)
+  4. Cursor agent edited route.ts with blob fix AFTER that push
+  5. route.ts was git add'd (staged) but commit was never run on your machine
+  6. Agent tried to run git via shell — shell unreliable, no commit created
+  7. User was told to run push_blob_fix.bat — either not run, or not confirmed
+
+Result: github/main still at 96d7563 → Vercel has nothing new to deploy.
+
+================================================================================
+10. EXACT STEPS — GIT BASH (RECOMMENDED)
+================================================================================
+
+Open Git Bash and run:
+
+  cd /c/Users/user/Documents/your-trip
+
+  # 1. Confirm state
+  git status
+  # EXPECTED:
+  #   On branch main
+  #   Changes to be committed:
+  #     modified: your-trip-web/src/app/api/upload/route.ts
+
+  # 2. Commit ONLY the blob fix (do not add feed/page.tsx unless intended)
+  git commit -m "Day 19: fix: blob upload 400 — remove onUploadCompleted, pass token explicitly"
+  # EXPECTED:
+  #   [main <NEW_HASH>] Day 19: fix: blob upload 400 ...
+  #   1 file changed, X insertions(+), Y deletions(-)
+
+  # 3. Verify new HEAD is NOT 96d7563
+  git log -1 --oneline
+  # EXPECTED: new hash, blob fix message (NOT "restore truncated files")
+
+  # 4. Push to GITHUB (not origin/GitLab)
+  git push github main
+  # EXPECTED:
+  #   Enumerating objects...
+  #   To https://github.com/pkapoom-333/YourTrip.git
+  #      96d7563..<NEW_HASH>  main -> main
+
+  # 5. Confirm sync
+  git rev-parse main
+  git rev-parse github/main
+  # EXPECTED: both print the SAME new hash (not 96d7563)
+
+ALTERNATIVE — double-click:
+  C:\Users\user\Documents\your-trip\push_blob_fix.bat
+  (watch the window for commit hash + push success before pressing Enter)
+
+================================================================================
+11. EXACT STEPS — SOURCETREE
+================================================================================
+
+1. Open repository: C:\Users\user\Documents\your-trip
+
+2. In "Staged files" you should see:
+     your-trip-web/src/app/api/upload/route.ts
+
+3. Do NOT stage feed/page.tsx or .claude/settings.local.json unless you
+   intend to deploy those too.
+
+4. Commit message:
+     Day 19: fix: blob upload 400 — remove onUploadCompleted, pass token explicitly
+
+5. Click Commit
+   EXPECTED: new commit appears in history ABOVE 96d7563
+
+6. Push — CRITICAL: push to GITHUB remote, not origin (GitLab)
+   - Repository → Repository Settings → Remotes: confirm "github" exists
+   - Push dialog: select remote "github", branch "main"
+   - OR: Push default may go to origin — change destination to github/main
+
+   EXPECTED: "Pushed to github/main" with 96d7563..<new> 
+
+7. Verify on GitHub:
+   https://github.com/pkapoom-333/YourTrip/commits/main
+   EXPECTED: newest commit is blob fix (not 96d7563)
+
+8. Vercel: https://vercel.com/pakpoomtee24s-projects/your-trip/deployments
+   EXPECTED: new deployment triggered within ~1 min, commit = your new hash
+
+================================================================================
+12. AFTER DEPLOY — BLOB 400 MAY STILL NEED ENV VAR
+================================================================================
+
+Even after blob fix deploys, image upload requires:
+
+  Vercel → Project → Settings → Environment Variables:
+    BLOB_READ_WRITE_TOKEN = (from Vercel Storage → Blob → your store → token)
+
+  Apply to: Production (and Preview if needed)
+  Then: Redeploy (Deployments → ... → Redeploy) — env vars need a new build
+
+Test: GET https://your-production-url/api/upload
+  EXPECTED: {"mode":"blob"}  (not "unavailable")
+
+If mode is "blob" but upload still 400:
+  - Check token is Read-Write (not read-only)
+  - Redeploy after setting env var
+  - Try filename without Thai characters/spaces as secondary test
+
+================================================================================
+13. TROUBLESHOOTING IF COMMIT/PUSH FAILS LOCALLY
+================================================================================
+
+Commit fails "nothing to commit":
+  → route.ts may have been committed already; run git log -1 --oneline
+
+Commit fails "index.lock":
+  → del C:\Users\user\Documents\your-trip\.git\index.lock
+  → retry commit
+
+Push fails "authentication failed" (github HTTPS):
+  → Git Bash: git credential-manager login
+  → Or use Sourcetree with GitHub account connected
+  → Or: gh auth login
+
+Push succeeds but Vercel unchanged:
+  → Confirm you pushed to "github" not "origin"
+  → Confirm Vercel project connected to pkapoom-333/YourTrip repo
+
+Pushed to wrong remote (origin/GitLab):
+  → git push github main   (always explicit)
+
+================================================================================
+SUMMARY
+================================================================================
+
+| Check                         | Result                                      |
+|-------------------------------|---------------------------------------------|
+| Vercel at 96d7563             | Correct — latest on github/main             |
+| Blob fix in 96d7563           | NO — fix is staged only, never committed    |
+| index.lock blocking           | NO                                          |
+| pre-commit hooks blocking     | NO (only .sample hooks)                     |
+| Push auth broken              | NO — 96d7563 pushed successfully            |
+| git-push-output.txt           | MISSING — deploy scripts not run locally    |
+| Agent shell git               | UNRELIABLE — user must run commit/push      |
+| Default git push remote       | origin (GitLab) — use "github" for Vercel   |
+
+ACTION REQUIRED (user, ~2 minutes):
+  1. git commit (staged route.ts)
+  2. git push github main
+  3. Wait for Vercel deploy
+  4. Set BLOB_READ_WRITE_TOKEN + redeploy if upload still fails
+
+================================================================================

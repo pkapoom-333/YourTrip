@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import AppShell from "@/components/AppShell";
 import { Bell, Heart, MessageCircle, UserPlus, Users, MapPin, CheckCheck } from "lucide-react";
+import { Avatar } from "@/components/shared/Avatar";
 import {
   getNotifications,
   markAllNotificationsRead,
@@ -16,7 +17,8 @@ interface Notif {
   id: string;
   type: NotifType;
   actor: string;
-  actorAvatar: string;
+  actorAvatar: string | null;   // null = use initials fallback
+  actorId: string | null;
   text: string;
   subtext?: string;
   time: string;
@@ -72,8 +74,9 @@ export default function NotificationsPage() {
       setNotifs(data.map((n) => ({
         id: n.id,
         type: mapType(n.type),
-        actor: n.title,
-        actorAvatar: n.title.charAt(0),
+        actor: n.actorName ?? n.title,
+        actorAvatar: n.actorAvatar ?? null,
+        actorId: n.actorId,
         text: n.body ?? n.title,
         subtext: undefined,
         time: fmtTime(n.createdAt),
@@ -204,11 +207,11 @@ export default function NotificationsPage() {
                     >
                       {/* Avatar + Icon badge */}
                       <div className="relative flex-shrink-0">
-                        <div className={`w-11 h-11 rounded-full flex items-center justify-center text-white text-sm font-bold ${
-                          notif.type === "system" ? "bg-[#398AB9]" : "bg-gray-300 dark:bg-slate-600"
-                        }`}>
-                          {notif.actorAvatar}
-                        </div>
+                        <Avatar
+                          src={notif.actorAvatar}
+                          name={notif.actor}
+                          className="w-11 h-11"
+                        />
                         <div className={`absolute -bottom-1 -right-1 w-5 h-5 rounded-full ${color} flex items-center justify-center border-2 border-white dark:border-slate-800`}>
                           <Icon className="w-2.5 h-2.5 text-white" />
                         </div>
@@ -282,6 +285,7 @@ export default function NotificationsPage() {
             </div>
           </div>
         )}
+    
       </div>
     </AppShell>
   );

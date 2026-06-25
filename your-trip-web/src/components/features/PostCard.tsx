@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Heart, MessageCircle, Send, Bookmark, MapPin, MoreHorizontal, Flag, Link2, X, ChevronLeft, ChevronRight, Maximize2 } from "lucide-react";
@@ -84,6 +84,49 @@ export function PostCard({ post, onTagClick }: { post: PostCardData; onTagClick?
   const [commentCount, setCommentCount] = useState(post.comments);
   const { success, error, info } = useToast();
   const router = useRouter();
+
+  // ── Double-tap like + swipe navigation ──────────────────────────────────────
+  const [heartBurst, setHeartBurst] = useState<"hidden" | "show" | "fade">("hidden");
+  const singleClickTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const touchStartXRef = useRef(0);
+  const isSwiping = useRef(false);
+
+  function triggerHeartBurst() {
+    setHeartBurst("show");
+    setTimeout(() => setHeartBurst("fade"), 350);
+    setTimeout(() => setHeartBurst("hidden"), 750);
+  }
+
+  function handleImageClick() {
+    if (isSwiping.current) return;
+    if (singleClickTimerRef.current) {
+      // Second tap within 350ms → double-tap → like
+      clearTimeout(singleClickTimerRef.current);
+      singleClickTimerRef.current = null;
+      if (!liked) handleLike();
+      triggerHeartBurst();
+    } else {
+      singleClickTimerRef.current = setTimeout(() => {
+        singleClickTimerRef.current = null;
+        router.push(`/post/${post.id}`);
+      }, 350);
+    }
+  }
+
+  function onImageTouchStart(e: React.TouchEvent) {
+    touchStartXRef.current = e.touches[0].clientX;
+    isSwiping.current = false;
+  }
+
+  function onImageTouchEnd(e: React.TouchEvent) {
+    const dx = e.changedTouches[0].clientX - touchStartXRef.current;
+    if (Math.abs(dx) > 50 && allImages.length > 1) {
+      isSwiping.current = true;
+      if (dx < 0) setImgIndex((i) => Math.min(allImages.length - 1, i + 1));
+      else setImgIndex((i) => Math.max(0, i - 1));
+    }
+  }
+  // ────────────────────────────────────────────────────────────────────────────
 
   async function handleLike() {
     if (isLiking) return;
@@ -211,10 +254,17 @@ export function PostCard({ post, onTagClick }: { post: PostCardData; onTagClick?
         </div>
       </div>
 
-      {/* Post image(s) / video */}
+      {/* Post image(s) / video — double-tap to like, swipe to navigate */}
       {allImages.length > 0 && (
-      <Link href={`/post/${post.id}`} className="block">
-      <div className={`relative overflow-hidden bg-gray-100 dark:bg-slate-700 group/img ${isVideo(allImages[imgIndex]) ? "aspect-[9/16] max-h-[480px]" : "aspect-[4/3]"}`}>
+      <div
+        role="button"
+        tabIndex={0}
+        onClick={handleImageClick}
+        onKeyDown={(e) => e.key === "Enter" && handleImageClick()}
+        onTouchStart={onImageTouchStart}
+        onTouchEnd={onImageTouchEnd}
+        className={`relative overflow-hidden bg-gray-100 dark:bg-slate-700 group/img cursor-pointer select-none ${isVideo(allImages[imgIndex]) ? "aspect-[9/16] max-h-[480px]" : "aspect-[4/3]"}`}
+      >
         {isVideo(allImages[imgIndex]) ? (
           <video
             key={allImages[imgIndex]}
@@ -224,14 +274,14 @@ export function PostCard({ post, onTagClick }: { post: PostCardData; onTagClick?
             muted
             loop
             playsInline
-            onClick={(e) => e.preventDefault()}
+            onClick={(e) => e.stopPropagation()}
           />
         ) : (
           <>
           <img
             src={allImages[imgIndex]}
             alt={post.title ?? ""}
-            className="w-full h-full object-cover transition-transform duration-300 hover:scale-105"
+            className="w-full h-full object-cover transition-all duration-300 hover:scale-105"
             referrerPolicy="no-referrer"
             onError={(e) => { (e.target as HTMLImageElement).parentElement!.style.display = "none"; }}
           />
@@ -250,40 +300,69 @@ export function PostCard({ post, onTagClick }: { post: PostCardData; onTagClick?
           </button>
           </>
         )}
+
+        {/* ── Heart burst animation (double-tap like) ── */}
+        {heartBurst !== "hidden" && (
+          <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-20">
+            <Heart
+              className="w-24 h-24 text-white fill-white drop-shadow-2xl"
+              style={{
+                transform: heartBurst === "show" ? "scale(1.15)" : "scale(0.3)",
+                opacity: heartBurst === "fade" ? 0 : 1,
+                transition:
+                  heartBurst === "show"
+                    ? "transform 0.25s cubic-bezier(0.175,0.885,0.32,1.275), opacity 0.1s"
+                    : "opacity 0.35s ease-out, transform 0.35s ease-in",
+              }}
+            />
+          </div>
+        )}
+
         {/* Video badge */}
         {isVideo(allImages[imgIndex]) && (
           <div className="absolute top-2 right-2 bg-black/50 text-white text-[10px] font-semibold px-1.5 py-0.5 rounded-full">▶ Video</div>
         )}
-        {/* Multi-image indicators */}
+
+        {/* Multi-image: counter badge + dots + tap zones */}
         {allImages.length > 1 && (
           <>
-            <div className="absolute bottom-8 left-1/2 -translate-x-1/2 flex gap-1.5">
+            {/* X/N counter badge top-left */}
+            <div className="absolute top-2 left-2 bg-black/50 text-white text-[11px] font-semibold px-2 py-0.5 rounded-full backdrop-blur-sm pointer-events-none">
+              {imgIndex + 1}/{allImages.length}
+            </div>
+            {/* Dot indicators */}
+            <div className="absolute bottom-8 left-1/2 -translate-x-1/2 flex gap-1.5 pointer-events-none">
               {allImages.map((_, i) => (
-                <button
+                <span
                   key={i}
-                  onClick={(e) => { e.preventDefault(); setImgIndex(i); }}
-                  className={`rounded-full transition-all ${i === imgIndex ? "w-4 h-1.5 bg-white" : "w-1.5 h-1.5 bg-white/50"}`}
+                  className={`rounded-full transition-all duration-200 ${i === imgIndex ? "w-4 h-1.5 bg-white" : "w-1.5 h-1.5 bg-white/50"}`}
                 />
               ))}
             </div>
+            {/* Tap zones for prev/next (stop propagation so parent click doesn't fire) */}
             <button
-              className="absolute left-0 inset-y-0 w-1/3"
-              onClick={(e) => { e.preventDefault(); setImgIndex((i) => Math.max(0, i - 1)); }}
+              className="absolute left-0 inset-y-0 w-1/3 z-10"
+              onClick={(e) => { e.stopPropagation(); setImgIndex((i) => Math.max(0, i - 1)); }}
+              tabIndex={-1}
+              aria-label="ภาพก่อนหน้า"
             />
             <button
-              className="absolute right-0 inset-y-0 w-1/3"
-              onClick={(e) => { e.preventDefault(); setImgIndex((i) => Math.min(allImages.length - 1, i + 1)); }}
+              className="absolute right-0 inset-y-0 w-1/3 z-10"
+              onClick={(e) => { e.stopPropagation(); setImgIndex((i) => Math.min(allImages.length - 1, i + 1)); }}
+              tabIndex={-1}
+              aria-label="ภาพถัดไป"
             />
           </>
         )}
-        {/* Tags */}
+
+        {/* Tags overlay */}
         {post.tags.length > 0 && (
           <div className="absolute bottom-2 left-2 flex gap-1 flex-wrap">
             {post.tags.map((tag) => (
               <button
                 key={tag}
                 onClick={(e) => {
-                  e.preventDefault();
+                  e.stopPropagation();
                   if (onTagClick) onTagClick(tag);
                   else router.push(`/tags/${encodeURIComponent(tag)}`);
                 }}
@@ -295,7 +374,6 @@ export function PostCard({ post, onTagClick }: { post: PostCardData; onTagClick?
           </div>
         )}
       </div>
-      </Link>
       )}
 
       {/* Action bar */}
@@ -369,6 +447,7 @@ export function PostCard({ post, onTagClick }: { post: PostCardData; onTagClick?
         <img
           src={allImages[lightboxIdx]}
           alt=""
+         
           className="max-w-full max-h-full object-contain select-none"
           referrerPolicy="no-referrer"
           onClick={(e) => e.stopPropagation()}
@@ -435,6 +514,13 @@ export function PostCard({ post, onTagClick }: { post: PostCardData; onTagClick?
           >
             {reportSubmitting ? "กำลังส่ง..." : "ส่งรายงาน"}
           </button>
+        </div>
+      </div>
+    )}
+    </>
+  );
+}
+ton>
         </div>
       </div>
     )}

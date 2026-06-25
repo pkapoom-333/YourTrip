@@ -13,6 +13,8 @@ export interface NotificationItem {
   actionUrl: string | null;
   isRead: boolean;
   actorId: string | null;
+  actorName: string | null;
+  actorAvatar: string | null;
   createdAt: Date;
 }
 
@@ -57,18 +59,33 @@ export async function getNotifications(limit = 30): Promise<{ data: Notification
       take: limit,
     });
 
+    // Fetch actor profiles for notifications that have actorId
+    const actorIds = [...new Set(rows.filter((n) => n.actorId).map((n) => n.actorId!))];
+    const actors = actorIds.length > 0
+      ? await prisma.user.findMany({
+          where: { id: { in: actorIds } },
+          select: { id: true, name: true, avatarUrl: true },
+        })
+      : [];
+    const actorMap = new Map(actors.map((a) => [a.id, a]));
+
     return {
-      data: rows.map((n) => ({
-        id: n.id,
-        type: n.type,
-        title: n.title,
-        body: n.body,
-        imageUrl: n.imageUrl,
-        actionUrl: n.actionUrl,
-        isRead: n.isRead,
-        actorId: n.actorId,
-        createdAt: n.createdAt,
-      })),
+      data: rows.map((n) => {
+        const actor = n.actorId ? actorMap.get(n.actorId) : undefined;
+        return {
+          id: n.id,
+          type: n.type,
+          title: n.title,
+          body: n.body,
+          imageUrl: n.imageUrl,
+          actionUrl: n.actionUrl,
+          isRead: n.isRead,
+          actorId: n.actorId,
+          actorName: actor?.name ?? null,
+          actorAvatar: actor?.avatarUrl ?? null,
+          createdAt: n.createdAt,
+        };
+      }),
     };
   } catch {
     return { data: [] };
@@ -124,5 +141,8 @@ export async function deleteNotification(id: string): Promise<{ data: { success:
     return { data: { success: true } };
   } catch {
     return { data: { success: true } };
+  }
+}
+ess: true } };
   }
 }
