@@ -33,6 +33,7 @@ interface TripItem {
   lat?: number;
   lng?: number;
   googlePlaceId?: string;
+  photo?: string;         // photo URL (auto-fetched from Google Places or manual upload)
 }
 
 interface TripDay {
@@ -47,6 +48,7 @@ interface GooglePlaceResult {
   googlePlaceId: string;
   lat?: number;
   lng?: number;
+  photoUrl?: string; // auto-fetched from Google Places
 }
 
 const FALLBACK_COVER = "https://images.unsplash.com/photo-1476514525405-8d4b4c284c1e?auto=format&fit=crop&w=800&q=80";
@@ -199,17 +201,26 @@ function GooglePlacesPicker({
         if (cancelled || !inputRef.current) return;
 
         const ac = new google.maps.places.Autocomplete(inputRef.current, {
-          fields: ["place_id", "name", "geometry"],
+          fields: ["place_id", "name", "geometry", "photos"],
         });
 
         ac.addListener("place_changed", () => {
           const place = ac.getPlace();
           if (!place?.place_id || !place?.name) return;
+          // Try to get first photo from Google Places
+          let photoUrl: string | undefined;
+          try {
+            const photos = (place as unknown as { photos?: Array<{ getUrl: (opts: { maxWidth: number }) => string }> }).photos;
+            if (photos && photos.length > 0) {
+              photoUrl = photos[0].getUrl({ maxWidth: 600 });
+            }
+          } catch { /* ignore */ }
           const result: GooglePlaceResult = {
             name: place.name,
             googlePlaceId: place.place_id,
             lat: place.geometry?.location?.lat(),
             lng: place.geometry?.location?.lng(),
+            photoUrl,
           };
           setSelected(result);
           onSelectRef.current(result);
@@ -411,15 +422,49 @@ function ItemCard({
   isOwner,
   onDelete,
   onUpdateDuration,
+  onUpdatePhoto,
 }: {
   item: TripItem;
   isOwner: boolean;
   onDelete: (id: string) => void;
   onUpdateDuration: (id: string, min: number) => void;
+  onUpdatePhoto: (id: string, url: string | null) => void;
 }) {
   const [expanded, setExpanded] = useState(false);
   const [editingDuration, setEditingDuration] = useState(false);
   const [durVal, setDurVal] = useState(String(item.duration ?? ""));
+  const [photoUploading, setPhotoUploading] = useState(false);
+  const photoInputRef = useRef<HTMLInputElement>(null);
+
+  async function handlePhotoUpload(file: File) {
+    if (!file || photoUploading) return;
+    setPhotoUploading(true);
+    try {
+      const modeRes = await fetch("/api/upload");
+      const { mode } = await modeRes.json() as { mode: string };
+      let url: string | null = null;
+      if (mode === "blob") {
+        const blob = await blobUpload(
+          `your-trip/stops/${Date.now()}-${file.name}`,
+          file,
+          { access: "public", handleUploadUrl: "/api/upload" }
+        );
+        url = blob.url;
+      } else if (mode === "cloudinary") {
+        const fd = new FormData();
+        fd.append("file", file);
+        fd.append("folder", "your-trip/stops");
+        const res = await fetch("/api/upload", { method: "POST", body: fd });
+        const data = await res.json() as { url?: string };
+        url = data.url ?? null;
+      }
+      if (url) {
+        onUpdatePhoto(item.id, url);
+        updateTripItem(item.id, { imageUrl: url }).catch(() => {});
+      }
+    } catch { /* silent */ }
+    setPhotoUploading(false);
+  }
 
   function saveDuration() {
     const n = parseInt(durVal);
@@ -430,92 +475,128 @@ function ItemCard({
   const mapsUrl = getMapsUrl(item);
 
   return (
-    <div className="bg-white dark:bg-slate-800 rounded-2xl border border-gray-100 dark:border-slate-700 p-3.5 hover:shadow-sm transition-shadow">
-      <div className="flex items-start gap-3">
-        {isOwner && <GripVertical className="w-4 h-4 text-gray-300 dark:text-slate-600 mt-0.5 flex-shrink-0 cursor-grab" />}
-        <div className="flex-1 min-w-0">
-          <div className="flex items-center gap-2 flex-wrap">
-            <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-full ${typeColors[item.type]}`}>
-              {typeLabels[item.type]}
-            </span>
-            {item.time && (
-              <span className="flex items-center gap-1 text-xs text-gray-400 dark:text-slate-500">
-                <Clock className="w-3 h-3" />
-                {item.time}
-              </span>
-            )}
-            {item.cost !== undefined && (
-              <span className="flex items-center gap-1 text-xs text-gray-400 dark:text-slate-500">
-                <Wallet className="w-3 h-3" />
-                ฿{item.cost.toLocaleString()}
-              </span>
-            )}
-          </div>
-          <p className="text-sm font-semibold text-gray-800 dark:text-slate-200 mt-1">{item.name}</p>
-
-          {/* Duration — กดแก้ได้ (เจ้าของเท่านั้น) */}
-          {item.duration !== undefined && (
-            <div className="mt-1.5">
-              {isOwner && editingDuration ? (
-                <div className="flex items-center gap-1.5">
-                  <span className="text-[10px] text-gray-400">อยู่ที่นี่</span>
-                  <input
-                    type="number"
-                    value={durVal}
-                    onChange={(e) => setDurVal(e.target.value)}
-                    onKeyDown={(e) => e.key === "Enter" && saveDuration()}
-                    autoFocus
-                    className="w-14 px-1.5 py-0.5 text-xs border border-[#398AB9] rounded focus:outline-none"
-                  />
-                  <span className="text-[10px] text-gray-400">นาที</span>
-                  <button onClick={saveDuration} className="text-[10px] text-white bg-[#398AB9] px-1.5 py-0.5 rounded">
-                    ✓
-                  </button>
-                </div>
-              ) : isOwner ? (
-                <button
-                  onClick={() => { setDurVal(String(item.duration ?? "")); setEditingDuration(true); }}
-                  className="flex items-center gap-1 text-[11px] text-gray-400 hover:text-[#398AB9] transition group"
-                >
-                  <span className="w-1.5 h-1.5 rounded-full bg-[#398AB9]/40 flex-shrink-0" />
-                  อยู่ที่นี่{" "}
-                  <span className="font-medium">{fmtMin(item.duration)}</span>
-                  <span className="opacity-0 group-hover:opacity-100 text-[10px] ml-0.5">✏️</span>
-                </button>
-              ) : (
-                <div className="flex items-center gap-1 text-[11px] text-gray-400">
-                  <span className="w-1.5 h-1.5 rounded-full bg-[#398AB9]/40 flex-shrink-0" />
-                  อยู่ที่นี่ <span className="font-medium">{fmtMin(item.duration)}</span>
-                </div>
-              )}
-            </div>
-          )}
-
-          {item.note && (
-            <p className={`text-xs text-gray-400 dark:text-slate-500 mt-1 ${!expanded ? "line-clamp-1" : ""}`}>{item.note}</p>
+    <div className="bg-white dark:bg-slate-800 rounded-2xl border border-gray-100 dark:border-slate-700 overflow-hidden hover:shadow-sm transition-shadow">
+      {/* Photo strip */}
+      {item.photo && (
+        <div className="relative w-full h-28">
+          <img src={item.photo} alt={item.name} className="w-full h-full object-cover" />
+          {isOwner && (
+            <button
+              onClick={() => { onUpdatePhoto(item.id, null); updateTripItem(item.id, { imageUrl: null }).catch(() => {}); }}
+              className="absolute top-1.5 right-1.5 w-6 h-6 bg-black/60 rounded-full flex items-center justify-center hover:bg-black/80 transition"
+            >
+              <X className="w-3 h-3 text-white" />
+            </button>
           )}
         </div>
-        <div className="flex items-center gap-1 flex-shrink-0">
-          {item.note && (
-            <button onClick={() => setExpanded(!expanded)} className="text-gray-300 dark:text-slate-600 hover:text-gray-500 dark:hover:text-slate-400 p-1">
-              {expanded ? <ChevronUp className="w-3.5 h-3.5" /> : <ChevronDown className="w-3.5 h-3.5" />}
-            </button>
-          )}
-          {/* Google Maps link */}
-          <a
-            href={mapsUrl}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="text-gray-300 dark:text-slate-600 hover:text-[#398AB9] dark:hover:text-[#398AB9] transition p-1"
-            title="เปิดใน Google Maps"
-          >
-            <ExternalLink className="w-3.5 h-3.5" />
-          </a>
-          {isOwner && (
-            <button onClick={() => onDelete(item.id)} className="text-gray-300 dark:text-slate-600 hover:text-red-400 transition p-1">
-              <Trash2 className="w-3.5 h-3.5" />
-            </button>
-          )}
+      )}
+      <div className="p-3.5">
+        <div className="flex items-start gap-3">
+          {isOwner && <GripVertical className="w-4 h-4 text-gray-300 dark:text-slate-600 mt-0.5 flex-shrink-0 cursor-grab" />}
+          <div className="flex-1 min-w-0">
+            <div className="flex items-center gap-2 flex-wrap">
+              <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-full ${typeColors[item.type]}`}>
+                {typeLabels[item.type]}
+              </span>
+              {item.time && (
+                <span className="flex items-center gap-1 text-xs text-gray-400 dark:text-slate-500">
+                  <Clock className="w-3 h-3" />
+                  {item.time}
+                </span>
+              )}
+              {item.cost !== undefined && (
+                <span className="flex items-center gap-1 text-xs text-gray-400 dark:text-slate-500">
+                  <Wallet className="w-3 h-3" />
+                  ฿{item.cost.toLocaleString()}
+                </span>
+              )}
+            </div>
+            <p className="text-sm font-semibold text-gray-800 dark:text-slate-200 mt-1">{item.name}</p>
+
+            {/* Duration — กดแก้ได้ (เจ้าของเท่านั้น) */}
+            {item.duration !== undefined && (
+              <div className="mt-1.5">
+                {isOwner && editingDuration ? (
+                  <div className="flex items-center gap-1.5">
+                    <span className="text-[10px] text-gray-400">อยู่ที่นี่</span>
+                    <input
+                      type="number"
+                      value={durVal}
+                      onChange={(e) => setDurVal(e.target.value)}
+                      onKeyDown={(e) => e.key === "Enter" && saveDuration()}
+                      autoFocus
+                      className="w-14 px-1.5 py-0.5 text-xs border border-[#398AB9] rounded focus:outline-none"
+                    />
+                    <span className="text-[10px] text-gray-400">นาที</span>
+                    <button onClick={saveDuration} className="text-[10px] text-white bg-[#398AB9] px-1.5 py-0.5 rounded">
+                      ✓
+                    </button>
+                  </div>
+                ) : isOwner ? (
+                  <button
+                    onClick={() => { setDurVal(String(item.duration ?? "")); setEditingDuration(true); }}
+                    className="flex items-center gap-1 text-[11px] text-gray-400 hover:text-[#398AB9] transition group"
+                  >
+                    <span className="w-1.5 h-1.5 rounded-full bg-[#398AB9]/40 flex-shrink-0" />
+                    อยู่ที่นี่{" "}
+                    <span className="font-medium">{fmtMin(item.duration)}</span>
+                    <span className="opacity-0 group-hover:opacity-100 text-[10px] ml-0.5">✏️</span>
+                  </button>
+                ) : (
+                  <div className="flex items-center gap-1 text-[11px] text-gray-400">
+                    <span className="w-1.5 h-1.5 rounded-full bg-[#398AB9]/40 flex-shrink-0" />
+                    อยู่ที่นี่ <span className="font-medium">{fmtMin(item.duration)}</span>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {item.note && (
+              <p className={`text-xs text-gray-400 dark:text-slate-500 mt-1 ${!expanded ? "line-clamp-1" : ""}`}>{item.note}</p>
+            )}
+          </div>
+          <div className="flex items-center gap-1 flex-shrink-0">
+            {item.note && (
+              <button onClick={() => setExpanded(!expanded)} className="text-gray-300 dark:text-slate-600 hover:text-gray-500 dark:hover:text-slate-400 p-1">
+                {expanded ? <ChevronUp className="w-3.5 h-3.5" /> : <ChevronDown className="w-3.5 h-3.5" />}
+              </button>
+            )}
+            {/* Photo upload button */}
+            {isOwner && !item.photo && (
+              <>
+                <button
+                  onClick={() => photoInputRef.current?.click()}
+                  disabled={photoUploading}
+                  className="text-gray-300 dark:text-slate-600 hover:text-[#398AB9] dark:hover:text-[#398AB9] transition p-1"
+                  title="เพิ่มรูปภาพ"
+                >
+                  {photoUploading ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Camera className="w-3.5 h-3.5" />}
+                </button>
+                <input
+                  ref={photoInputRef}
+                  type="file"
+                  accept="image/jpeg,image/png,image/webp"
+                  className="hidden"
+                  onChange={(e) => { if (e.target.files?.[0]) handlePhotoUpload(e.target.files[0]); }}
+                />
+              </>
+            )}
+            {/* Google Maps link */}
+            <a
+              href={mapsUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-gray-300 dark:text-slate-600 hover:text-[#398AB9] dark:hover:text-[#398AB9] transition p-1"
+              title="เปิดใน Google Maps"
+            >
+              <ExternalLink className="w-3.5 h-3.5" />
+            </a>
+            {isOwner && (
+              <button onClick={() => onDelete(item.id)} className="text-gray-300 dark:text-slate-600 hover:text-red-400 transition p-1">
+                <Trash2 className="w-3.5 h-3.5" />
+              </button>
+            )}
+          </div>
         </div>
       </div>
     </div>
@@ -554,6 +635,7 @@ export default function TripDetailPage({ params }: { params: Promise<{ id: strin
     googlePlaceId: "" as string | undefined,
     placeLat: undefined as number | undefined,
     placeLng: undefined as number | undefined,
+    photoUrl: undefined as string | undefined,
   });
 
   useEffect(() => {
@@ -591,6 +673,7 @@ export default function TripDetailPage({ params }: { params: Promise<{ id: strin
               lat: item.lat ?? item.place?.lat ?? undefined,
               lng: item.lng ?? item.place?.lng ?? undefined,
               googlePlaceId: item.googlePlaceId ?? undefined,
+              photo: (item as unknown as { imageUrl?: string }).imageUrl ?? undefined,
             })),
           })),
         });
@@ -740,7 +823,7 @@ export default function TripDetailPage({ params }: { params: Promise<{ id: strin
     setNewItem({
       name: "", time: "", cost: "", note: "", duration: "", travelTimeTo: "",
       type: "place", placeId: "", googlePlaceId: "",
-      placeLat: undefined, placeLng: undefined,
+      placeLat: undefined, placeLng: undefined, photoUrl: undefined,
     });
   }
 
@@ -759,6 +842,7 @@ export default function TripDetailPage({ params }: { params: Promise<{ id: strin
       lat: newItem.placeLat,
       lng: newItem.placeLng,
       googlePlaceId: newItem.googlePlaceId || undefined,
+      photo: newItem.photoUrl,
     };
     setTrip((prev) => ({
       ...prev,
@@ -781,6 +865,7 @@ export default function TripDetailPage({ params }: { params: Promise<{ id: strin
         googlePlaceId: newItem.googlePlaceId || undefined,
         lat: newItem.placeLat,
         lng: newItem.placeLng,
+        imageUrl: newItem.photoUrl,
       });
       if (result.data) {
         setTrip((prev) => ({
@@ -1146,6 +1231,7 @@ export default function TripDetailPage({ params }: { params: Promise<{ id: strin
                       isOwner={isOwner}
                       onDelete={(itemId) => deleteItem(currentDay.day, itemId)}
                       onUpdateDuration={(itemId, min) => updateItem(currentDay.day, itemId, { duration: min })}
+                      onUpdatePhoto={(itemId, url) => updateItem(currentDay.day, itemId, { photo: url ?? undefined })}
                     />
                     {/* Travel connector — after every item except the last */}
                     {idx < currentDay.items.length - 1 && (
@@ -1257,6 +1343,7 @@ export default function TripDetailPage({ params }: { params: Promise<{ id: strin
                     placeId: "",               // clear DB place
                     placeLat: p.lat,
                     placeLng: p.lng,
+                    photoUrl: p.photoUrl,      // auto-fetch Google Places photo
                   }))}
                   onClear={() => setNewItem((prev) => ({
                     ...prev,
@@ -1264,6 +1351,7 @@ export default function TripDetailPage({ params }: { params: Promise<{ id: strin
                     placeLat: undefined,
                     placeLng: undefined,
                     name: "",
+                    photoUrl: undefined,
                   }))}
                 />
 
@@ -1317,6 +1405,23 @@ export default function TripDetailPage({ params }: { params: Promise<{ id: strin
                   placeholder="หมายเหตุ (ไม่บังคับ)" rows={2}
                   className="w-full px-4 py-3 border border-gray-200 dark:border-slate-600 dark:bg-slate-700/50 dark:text-slate-200 dark:placeholder:text-slate-500 rounded-xl text-sm focus:outline-none focus:border-[#398AB9] resize-none"
                 />
+
+                {/* Photo preview (auto from Google Places) */}
+                {newItem.photoUrl && (
+                  <div className="relative rounded-xl overflow-hidden h-28">
+                    <img src={newItem.photoUrl} alt="" className="w-full h-full object-cover" />
+                    <div className="absolute top-1.5 left-1.5 text-[10px] bg-black/60 text-white px-2 py-0.5 rounded-full">
+                      📸 Google Places
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => setNewItem((p) => ({ ...p, photoUrl: undefined }))}
+                      className="absolute top-1.5 right-1.5 w-6 h-6 bg-black/60 rounded-full flex items-center justify-center hover:bg-black/80 transition"
+                    >
+                      <X className="w-3 h-3 text-white" />
+                    </button>
+                  </div>
+                )}
               </div>
 
               <div className="flex gap-2 mt-5">

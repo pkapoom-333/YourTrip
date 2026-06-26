@@ -343,6 +343,7 @@ model TripItem {
   order         Int     @default(0)
   lat           Float?  // latitude (from Google Places or manual)
   lng           Float?  // longitude (from Google Places or manual)
+  imageUrl      String? // photo URL (auto-fetched from Google Places or manual upload)
 
   day   TripDay @relation(fields: [dayId], references: [id], onDelete: Cascade)
   place Place?  @relation(fields: [placeId], references: [id])

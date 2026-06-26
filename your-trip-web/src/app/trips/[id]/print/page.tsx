@@ -14,6 +14,7 @@ interface TripItem {
   cost?: number;
   note?: string;
   type: string;
+  photo?: string;
 }
 
 interface TripDay {
@@ -107,6 +108,7 @@ export default function TripPrintPage({ params }: { params: Promise<{ id: string
             cost: item.cost ?? undefined,
             note: item.note ?? undefined,
             type: "place",
+            photo: (item as unknown as { imageUrl?: string }).imageUrl ?? undefined,
           })),
         }))
       );
@@ -239,6 +241,13 @@ export default function TripPrintPage({ params }: { params: Promise<{ id: string
                             </div>
                             {item.note && (
                               <p className="text-xs text-gray-400 mt-0.5 italic">{item.note}</p>
+                            )}
+                            {item.photo && (
+                              <img
+                                src={item.photo}
+                                alt={item.name}
+                                className="mt-1.5 w-full max-w-[200px] h-20 object-cover rounded-lg"
+                              />
                             )}
                           </div>
                         </div>

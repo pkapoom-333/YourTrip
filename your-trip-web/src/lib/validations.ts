@@ -73,6 +73,7 @@ export const itineraryItemSchema = z.object({
   duration: z.number().int().nonnegative().optional(),    // minutes at this place
   travelTimeTo: z.number().int().nonnegative().optional(), // minutes to travel here
   cost: z.number().nonnegative().optional(),              // THB
+  imageUrl: z.string().optional(),                        // photo URL (Google Places or upload)
 });
 
 export type CreateTripInput = z.infer<typeof createTripSchema>;

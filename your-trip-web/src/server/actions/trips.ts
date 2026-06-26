@@ -210,7 +210,7 @@ export async function addItineraryItem(tripId: string, input: ItineraryItemInput
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return { error: { message: "กรุณาเข้าสู่ระบบ" } };
 
-    const { day, title, time, notes, placeId, googlePlaceId, lat, lng, duration, travelTimeTo, cost } = parsed.data;
+    const { day, title, time, notes, placeId, googlePlaceId, lat, lng, duration, travelTimeTo, cost, imageUrl } = parsed.data;
 
     // Find or create TripDay
     let tripDay = await prisma.tripDay.findUnique({
@@ -238,6 +238,10 @@ export async function addItineraryItem(tripId: string, input: ItineraryItemInput
         duration: duration ?? undefined,
         travelTimeTo: travelTimeTo ?? undefined,
         cost: cost ?? undefined,
+        // TODO: remove @ts-ignore after running `npx prisma generate`
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+        // @ts-ignore
+        imageUrl: imageUrl ?? undefined,
         order: maxOrder,
       },
     });
@@ -272,7 +276,7 @@ export async function reorderItinerary(tripId: string, day: number, itemIds: str
 
 export async function updateTripItem(
   itemId: string,
-  patch: { duration?: number; travelTimeTo?: number; cost?: number; note?: string; time?: string }
+  patch: { duration?: number; travelTimeTo?: number; cost?: number; note?: string; time?: string; imageUrl?: string | null }
 ) {
   try {
     await prisma.tripItem.update({
@@ -283,6 +287,7 @@ export async function updateTripItem(
         ...(patch.cost !== undefined && { cost: patch.cost }),
         ...(patch.note !== undefined && { note: patch.note }),
         ...(patch.time !== undefined && { time: patch.time }),
+        ...(patch.imageUrl !== undefined && { imageUrl: patch.imageUrl }),
       },
     });
     return { data: { success: true } };
