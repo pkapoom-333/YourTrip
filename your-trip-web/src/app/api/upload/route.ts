@@ -5,10 +5,28 @@ import { createClient } from "@/lib/supabase/server";
 
 // ── Storage detection (evaluated once at cold start) ─────────────────────────
 const BLOB_CONFIGURED = !!process.env.BLOB_READ_WRITE_TOKEN;
+
+const CLOUDINARY_PLACEHOLDER_NAMES = new Set([
+  "root",
+  "your-cloud-name",
+  "changeme",
+  "xxx",
+  "example",
+]);
+
+function resolveCloudinaryCloudName(): string | undefined {
+  const name = process.env.CLOUDINARY_CLOUD_NAME?.trim();
+  if (!name || CLOUDINARY_PLACEHOLDER_NAMES.has(name.toLowerCase())) return undefined;
+  // Cloudinary cloud names are short alphanumeric identifiers (e.g. dczrvpbnn)
+  if (!/^[a-z0-9_-]+$/i.test(name)) return undefined;
+  return name;
+}
+
+const CLOUDINARY_CLOUD_NAME = resolveCloudinaryCloudName();
 const CLOUDINARY_CONFIGURED =
-  !!process.env.CLOUDINARY_CLOUD_NAME &&
-  !!process.env.CLOUDINARY_API_KEY &&
-  !!process.env.CLOUDINARY_API_SECRET;
+  !!CLOUDINARY_CLOUD_NAME &&
+  !!process.env.CLOUDINARY_API_KEY?.trim() &&
+  !!process.env.CLOUDINARY_API_SECRET?.trim();
 
 type UploadMode = "blob" | "cloudinary" | "unavailable";
 const UPLOAD_MODE: UploadMode = BLOB_CONFIGURED ? "blob"
@@ -17,10 +35,20 @@ const UPLOAD_MODE: UploadMode = BLOB_CONFIGURED ? "blob"
 
 if (CLOUDINARY_CONFIGURED) {
   cloudinary.config({
-    cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+    cloud_name: CLOUDINARY_CLOUD_NAME,
     api_key: process.env.CLOUDINARY_API_KEY,
     api_secret: process.env.CLOUDINARY_API_SECRET,
   });
+} else if (
+  process.env.CLOUDINARY_CLOUD_NAME?.trim() &&
+  process.env.CLOUDINARY_API_KEY?.trim() &&
+  process.env.CLOUDINARY_API_SECRET?.trim()
+) {
+  console.warn(
+    "[upload] CLOUDINARY_* vars are set but cloud_name is invalid —",
+    `got "${process.env.CLOUDINARY_CLOUD_NAME}".`,
+    "Use the value from Cloudinary Dashboard → Product environment credentials.",
+  );
 }
 
 const IMAGE_MAX_BYTES = 4 * 1024 * 1024;
