@@ -11,21 +11,16 @@ export const metadata: Metadata = {
   alternates: { canonical: `${SITE_URL}/feed` },
 };
 import { type PostCardData } from "@/components/features/PostCard";
-import { getFeed, getTrendingHashtags, getActiveUsers, type ActiveUser } from "@/server/actions/posts";
+import { getFeed, getTrendingHashtags } from "@/server/actions/posts";
 import { getPlaces } from "@/server/actions/places";
 import { getPublicTrips } from "@/server/actions/trips";
+import { getStories } from "@/server/actions/stories";
+import { getProfile } from "@/server/actions/profile";
+import { createClient } from "@/lib/supabase/server";
 import { MapPin as MapPinIcon } from "lucide-react";
 import { FeedPostsClient } from "./FeedPostsClient";
 import SuggestedUsers from "@/components/features/SuggestedUsers";
-
-const STORY_BG_COLORS = [
-  "bg-orange-400", "bg-pink-400", "bg-emerald-400",
-  "bg-violet-400", "bg-amber-400", "bg-sky-400",
-  "bg-rose-400",   "bg-teal-400",  "bg-indigo-400",
-  "bg-lime-500",   "bg-cyan-400",  "bg-fuchsia-400",
-];
-
-
+import StoriesRow from "@/components/features/StoriesRow";
 
 const fmtTime = (d: Date) => {
   const diff = Date.now() - new Date(d).getTime();
@@ -37,19 +32,28 @@ const fmtTime = (d: Date) => {
 };
 
 export default async function FeedPage() {
+  const supabase = await createClient();
+  const { data: { user: authUser } } = await supabase.auth.getUser();
+
   const [
     { data: dbPosts, nextCursor, hasMore },
     { data: featuredPlaces },
     { data: communityTrips },
     { data: trendingHashtags },
-    { data: activeUsers },
+    storyResult,
+    myProfileResult,
   ] = await Promise.all([
     getFeed(),
     getPlaces({ featured: true, take: 3 }),
     getPublicTrips(3),
     getTrendingHashtags(6),
-    getActiveUsers(12),
+    getStories(),
+    authUser ? getProfile(authUser.id) : Promise.resolve({ data: null }),
   ]);
+
+  const storyGroups = storyResult.data;
+  const myUserId = storyResult.myUserId;
+  const myProfile = myProfileResult.data;
 
   const feedPosts: PostCardData[] = dbPosts.map((p) => ({
     id: p.id,
@@ -103,65 +107,14 @@ export default async function FeedPage() {
               </button>
             </div>
 
-            {/* Stories — active travelers row */}
+            {/* Stories row — real IG-style stories */}
             <div className="bg-white dark:bg-slate-800 md:rounded-2xl border border-gray-100 dark:border-slate-700 px-4 py-4 mb-3">
-              <div className="flex gap-4 overflow-x-auto scrollbar-none">
-                {/* Add story button */}
-                <Link href="/create" className="flex flex-col items-center gap-1.5 flex-shrink-0">
-                  <div className="w-14 h-14 rounded-full flex items-center justify-center bg-gray-100 dark:bg-slate-700 border-2 border-dashed border-gray-300 dark:border-slate-600">
-                    <span className="font-bold text-sm text-gray-400 dark:text-slate-500">+</span>
-                  </div>
-                  <span className="text-[10px] text-gray-500 dark:text-slate-400 w-14 text-center truncate">เพิ่มโพสต์</span>
-                </Link>
-
-                {/* Real active users */}
-                {activeUsers.length > 0
-                  ? activeUsers.map((u: ActiveUser, i: number) => {
-                      const initials = (u.name ?? u.username ?? "U")
-                        .split(" ")
-                        .map((w) => w[0])
-                        .join("")
-                        .slice(0, 2)
-                        .toUpperCase();
-                      const bg = STORY_BG_COLORS[i % STORY_BG_COLORS.length];
-                      const href = `/profile/${u.id}`;
-                      const label = u.name ?? u.username ?? "Traveler";
-                      return (
-                        <Link key={u.id} href={href} className="flex flex-col items-center gap-1.5 flex-shrink-0">
-                          <div className="p-[2px] rounded-full bg-gradient-to-tr from-[#398AB9] to-[#1C658C]">
-                            {u.avatarUrl ? (
-                              <img
-                                src={u.avatarUrl}
-                                alt={label}
-                                className="w-14 h-14 rounded-full object-cover border-2 border-white dark:border-slate-800"
-                              />
-                            ) : (
-                              <div className={`w-14 h-14 rounded-full flex items-center justify-center border-2 border-white dark:border-slate-800 ${bg}`}>
-                                <span className="font-bold text-sm text-white">{initials}</span>
-                              </div>
-                            )}
-                          </div>
-                          <span className="text-[10px] text-gray-500 dark:text-slate-400 w-14 text-center truncate">{label}</span>
-                        </Link>
-                      );
-                    })
-                  : /* Fallback mock when DB has no recent posts */
-                    (["free people", "shy girl", "wanderer", "travelmate", "adventurer", "nomad"] as const).map((name, i) => {
-                      const bg = STORY_BG_COLORS[i];
-                      const initials = name.split(" ").map((w) => w[0]).join("").slice(0, 2).toUpperCase();
-                      return (
-                        <button key={name} className="flex flex-col items-center gap-1.5 flex-shrink-0">
-                          <div className="p-[2px] rounded-full bg-gradient-to-tr from-[#398AB9] to-[#1C658C]">
-                            <div className={`w-14 h-14 rounded-full flex items-center justify-center border-2 border-white dark:border-slate-800 ${bg}`}>
-                              <span className="font-bold text-sm text-white">{initials}</span>
-                            </div>
-                          </div>
-                          <span className="text-[10px] text-gray-500 dark:text-slate-400 w-14 text-center truncate">{name}</span>
-                        </button>
-                      );
-                    })
-                }
-              </div>
+              <StoriesRow
+                groups={storyGroups}
+                myUserId={myUserId}
+                myAvatarUrl={myProfile?.avatarUrl}
+                myName={myProfile?.name ?? myProfile?.username ?? undefined}
+              />
             </div>
 
             {/* Posts — client component with infinite scroll */}

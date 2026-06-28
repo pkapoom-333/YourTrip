@@ -15,12 +15,20 @@ export async function GET(request: NextRequest) {
       try {
         const { data: { user } } = await supabase.auth.getUser();
         if (user && prisma) {
+          // Check if user already exists (to preserve custom avatar)
+          const existing = await prisma.user.findUnique({
+            where: { id: user.id },
+            select: { avatarUrl: true },
+          });
           await prisma.user.upsert({
             where: { id: user.id },
             update: {
               email: user.email ?? "",
               name: user.user_metadata?.full_name ?? null,
-              avatarUrl: user.user_metadata?.avatar_url ?? null,
+              // Only update avatarUrl from Google if user hasn't set a custom one
+              ...(existing?.avatarUrl === null || existing?.avatarUrl === undefined
+                ? { avatarUrl: user.user_metadata?.avatar_url ?? null }
+                : {}),
             },
             create: {
               id: user.id,

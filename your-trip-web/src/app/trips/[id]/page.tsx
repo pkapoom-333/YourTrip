@@ -475,21 +475,37 @@ function ItemCard({
   const mapsUrl = getMapsUrl(item);
 
   return (
+    <>
     <div className="bg-white dark:bg-slate-800 rounded-2xl border border-gray-100 dark:border-slate-700 overflow-hidden hover:shadow-sm transition-shadow">
       {/* Photo strip */}
-      {item.photo && (
-        <div className="relative w-full h-28">
-          <img src={item.photo} alt={item.name} className="w-full h-full object-cover" />
+      {item.photo ? (
+        <div className="relative w-full h-36 overflow-hidden">
+          <img src={item.photo} alt={item.name} className="w-full h-full object-cover" referrerPolicy="no-referrer" />
+          {/* Gradient overlay with place name */}
+          <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent pointer-events-none" />
+          <span className="absolute bottom-2 left-3 text-white text-xs font-semibold drop-shadow line-clamp-1">{item.name}</span>
           {isOwner && (
             <button
               onClick={() => { onUpdatePhoto(item.id, null); updateTripItem(item.id, { imageUrl: null }).catch(() => {}); }}
-              className="absolute top-1.5 right-1.5 w-6 h-6 bg-black/60 rounded-full flex items-center justify-center hover:bg-black/80 transition"
+              className="absolute top-2 right-2 w-6 h-6 bg-black/60 rounded-full flex items-center justify-center hover:bg-black/80 transition"
             >
               <X className="w-3 h-3 text-white" />
             </button>
           )}
         </div>
-      )}
+      ) : isOwner ? (
+        /* Photo placeholder — tap to upload */
+        <button
+          onClick={() => photoInputRef.current?.click()}
+          disabled={photoUploading}
+          className="w-full h-10 flex items-center justify-center gap-2 bg-gray-50 dark:bg-slate-700/50 border-b border-gray-100 dark:border-slate-700 hover:bg-gray-100 dark:hover:bg-slate-700 transition text-gray-400 dark:text-slate-500 hover:text-[#398AB9] dark:hover:text-[#398AB9]"
+        >
+          {photoUploading
+            ? <Loader2 className="w-3.5 h-3.5 animate-spin" />
+            : <><Camera className="w-3.5 h-3.5" /><span className="text-xs">เพิ่มรูปภาพ</span></>
+          }
+        </button>
+      ) : null}
       <div className="p-3.5">
         <div className="flex items-start gap-3">
           {isOwner && <GripVertical className="w-4 h-4 text-gray-300 dark:text-slate-600 mt-0.5 flex-shrink-0 cursor-grab" />}
@@ -561,26 +577,7 @@ function ItemCard({
                 {expanded ? <ChevronUp className="w-3.5 h-3.5" /> : <ChevronDown className="w-3.5 h-3.5" />}
               </button>
             )}
-            {/* Photo upload button */}
-            {isOwner && !item.photo && (
-              <>
-                <button
-                  onClick={() => photoInputRef.current?.click()}
-                  disabled={photoUploading}
-                  className="text-gray-300 dark:text-slate-600 hover:text-[#398AB9] dark:hover:text-[#398AB9] transition p-1"
-                  title="เพิ่มรูปภาพ"
-                >
-                  {photoUploading ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Camera className="w-3.5 h-3.5" />}
-                </button>
-                <input
-                  ref={photoInputRef}
-                  type="file"
-                  accept="image/jpeg,image/png,image/webp"
-                  className="hidden"
-                  onChange={(e) => { if (e.target.files?.[0]) handlePhotoUpload(e.target.files[0]); }}
-                />
-              </>
-            )}
+
             {/* Google Maps link */}
             <a
               href={mapsUrl}
@@ -600,6 +597,15 @@ function ItemCard({
         </div>
       </div>
     </div>
+    {/* Hidden file input for photo upload */}
+    <input
+      ref={photoInputRef}
+      type="file"
+      accept="image/jpeg,image/png,image/webp"
+      className="hidden"
+      onChange={(e) => { if (e.target.files?.[0]) handlePhotoUpload(e.target.files[0]); }}
+    />
+    </>
   );
 }
 

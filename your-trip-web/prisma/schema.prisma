@@ -46,8 +46,10 @@ model User {
   savedPlaces   SavedPlace[]
   collections   Collection[]
   reports       Report[]
-  blockedBy     Block[]      @relation("BlockedUser")
-  blocking      Block[]      @relation("BlockerUser")
+  blockedBy     Block[]          @relation("BlockedUser")
+  blocking      Block[]          @relation("BlockerUser")
+  stories       Story[]
+  storyViews    StoryView[]      @relation("StoryViewer")
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -349,6 +351,41 @@ model TripItem {
   place Place?  @relation(fields: [placeId], references: [id])
 
   @@map("trip_items")
+}
+
+// ─────────────────────────────────────────
+// STORIES (Instagram-style 24h stories)
+// ─────────────────────────────────────────
+
+model Story {
+  id         String   @id @default(uuid())
+  userId     String
+  mediaUrl   String              // Cloudinary / Vercel Blob URL
+  mediaType  String   @default("image")  // "image" | "video"
+  caption    String?
+  duration   Int      @default(5000)     // ms to show (image only)
+  expiresAt  DateTime            // createdAt + 24h
+
+  user  User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  views StoryView[]
+
+  createdAt DateTime @default(now())
+
+  @@map("stories")
+}
+
+model StoryView {
+  id       String @id @default(uuid())
+  storyId  String
+  viewerId String
+
+  story  Story @relation(fields: [storyId], references: [id], onDelete: Cascade)
+  viewer User  @relation("StoryViewer", fields: [viewerId], references: [id], onDelete: Cascade)
+
+  viewedAt DateTime @default(now())
+
+  @@unique([storyId, viewerId])
+  @@map("story_views")
 }
 
 // ─────────────────────────────────────────
