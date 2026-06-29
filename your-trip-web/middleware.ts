@@ -45,6 +45,7 @@ export async function middleware(request: NextRequest) {
     "/notifications",
     "/settings",
     "/create",
+    "/messages",
   ];
   const isProtected = protectedRoutes.some((route) =>
     request.nextUrl.pathname.startsWith(route)

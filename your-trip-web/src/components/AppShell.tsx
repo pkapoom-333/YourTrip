@@ -5,32 +5,34 @@ import { usePathname, useRouter } from "next/navigation";
 import { useState, useEffect, useRef } from "react";
 import {
   Home, PlusSquare, MapPin, User,
-  Compass, Bell, Settings, Users, LogOut, UserSearch, BookMarked, Search,
+  Compass, Bell, Settings, Users, LogOut, UserSearch, BookMarked, Search, MessageSquare,
 } from "lucide-react";
 import { useUser } from "@/hooks/useUser";
 import { createClient } from "@/lib/supabase/client";
 import { getUnreadCount } from "@/server/actions/notifications";
+import { getTotalUnreadMessages } from "@/server/actions/messages";
 import { PWAInstallPrompt } from "@/components/PWAInstallPrompt";
 import { useToast } from "@/components/shared/Toast";
 
 // Desktop sidebar nav (all items)
 const sidebarItems = [
-  { href: "/feed",          icon: Home,       label: "หน้าหลัก" },
-  { href: "/explore",       icon: Compass,    label: "สำรวจ" },
-  { href: "/trips",         icon: MapPin,     label: "ทริป" },
-  { href: "/search/users",  icon: UserSearch, label: "ค้นหาคน" },
-  { href: "/search/posts",  icon: Search,     label: "ค้นหาโพสต์" },
-  { href: "/collections",   icon: BookMarked, label: "คอลเลกชัน" },
-  { href: "/buddy",         icon: Users,      label: "Travel Buddy" },
-  { href: "/profile",       icon: User,       label: "โปรไฟล์" },
+  { href: "/feed",          icon: Home,          label: "หน้าหลัก" },
+  { href: "/explore",       icon: Compass,       label: "สำรวจ" },
+  { href: "/trips",         icon: MapPin,        label: "ทริป" },
+  { href: "/messages",      icon: MessageSquare, label: "ข้อความ" },
+  { href: "/search/users",  icon: UserSearch,    label: "ค้นหาคน" },
+  { href: "/search/posts",  icon: Search,        label: "ค้นหาโพสต์" },
+  { href: "/collections",   icon: BookMarked,    label: "คอลเลกชัน" },
+  { href: "/buddy",         icon: Users,         label: "Travel Buddy" },
+  { href: "/profile",       icon: User,          label: "โปรไฟล์" },
 ];
 
 // Mobile bottom nav (4 items only — create button is separate)
 const mobileNavItems = [
-  { href: "/feed",          icon: Home,    label: "หน้าหลัก" },
-  { href: "/explore",       icon: Compass, label: "สำรวจ" },
-  { href: "/notifications", icon: Bell,    label: "แจ้งเตือน" },
-  { href: "/profile",       icon: User,    label: "โปรไฟล์" },
+  { href: "/feed",          icon: Home,          label: "หน้าหลัก" },
+  { href: "/explore",       icon: Compass,       label: "สำรวจ" },
+  { href: "/messages",      icon: MessageSquare, label: "ข้อความ" },
+  { href: "/profile",       icon: User,          label: "โปรไฟล์" },
 ];
 
 function getInitials(name?: string | null, email?: string | null): string {
@@ -67,6 +69,7 @@ function isNotifTypeAllowed(type: string): boolean {
 function useNotificationBadge() {
   const { user } = useUser();
   const [unread, setUnread] = useState(0);
+  const [msgUnread, setMsgUnread] = useState(0);
   const { info } = useToast();
   const infoRef = useRef(info);
   useEffect(() => { infoRef.current = info; }, [info]);
@@ -74,9 +77,10 @@ function useNotificationBadge() {
   // Initial fetch
   useEffect(() => {
     getUnreadCount().then(({ count }) => setUnread(count)).catch(() => {});
+    getTotalUnreadMessages().then((n) => setMsgUnread(n)).catch(() => {});
   }, []);
 
-  // Supabase Realtime — one channel per AppShell mount
+  // Supabase Realtime — notifications
   useEffect(() => {
     if (!user?.id) return;
     const supabase = createClient();
@@ -98,20 +102,46 @@ function useNotificationBadge() {
     return () => { supabase.removeChannel(channel); };
   }, [user?.id]);
 
-  return { unread, setUnread };
+  // Supabase Realtime — new messages directed to current user
+  useEffect(() => {
+    if (!user?.id) return;
+    const supabase = createClient();
+    const channel = supabase
+      .channel(`msg-badge-${user.id}`)
+      .on(
+        "postgres_changes",
+        { event: "INSERT", schema: "public", table: "messages" },
+        (payload: { new: Record<string, unknown> }) => {
+          // Only count messages sent by others
+          if (payload.new.senderId !== user.id) {
+            setMsgUnread((n) => n + 1);
+          }
+        }
+      )
+      .subscribe();
+    return () => { supabase.removeChannel(channel); };
+  }, [user?.id]);
+
+  return { unread, setUnread, msgUnread, setMsgUnread };
 }
 
-interface BadgeProps { unread: number; setUnread: (n: number) => void; }
+interface BadgeProps {
+  unread: number;
+  setUnread: (n: number) => void;
+  msgUnread: number;
+  setMsgUnread: (n: number) => void;
+}
 
 /** Desktop sidebar — hidden on mobile */
-function Sidebar({ unread, setUnread }: BadgeProps) {
+function Sidebar({ unread, setUnread, msgUnread, setMsgUnread }: BadgeProps) {
   const path = usePathname();
   const router = useRouter();
   const { user } = useUser();
 
   useEffect(() => {
     if (path === "/notifications") setUnread(0);
-  }, [path, setUnread]);
+    if (path.startsWith("/messages")) setMsgUnread(0);
+  }, [path, setUnread, setMsgUnread]);
 
   async function handleSignOut() {
     const supabase = createClient();
@@ -133,6 +163,7 @@ function Sidebar({ unread, setUnread }: BadgeProps) {
       <nav className="flex-1 space-y-1">
         {sidebarItems.map(({ href, icon: Icon, label }) => {
           const active = path === href || path.startsWith(href + "/");
+          const isMsg = href === "/messages";
           return (
             <Link key={href} href={href}
               className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all ${
@@ -140,8 +171,20 @@ function Sidebar({ unread, setUnread }: BadgeProps) {
                   ? "bg-[#398AB9]/10 text-[#398AB9]"
                   : "text-gray-500 dark:text-slate-400 hover:bg-gray-50 dark:hover:bg-slate-700 hover:text-gray-800 dark:hover:text-slate-100"
               }`}>
-              <Icon className="w-5 h-5" strokeWidth={active ? 2.5 : 1.8} />
+              <div className="relative">
+                <Icon className="w-5 h-5" strokeWidth={active ? 2.5 : 1.8} />
+                {isMsg && msgUnread > 0 && (
+                  <span className="absolute -top-1.5 -right-1.5 min-w-[14px] h-3.5 bg-[#398AB9] text-white text-[9px] font-bold rounded-full flex items-center justify-center px-0.5">
+                    {msgUnread > 9 ? "9+" : msgUnread}
+                  </span>
+                )}
+              </div>
               {label}
+              {isMsg && msgUnread > 0 && (
+                <span className="ml-auto text-[11px] font-bold bg-[#398AB9] text-white px-1.5 py-0.5 rounded-full">
+                  {msgUnread}
+                </span>
+              )}
             </Link>
           );
         })}
@@ -216,28 +259,30 @@ function Sidebar({ unread, setUnread }: BadgeProps) {
 }
 
 /** Mobile bottom nav — hidden on desktop */
-function BottomNav({ unread, setUnread }: BadgeProps) {
+function BottomNav({ unread, setUnread, msgUnread, setMsgUnread }: BadgeProps) {
   const path = usePathname();
 
   useEffect(() => {
     if (path === "/notifications") setUnread(0);
-  }, [path, setUnread]);
+    if (path.startsWith("/messages")) setMsgUnread(0);
+  }, [path, setUnread, setMsgUnread]);
 
   return (
     <nav className="md:hidden fixed bottom-0 left-0 right-0 z-50 bg-white dark:bg-slate-800 border-t border-gray-100 dark:border-slate-700">
       <div className="flex items-center justify-around px-2 py-2">
         {mobileNavItems.map(({ href, icon: Icon, label }) => {
           const active = path === href || path.startsWith(href + "/");
-          const isNotif = href === "/notifications";
+          const isMsg = href === "/messages";
+          const badge = isMsg ? msgUnread : (href === "/notifications" ? unread : 0);
           return (
             <Link key={href} href={href}
               className="flex flex-col items-center gap-0.5 px-3 py-1 min-w-0">
               <div className="relative">
                 <Icon className={`w-5 h-5 ${active ? "text-[#398AB9]" : "text-gray-400 dark:text-slate-500"}`}
                   strokeWidth={active ? 2.5 : 1.8} />
-                {isNotif && unread > 0 && (
-                  <span className="absolute -top-1.5 -right-1.5 min-w-[14px] h-3.5 bg-red-500 text-white text-[9px] font-bold rounded-full flex items-center justify-center px-0.5">
-                    {unread > 9 ? "9+" : unread}
+                {badge > 0 && (
+                  <span className={`absolute -top-1.5 -right-1.5 min-w-[14px] h-3.5 text-white text-[9px] font-bold rounded-full flex items-center justify-center px-0.5 ${isMsg ? "bg-[#398AB9]" : "bg-red-500"}`}>
+                    {badge > 9 ? "9+" : badge}
                   </span>
                 )}
               </div>
@@ -260,17 +305,16 @@ function BottomNav({ unread, setUnread }: BadgeProps) {
 
 /** Wrap app pages with this */
 export default function AppShell({ children }: { children: React.ReactNode }) {
-  // Single notification badge subscription shared across Sidebar + BottomNav
-  const { unread, setUnread } = useNotificationBadge();
+  const { unread, setUnread, msgUnread, setMsgUnread } = useNotificationBadge();
 
   return (
     <div className="min-h-screen bg-[#F8FAFC] dark:bg-slate-900">
-      <Sidebar unread={unread} setUnread={setUnread} />
+      <Sidebar unread={unread} setUnread={setUnread} msgUnread={msgUnread} setMsgUnread={setMsgUnread} />
       {/* main content shifts right on desktop */}
       <main className="md:pl-64 pb-20 md:pb-0 min-h-screen">
         {children}
       </main>
-      <BottomNav unread={unread} setUnread={setUnread} />
+      <BottomNav unread={unread} setUnread={setUnread} msgUnread={msgUnread} setMsgUnread={setMsgUnread} />
       <PWAInstallPrompt />
     </div>
   );

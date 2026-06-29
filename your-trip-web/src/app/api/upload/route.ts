@@ -72,6 +72,34 @@ export async function POST(req: NextRequest) {
 
   const contentType = req.headers.get("content-type") ?? "";
 
+  // ── Vercel Blob: FormData → server-side put (used by StoryUpload, PostCreate, etc.) ─
+  if (UPLOAD_MODE === "blob" && contentType.includes("multipart/form-data")) {
+    try {
+      const { put } = await import("@vercel/blob");
+      const formData = await req.formData();
+      const file = formData.get("file") as File | null;
+      const folder = (formData.get("folder") as string) || "uploads";
+
+      if (!file) return NextResponse.json({ error: "ไม่พบไฟล์" }, { status: 400 });
+      if (!ALLOWED_TYPES.includes(file.type))
+        return NextResponse.json({ error: "รองรับ JPEG, PNG, WebP, GIF, MP4, WebM, MOV" }, { status: 400 });
+      const isVideo = ALLOWED_VIDEO_TYPES.includes(file.type);
+      if (file.size > (isVideo ? VIDEO_MAX_BYTES : IMAGE_MAX_BYTES))
+        return NextResponse.json({ error: `ไฟล์ต้องไม่เกิน ${isVideo ? "50" : "4"} MB` }, { status: 400 });
+
+      const ext = file.name.split(".").pop() ?? "bin";
+      const filename = `${folder}/${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`;
+      const blob = await put(filename, file, {
+        access: "public",
+        token: process.env.BLOB_READ_WRITE_TOKEN,
+      });
+      return NextResponse.json({ url: blob.url });
+    } catch (err) {
+      console.error("[upload] blob formdata error:", err);
+      return NextResponse.json({ error: "อัปโหลดล้มเหลว กรุณาลองใหม่" }, { status: 500 });
+    }
+  }
+
   // ── Vercel Blob: JSON handshake → client uploads directly to Vercel ─────────
   if (UPLOAD_MODE === "blob" && contentType.includes("application/json")) {
     const body = (await req.json()) as HandleUploadBody;
@@ -141,13 +169,13 @@ export async function POST(req: NextRequest) {
       });
     } catch (err) {
       console.error("[upload] cloudinary error:", err);
-      return NextResponse.json({ error: "อัปโหลดล้มเหลือ กรุณาลองใหม่" }, { status: 500 });
+      return NextResponse.json({ error: "\u0e2d\u0e31\u0e1b\u0e42\u0e2b\u0e25\u0e14\u0e25\u0e49\u0e21\u0e40\u0e2b\u0e25\u0e37\u0e2d \u0e01\u0e23\u0e38\u0e13\u0e32\u0e25\u0e2d\u0e07\u0e43\u0e2b\u0e21\u0e48" }, { status: 500 });
     }
   }
 
-  // ── No storage configured ─────────────────────────────────────────────────────────────────────
+  // \u2500\u2500 No storage configured \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
   return NextResponse.json(
-    { error: "ยังไม่ได้ตั้งค่า storage — กรุณาตั้งค่า Vercel Blob หรือ Cloudinary" },
+    { error: "\u0e22\u0e31\u0e07\u0e44\u0e21\u0e48\u0e44\u0e14\u0e49\u0e15\u0e31\u0e49\u0e07\u0e04\u0e48\u0e32 storage \u2014 \u0e01\u0e23\u0e38\u0e13\u0e32\u0e15\u0e31\u0e49\u0e07\u0e04\u0e48\u0e32 Vercel Blob \u0e2b\u0e23\u0e37\u0e2d Cloudinary" },
     { status: 503 }
   );
 }
