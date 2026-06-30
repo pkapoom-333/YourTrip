@@ -52,6 +52,8 @@ model User {
   storyViews    StoryView[]      @relation("StoryViewer")
   conversations ConversationParticipant[]
   sentMessages  Message[]        @relation("MessageSender")
+  expenseGroupsCreated ExpenseGroup[]       @relation("ExpenseGroupCreator")
+  expenseGroupMemberships ExpenseGroupMember[] @relation("ExpenseGroupMemberships")
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -524,4 +526,95 @@ model Message {
   sender         User         @relation("MessageSender", fields: [senderId], references: [id], onDelete: Cascade)
 
   @@map("messages")
+}
+
+// ─────────────────────────────────────────
+// EXPENSE SPLITTER — ขุนทอง-style
+// ─────────────────────────────────────────
+
+model ExpenseGroup {
+  id          String   @id @default(uuid())
+  name        String
+  description String?
+  emoji       String   @default("💰")
+  tripId      String?
+  createdById String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  createdBy User                 @relation("ExpenseGroupCreator", fields: [createdById], references: [id])
+  members   ExpenseGroupMember[]
+  expenses  Expense[]
+
+  @@map("expense_groups")
+}
+
+model ExpenseGroupMember {
+  id          String  @id @default(uuid())
+  groupId     String
+  userId      String?
+  name        String
+  avatarUrl   String?
+  promptPay   String?
+  bankAccount String?
+  bankName    String?
+  color       String  @default("#398AB9")
+
+  group            ExpenseGroup    @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  user             User?           @relation("ExpenseGroupMemberships", fields: [userId], references: [id])
+  paidExpenses     Expense[]       @relation("ExpensePayer")
+  splits           ExpenseSplit[]
+  receivedPayments PaymentRecord[] @relation("PaymentReceiver")
+  sentPayments     PaymentRecord[] @relation("PaymentSender")
+
+  @@map("expense_group_members")
+}
+
+model Expense {
+  id        String   @id @default(uuid())
+  groupId   String
+  name      String
+  amount    Float
+  currency  String   @default("THB")
+  paidById  String
+  splitType String   @default("equal")
+  notes     String?
+  category  String   @default("general")
+  date      DateTime @default(now())
+  createdAt DateTime @default(now())
+
+  group  ExpenseGroup       @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  paidBy ExpenseGroupMember @relation("ExpensePayer", fields: [paidById], references: [id])
+  splits ExpenseSplit[]
+
+  @@map("expenses")
+}
+
+model ExpenseSplit {
+  id        String  @id @default(uuid())
+  expenseId String
+  memberId  String
+  amount    Float
+  isPaid    Boolean @default(false)
+
+  expense Expense            @relation(fields: [expenseId], references: [id], onDelete: Cascade)
+  member  ExpenseGroupMember @relation(fields: [memberId], references: [id], onDelete: Cascade)
+
+  @@unique([expenseId, memberId])
+  @@map("expense_splits")
+}
+
+model PaymentRecord {
+  id      String   @id @default(uuid())
+  groupId String
+  fromId  String
+  toId    String
+  amount  Float
+  note    String?
+  paidAt  DateTime @default(now())
+
+  from ExpenseGroupMember @relation("PaymentSender", fields: [fromId], references: [id])
+  to   ExpenseGroupMember @relation("PaymentReceiver", fields: [toId], references: [id])
+
+  @@map("payment_records")
 }

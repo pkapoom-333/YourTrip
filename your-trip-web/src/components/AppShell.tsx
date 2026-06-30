@@ -5,7 +5,7 @@ import { usePathname, useRouter } from "next/navigation";
 import { useState, useEffect, useRef } from "react";
 import {
   Home, PlusSquare, MapPin, User,
-  Compass, Bell, Settings, Users, LogOut, UserSearch, BookMarked, Search, MessageSquare,
+  Compass, Bell, Settings, Users, LogOut, UserSearch, BookMarked, Search, MessageSquare, Receipt,
 } from "lucide-react";
 import { useUser } from "@/hooks/useUser";
 import { createClient } from "@/lib/supabase/client";
@@ -24,6 +24,7 @@ const sidebarItems = [
   { href: "/search/posts",  icon: Search,        label: "ค้นหาโพสต์" },
   { href: "/collections",   icon: BookMarked,    label: "คอลเลกชัน" },
   { href: "/buddy",         icon: Users,         label: "Travel Buddy" },
+  { href: "/expense",       icon: Receipt,       label: "หารค่าใช้จ่าย" },
   { href: "/profile",       icon: User,          label: "โปรไฟล์" },
 ];
 
@@ -304,7 +305,10 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
         {children}
       </main>
       <BottomNav unread={unread} setUnread={setUnread} msgUnread={msgUnread} setMsgUnread={setMsgUnread} />
-      <PWAInstallPrompt />
+    </div>
+  );
+}
+rompt />
     </div>
   );
 }
