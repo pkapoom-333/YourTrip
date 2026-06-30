@@ -29,7 +29,7 @@ async function ExpenseGroupList() {
   return (
     <div className="divide-y divide-gray-50 dark:divide-slate-800">
       {groups.map((g: (typeof groups)[0]) => {
-        const totalExpenses = g.expenses ? 0 : 0; // expenses not loaded here
+        const totalExpenses = 0; // loaded on detail page
         return (
           <Link key={g.id} href={`/expense/${g.id}`} className="flex items-center gap-3 px-4 py-3 hover:bg-gray-50 dark:hover:bg-slate-800/50 transition-colors">
             <div className="w-12 h-12 rounded-2xl bg-[#398AB9]/10 flex items-center justify-center text-2xl flex-shrink-0">

@@ -180,7 +180,8 @@ export async function getMessages(
 export async function sendMessage(
   conversationId: string,
   content: string,
-  type = "text"
+  type = "text",
+  mediaUrl?: string
 ): Promise<{ data: MessageItem | null; error?: string }> {
   try {
     const supabase = await createServerClient();
@@ -196,8 +197,9 @@ export async function sendMessage(
       data: {
         conversationId,
         senderId: user.id,
-        content: content.trim(),
+        content: content.trim() || " ",
         type,
+        mediaUrl: mediaUrl ?? null,
       },
       include: {
         sender: { select: { id: true, name: true, avatarUrl: true } },
@@ -309,6 +311,7 @@ export async function getTotalUnreadMessages(): Promise<number> {
         if (!p.lastReadAt || new Date(lastMsg.createdAt) > new Date(p.lastReadAt)) {
           count++;
         }
+
       }
     }
     return count;
