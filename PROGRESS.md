@@ -1,6 +1,36 @@
 # PROGRESS.md
 # Travel Community App — Dev Log
 
+## Status: Phase 3 | Day 24 | 2026-06-30
+
+→ **DONE Day 24 (2026-06-30)**: Admin Dashboard + Expense Splitter
+
+### Admin Dashboard (complete)
+  - **`server/actions/admin.ts`**: Full rewrite — `getDashboardStats`, `getAdminUsers`, `banUser`, `verifyUser`, `getAdminReports`, `dismissReport`, `deleteReportedPost`, `getAdminPlaces`, `createPlace`, `updatePlace`, `deletePlace`, `togglePlacePublished`, `togglePlaceFeatured`, `getGuideApplications`, `approveGuide`, `rejectGuide`
+  - **`/admin/layout.tsx`**: Auth guard (ADMIN_EMAILS env var) + AdminSidebar
+  - **`/admin/page.tsx`**: Dashboard — 6 stat cards + quick actions + alert banners
+  - **`/admin/users/`**: User list with search, verify/ban toggles, pagination
+  - **`/admin/reports/`**: Report management — dismiss or delete reported post
+  - **`/admin/places/`**: Place list + `PlaceFormClient` for create/edit with full fields
+  - **`/admin/places/new/`** + **`/admin/places/[id]/edit/`**: CRUD for travel destinations
+  - **`/admin/messages/`**: Chat system overview with conversation list
+  - **`/admin/loading.tsx`**: Skeleton loading
+  - **middleware**: `/admin` added to protected routes
+
+### Group Expense Splitter — ขุนทอง-style
+  - **Prisma schema**: `ExpenseGroup`, `ExpenseGroupMember`, `Expense`, `ExpenseSplit`, `PaymentRecord` models
+  - **Supabase migration**: All 5 tables created with RLS policies via Management API
+  - **`server/actions/expense.ts`**: `createExpenseGroup`, `getMyExpenseGroups`, `getExpenseGroup`, `addExpense`, `deleteExpense`, `markSplitPaid`, `recordPayment`, `getGroupBalances` (with debt simplification algorithm)
+  - **`/expense/page.tsx`**: Group list with emoji, member count, expense count
+  - **`/expense/new/`**: Create group with member setup — name, color, PromptPay, bank account
+  - **`/expense/[id]/`**: Group detail with 3 tabs: Expenses, Summary (balance + simplified debts), Members
+  - **AppShell**: Receipt icon + หารค่าใช้จ่าย added to sidebar nav
+  - **0 TypeScript errors** — 3 commits: `61d1037`, `460ba3c`, `5ea2ba8`
+
+→ **PENDING USER**:
+  1. Run `npx prisma generate` (or `regen_prisma.bat`) after any future schema changes
+  2. Set `ADMIN_EMAILS=pakpoomtee24@gmail.com` in Vercel env vars for admin access
+
 ## Status: Phase 3 | Day 23 | 2026-06-29
 
 → **DONE Day 23 (2026-06-29)**: Real-time Chat System
