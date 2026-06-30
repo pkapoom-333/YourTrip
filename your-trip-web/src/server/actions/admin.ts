@@ -472,3 +472,102 @@ export async function rejectGuide(userId: string): Promise<void> {
   await prisma.user.update({ where: { id: userId }, data: { isGuide: false } });
   revalidatePath("/admin/guides");
 }
+
+// ── Analytics ────────────────────────────────────────────────────────────────
+export interface DailyCount { date: string; count: number }
+export interface AdminAnalytics {
+  usersByDay: DailyCount[];
+  postsByDay: DailyCount[];
+  topPlaces: { id: string; name: string; saveCount: number; reviewCount: number }[];
+  topTags: { tag: string; count: number }[];
+  contentTypes: { type: string; count: number }[];
+}
+
+export async function getAdminAnalytics(): Promise<AdminAnalytics> {
+  try {
+    const supabase = await createServerClient();
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user?.email || !ADMIN_EMAILS.includes(user.email)) {
+      return { usersByDay: [], postsByDay: [], topPlaces: [], topTags: [], contentTypes: [] };
+    }
+
+    const thirtyDaysAgo = new Date();
+    thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+
+    // Users per day (last 30 days)
+    const users = await (prisma as any).user.findMany({
+      where: { createdAt: { gte: thirtyDaysAgo } },
+      select: { createdAt: true },
+    });
+    const usersByDay = aggregateByDay(users.map((u: { createdAt: Date }) => u.createdAt));
+
+    // Posts per day (last 30 days)
+    const posts = await (prisma as any).post.findMany({
+      where: { createdAt: { gte: thirtyDaysAgo } },
+      select: { createdAt: true, type: true },
+    });
+    const postsByDay = aggregateByDay(posts.map((p: { createdAt: Date }) => p.createdAt));
+
+    // Content type distribution
+    const typeCounts: Record<string, number> = {};
+    for (const p of posts as Array<{ type: string | null }>) {
+      const t = p.type ?? "text";
+      typeCounts[t] = (typeCounts[t] ?? 0) + 1;
+    }
+    const contentTypes = Object.entries(typeCounts).map(([type, count]) => ({ type, count }));
+
+    // Top places by saves + reviews
+    const places = await (prisma as any).place.findMany({
+      take: 10,
+      select: {
+        id: true,
+        name: true,
+        _count: { select: { savedByUsers: true, reviews: true } },
+      },
+      orderBy: { savedByUsers: { _count: "desc" } },
+    });
+    const topPlaces = places.map((p: {
+      id: string; name: string;
+      _count: { savedByUsers: number; reviews: number };
+    }) => ({
+      id: p.id, name: p.name,
+      saveCount: p._count.savedByUsers,
+      reviewCount: p._count.reviews,
+    }));
+
+    // Top tags
+    const postTags = await (prisma as any).post.findMany({
+      select: { tags: true },
+      where: { tags: { isEmpty: false } },
+    });
+    const tagCounts: Record<string, number> = {};
+    for (const p of postTags as Array<{ tags: string[] }>) {
+      for (const tag of p.tags) {
+        tagCounts[tag] = (tagCounts[tag] ?? 0) + 1;
+      }
+    }
+    const topTags = Object.entries(tagCounts)
+      .sort((a, b) => b[1] - a[1])
+      .slice(0, 10)
+      .map(([tag, count]) => ({ tag, count }));
+
+    return { usersByDay, postsByDay, topPlaces, topTags, contentTypes };
+  } catch {
+    return { usersByDay: [], postsByDay: [], topPlaces: [], topTags: [], contentTypes: [] };
+  }
+}
+
+function aggregateByDay(dates: Date[]): DailyCount[] {
+  const counts: Record<string, number> = {};
+  // Fill last 30 days with 0
+  for (let i = 29; i >= 0; i--) {
+    const d = new Date();
+    d.setDate(d.getDate() - i);
+    counts[d.toISOString().slice(0, 10)] = 0;
+  }
+  for (const d of dates) {
+    const key = new Date(d).toISOString().slice(0, 10);
+    if (key in counts) counts[key]++;
+  }
+  return Object.entries(counts).map(([date, count]) => ({ date, count }));
+}

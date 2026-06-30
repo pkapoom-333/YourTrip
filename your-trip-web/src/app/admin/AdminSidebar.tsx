@@ -4,7 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
   LayoutDashboard, Users, Flag, MapPin, ShieldCheck,
-  MessageSquare, ChevronRight, Menu, X,
+  MessageSquare, ChevronRight, Menu, X, BarChart2,
 } from "lucide-react";
 import { useState } from "react";
 
@@ -15,6 +15,7 @@ const NAV = [
   { href: "/admin/places", label: "สถานที่", icon: MapPin },
   { href: "/admin/guides", label: "ไกด์", icon: ShieldCheck },
   { href: "/admin/messages", label: "ข้อความ", icon: MessageSquare },
+  { href: "/admin/analytics", label: "Analytics", icon: BarChart2 },
 ];
 
 export default function AdminSidebar() {
