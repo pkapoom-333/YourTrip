@@ -4,7 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
   LayoutDashboard, Users, Flag, MapPin, ShieldCheck,
-  MessageSquare, ChevronRight, Menu, X, BarChart2, FileText,
+  MessageSquare, ChevronRight, Menu, X, BarChart2, FileText, Megaphone,
 } from "lucide-react";
 import { useState } from "react";
 
@@ -16,6 +16,7 @@ const NAV = [
   { href: "/admin/guides", label: "ไกด์", icon: ShieldCheck },
   { href: "/admin/messages", label: "ข้อความ", icon: MessageSquare },
   { href: "/admin/content", label: "โพสต์", icon: FileText },
+  { href: "/admin/broadcast", label: "Broadcast", icon: Megaphone },
   { href: "/admin/analytics", label: "Analytics", icon: BarChart2 },
 ];
 

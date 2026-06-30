@@ -738,3 +738,59 @@ export async function deletePost(postId: string): Promise<void> {
   revalidatePath("/admin/content");
   revalidatePath("/feed");
 }
+
+// ── Broadcast Notification ────────────────────────────────────────────────────
+export async function broadcastNotification(opts: {
+  title: string;
+  body: string;
+  audience: "all" | "new" | "active";
+  actionUrl?: string;
+}): Promise<{ sent: number }> {
+  await requireAdmin();
+
+  const since7Days = new Date();
+  since7Days.setDate(since7Days.getDate() - 7);
+
+  let userIds: string[] = [];
+
+  if (opts.audience === "all") {
+    const users = await (prisma as any).user.findMany({ select: { id: true } });
+    userIds = users.map((u: { id: string }) => u.id);
+  } else if (opts.audience === "new") {
+    const users = await (prisma as any).user.findMany({
+      where: { createdAt: { gte: since7Days } },
+      select: { id: true },
+    });
+    userIds = users.map((u: { id: string }) => u.id);
+  } else if (opts.audience === "active") {
+    const users = await (prisma as any).user.findMany({
+      where: { posts: { some: {} } },
+      select: { id: true },
+    });
+    userIds = users.map((u: { id: string }) => u.id);
+  }
+
+  if (userIds.length === 0) return { sent: 0 };
+
+  // Batch create notifications (100 at a time to avoid DB timeouts)
+  const BATCH = 100;
+  let sent = 0;
+  for (let i = 0; i < userIds.length; i += BATCH) {
+    const batch = userIds.slice(i, i + BATCH);
+    await (prisma as any).notification.createMany({
+      data: batch.map((userId: string) => ({
+        userId,
+        type: "SYSTEM",
+        title: opts.title,
+        body: opts.body,
+        actionUrl: opts.actionUrl ?? "/feed",
+        isRead: false,
+      })),
+      skipDuplicates: true,
+    });
+    sent += batch.length;
+  }
+
+  revalidatePath("/admin/broadcast");
+  return { sent };
+}
