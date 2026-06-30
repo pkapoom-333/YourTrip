@@ -571,3 +571,83 @@ function aggregateByDay(dates: Date[]): DailyCount[] {
   }
   return Object.entries(counts).map(([date, count]) => ({ date, count }));
 }
+
+
+// ── Recent Activity ───────────────────────────────────────────────────────────
+export interface ActivityItem {
+  id: string;
+  type: 'user_join' | 'new_post' | 'new_report' | 'guide_apply';
+  description: string;
+  userName: string | null;
+  createdAt: Date;
+}
+
+export async function getRecentActivity(limit = 20): Promise<ActivityItem[]> {
+  try {
+    await requireAdmin();
+    const since = new Date();
+    since.setDate(since.getDate() - 7);
+
+    const [users, posts, reports, guides] = await Promise.all([
+      (prisma as any).user.findMany({
+        where: { createdAt: { gte: since } },
+        select: { id: true, name: true, email: true, createdAt: true },
+        orderBy: { createdAt: "desc" },
+        take: limit,
+      }),
+      (prisma as any).post.findMany({
+        where: { createdAt: { gte: since } },
+        select: { id: true, createdAt: true, user: { select: { name: true } } },
+        orderBy: { createdAt: "desc" },
+        take: limit,
+      }),
+      (prisma as any).report.findMany({
+        where: { createdAt: { gte: since } },
+        select: { id: true, createdAt: true, reason: true, user: { select: { name: true } } },
+        orderBy: { createdAt: "desc" },
+        take: limit,
+      }),
+      (prisma as any).user.findMany({
+        where: { isGuide: true, createdAt: { gte: since } },
+        select: { id: true, name: true, createdAt: true },
+        orderBy: { createdAt: "desc" },
+        take: limit,
+      }),
+    ]);
+
+    const items: ActivityItem[] = [
+      ...users.map((u: { id: string; name: string | null; email: string | null; createdAt: Date }) => ({
+        id: `user-${u.id}`,
+        type: "user_join" as const,
+        description: "ผู้ใช้ใหม่เข้าร่วม",
+        userName: u.name ?? u.email ?? null,
+        createdAt: u.createdAt,
+      })),
+      ...posts.map((p: { id: string; createdAt: Date; user: { name: string | null } | null }) => ({
+        id: `post-${p.id}`,
+        type: "new_post" as const,
+        description: "โพสต์ใหม่",
+        userName: p.user?.name ?? null,
+        createdAt: p.createdAt,
+      })),
+      ...reports.map((r: { id: string; reason: string; createdAt: Date; user: { name: string | null } | null }) => ({
+        id: `report-${r.id}`,
+        type: "new_report" as const,
+        description: `รายงาน: ${r.reason}`,
+        userName: r.user?.name ?? null,
+        createdAt: r.createdAt,
+      })),
+      ...guides.map((g: { id: string; name: string | null; createdAt: Date }) => ({
+        id: `guide-${g.id}`,
+        type: "guide_apply" as const,
+        description: "สมัครเป็นไกด์",
+        userName: g.name ?? null,
+        createdAt: g.createdAt,
+      })),
+    ];
+
+    return items.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()).slice(0, limit);
+  } catch {
+    return [];
+  }
+}

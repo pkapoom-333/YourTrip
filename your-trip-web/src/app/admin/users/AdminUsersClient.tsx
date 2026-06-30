@@ -2,9 +2,9 @@
 
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { Search, ShieldCheck, Trash2, CheckCircle, XCircle } from "lucide-react";
+import { Search, ShieldCheck, Trash2, CheckCircle, XCircle, Ban } from "lucide-react";
 import type { AdminUser } from "@/server/actions/admin";
-import { verifyUser } from "@/server/actions/admin";
+import { verifyUser, banUser } from "@/server/actions/admin";
 import { Avatar } from "@/components/shared/Avatar";
 
 interface Props {
@@ -28,6 +28,12 @@ export default function AdminUsersClient({ initialUsers, total, initialSearch, i
 
   const handleVerify = async (userId: string, verified: boolean) => {
     await verifyUser(userId, verified);
+    router.refresh();
+  };
+
+  const handleBan = async (userId: string) => {
+    if (!confirm("แบน/ปลดแบนผู้ใช้นี้?")) return;
+    await banUser(userId);
     router.refresh();
   };
 
