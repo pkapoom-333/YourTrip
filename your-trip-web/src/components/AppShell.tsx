@@ -276,42 +276,31 @@ function BottomNav({ unread, setUnread, msgUnread, setMsgUnread }: BadgeProps) {
           const badge = isMsg ? msgUnread : (href === "/notifications" ? unread : 0);
           return (
             <Link key={href} href={href}
-              className="flex flex-col items-center gap-0.5 px-3 py-1 min-w-0">
+              className={`flex flex-col items-center gap-0.5 px-3 py-1 rounded-xl transition-all min-w-[56px] relative ${active ? "text-[#398AB9]" : "text-gray-400 dark:text-slate-500 hover:text-gray-600 dark:hover:text-slate-300"}`}
+            >
               <div className="relative">
-                <Icon className={`w-5 h-5 ${active ? "text-[#398AB9]" : "text-gray-400 dark:text-slate-500"}`}
-                  strokeWidth={active ? 2.5 : 1.8} />
+                <Icon className={`w-5 h-5 ${active ? "text-[#398AB9]" : ""}`} />
                 {badge > 0 && (
-                  <span className={`absolute -top-1.5 -right-1.5 min-w-[14px] h-3.5 text-white text-[9px] font-bold rounded-full flex items-center justify-center px-0.5 ${isMsg ? "bg-[#398AB9]" : "bg-red-500"}`}>
+                  <span className="absolute -top-1 -right-1 w-4 h-4 bg-[#FF4F4F] rounded-full text-white text-[9px] font-bold flex items-center justify-center">
                     {badge > 9 ? "9+" : badge}
                   </span>
                 )}
               </div>
-              <span className={`text-[10px] ${active ? "text-[#398AB9] font-semibold" : "text-gray-400 dark:text-slate-500"}`}>
-                {label}
-              </span>
+                <span className={`text-[10px] font-medium ${active ? "text-[#398AB9]" : ""}`}>{label}</span>
             </Link>
           );
         })}
-        <Link href="/create" className="flex flex-col items-center gap-0.5 px-3 py-1 -mt-4">
-          <div className="w-11 h-11 rounded-2xl bg-[#398AB9] flex items-center justify-center shadow-lg shadow-[#398AB9]/30">
-            <PlusSquare className="w-5 h-5 text-white" />
-          </div>
-          <span className="text-[10px] text-[#398AB9] font-semibold">โพสต์</span>
-        </Link>
       </div>
     </nav>
   );
 }
 
-/** Wrap app pages with this */
 export default function AppShell({ children }: { children: React.ReactNode }) {
   const { unread, setUnread, msgUnread, setMsgUnread } = useNotificationBadge();
-
   return (
     <div className="min-h-screen bg-[#F8FAFC] dark:bg-slate-900">
       <Sidebar unread={unread} setUnread={setUnread} msgUnread={msgUnread} setMsgUnread={setMsgUnread} />
-      {/* main content shifts right on desktop */}
-      <main className="md:pl-64 pb-20 md:pb-0 min-h-screen">
+      <main className="md:ml-64 pb-20 md:pb-0 min-h-screen">
         {children}
       </main>
       <BottomNav unread={unread} setUnread={setUnread} msgUnread={msgUnread} setMsgUnread={setMsgUnread} />

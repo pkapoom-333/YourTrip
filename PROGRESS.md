@@ -1,6 +1,23 @@
 # PROGRESS.md
 # Travel Community App — Dev Log
 
+## Status: Phase 3 | Day 23 | 2026-06-29
+
+→ **DONE Day 23 (2026-06-29)**: Real-time Chat System
+  - **Prisma schema**: Added `Conversation`, `ConversationParticipant`, `Message` models + `User.conversations` / `User.sentMessages` relations
+  - **`supabase_chat_migration.sql`** (project root) — run this in Supabase SQL Editor to create tables + RLS + Realtime
+  - **`server/actions/messages.ts`**: `getConversations`, `getOrCreateConversation`, `getMessages`, `sendMessage`, `markConversationRead`, `searchUsersForDM`, `getTotalUnreadMessages`
+  - **`/messages` page**: conversation list, unread badges, search/filter, new DM modal with user search + debounce
+  - **`/messages/[conversationId]` page**: `ChatWindow` client component — Supabase Realtime subscription, optimistic messages, date separators, voice call + video call via Jitsi Meet (free, no API key)
+  - **AppShell**: `MessageSquare` icon added to sidebar + mobile bottom nav (swapped out notifications), real-time unread badge via Realtime subscription
+  - **middleware**: `/messages` added to protected routes
+  - **0 TypeScript errors** — commit: `b99df47`
+
+→ **PENDING USER (CRITICAL)**:
+  1. Run `supabase_chat_migration.sql` in Supabase SQL Editor
+  2. After running SQL: `npx prisma generate` to get typed Prisma client for chat models
+  3. `git push github main` to deploy to Vercel
+
 ## Status: Phase 2 | Day 19 | 2026-06-17
 
 ## Current sprint task
