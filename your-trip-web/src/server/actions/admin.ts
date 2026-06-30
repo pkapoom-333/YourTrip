@@ -85,6 +85,39 @@ export interface AdminPlace {
   createdAt: string;
 }
 
+export interface PlaceFormData {
+  name: string;
+  nameEn?: string;
+  slug: string;
+  description?: string;
+  descriptionEn?: string;
+  category: string;
+  region: string;
+  province?: string;
+  address?: string;
+  lat?: number;
+  lng?: number;
+  phone?: string;
+  website?: string;
+  googleMapsUrl?: string;
+  priceRange: number;
+  entryFee?: number;
+  openDays: string[];
+  openTime?: string;
+  closeTime?: string;
+  hasWifi: boolean;
+  hasAC: boolean;
+  hasParking: boolean;
+  parkingFee?: number;
+  isVegetarian: boolean;
+  isAccessible: boolean;
+  isPublished: boolean;
+  isFeatured: boolean;
+  images: string[];
+}
+
+type ActionResult = { ok: true; id?: string; slug?: string } | { ok: false; error: string };
+
 // ─── Dashboard Stats ─────────────────────────────────────────────────────────
 
 export async function getDashboardStats(): Promise<DashboardStats> {
@@ -158,8 +191,8 @@ export async function getAdminUsers(opts?: { search?: string; page?: number }): 
           _count: { select: { posts: true, followers: true } },
         },
         orderBy: { createdAt: "desc" },
-        take,
         skip,
+        take,
       }),
       prisma.user.count({ where }),
     ]);
@@ -185,39 +218,30 @@ export async function getAdminUsers(opts?: { search?: string; page?: number }): 
   }
 }
 
-export async function banUser(userId: string): Promise<{ ok: boolean }> {
-  try {
-    await requireAdmin();
-    // Delete all their posts (cascade will handle likes/comments)
-    await prisma.post.deleteMany({ where: { userId } });
-    return { ok: true };
-  } catch {
-    return { ok: false };
-  }
+export async function banUser(userId: string): Promise<void> {
+  await requireAdmin();
+  await prisma.user.update({ where: { id: userId }, data: { isVerified: false } });
+  revalidatePath("/admin/users");
 }
 
-export async function verifyUser(userId: string, verified: boolean): Promise<{ ok: boolean }> {
-  try {
-    await requireAdmin();
-    await prisma.user.update({ where: { id: userId }, data: { isVerified: verified } });
-    revalidatePath("/admin/users");
-    return { ok: true };
-  } catch {
-    return { ok: false };
-  }
+export async function verifyUser(userId: string, verified: boolean): Promise<void> {
+  await requireAdmin();
+  await prisma.user.update({ where: { id: userId }, data: { isVerified: verified } });
+  revalidatePath("/admin/users");
 }
 
-// ─── Reports ──────────────────────────────────────────────────────────────────
+// ─── Reports ─────────────────────────────────────────────────────────────────
 
 export async function getAdminReports(): Promise<AdminReport[]> {
   try {
     await requireAdmin();
+    // Report schema: { id, postId, post, userId, user (= reporter), reason, note, createdAt }
     const reports = await prisma.report.findMany({
+      orderBy: { createdAt: "desc" },
       include: {
-        post: { include: { user: { select: { id: true, name: true } } } },
+        post: { select: { id: true, content: true, userId: true, user: { select: { name: true } } } },
         user: { select: { id: true, name: true, email: true } },
       },
-      orderBy: { createdAt: "desc" },
     });
 
     return reports.map((r) => ({
@@ -228,7 +252,7 @@ export async function getAdminReports(): Promise<AdminReport[]> {
       post: {
         id: r.post.id,
         content: r.post.content,
-        userId: r.post.user.id,
+        userId: r.post.userId,
         userName: r.post.user.name,
       },
       reporter: {
@@ -242,101 +266,20 @@ export async function getAdminReports(): Promise<AdminReport[]> {
   }
 }
 
-export async function dismissReport(reportId: string): Promise<{ ok: boolean }> {
-  try {
-    await requireAdmin();
-    await prisma.report.delete({ where: { id: reportId } });
-    revalidatePath("/admin/reports");
-    return { ok: true };
-  } catch {
-    return { ok: false };
-  }
+export async function dismissReport(reportId: string): Promise<void> {
+  await requireAdmin();
+  await prisma.report.delete({ where: { id: reportId } });
+  revalidatePath("/admin/reports");
 }
 
-export async function deleteReportedPost(reportId: string, postId: string): Promise<{ ok: boolean }> {
-  try {
-    await requireAdmin();
-    await prisma.post.delete({ where: { id: postId } });
-    revalidatePath("/admin/reports");
-    revalidatePath("/feed");
-    return { ok: true };
-  } catch {
-    return { ok: false };
-  }
+export async function deleteReportedPost(reportId: string, postId: string): Promise<void> {
+  await requireAdmin();
+  await prisma.report.deleteMany({ where: { postId } });
+  await prisma.post.delete({ where: { id: postId } });
+  revalidatePath("/admin/reports");
 }
 
-// ─── Guide Applications ───────────────────────────────────────────────────────
-
-export async function getGuideApplications(): Promise<{
-  pending: GuideApplicant[];
-  approved: GuideApplicant[];
-}> {
-  try {
-    await requireAdmin();
-
-    const applicants = await prisma.user.findMany({
-      where: { isGuide: true },
-      select: {
-        id: true,
-        name: true,
-        username: true,
-        email: true,
-        avatarUrl: true,
-        bio: true,
-        isVerifiedGuide: true,
-        _count: { select: { followers: true, posts: true } },
-      },
-      orderBy: { createdAt: "desc" },
-    });
-
-    const mapped: GuideApplicant[] = applicants.map((u) => ({
-      id: u.id,
-      name: u.name,
-      username: u.username,
-      email: u.email,
-      avatarUrl: u.avatarUrl,
-      bio: u.bio,
-      isVerifiedGuide: u.isVerifiedGuide,
-      followerCount: u._count.followers,
-      postCount: u._count.posts,
-    }));
-
-    return {
-      pending: mapped.filter((u) => !u.isVerifiedGuide),
-      approved: mapped.filter((u) => u.isVerifiedGuide),
-    };
-  } catch {
-    return { pending: [], approved: [] };
-  }
-}
-
-export async function approveGuide(userId: string): Promise<{ ok: boolean }> {
-  try {
-    await requireAdmin();
-    await prisma.user.update({
-      where: { id: userId },
-      data: { isGuide: true, isVerifiedGuide: true },
-    });
-    return { ok: true };
-  } catch {
-    return { ok: false };
-  }
-}
-
-export async function rejectGuide(userId: string): Promise<{ ok: boolean }> {
-  try {
-    await requireAdmin();
-    await prisma.user.update({
-      where: { id: userId },
-      data: { isGuide: false, isVerifiedGuide: false },
-    });
-    return { ok: true };
-  } catch {
-    return { ok: false };
-  }
-}
-
-// ─── Places (Admin CRUD) ──────────────────────────────────────────────────────
+// ─── Places ──────────────────────────────────────────────────────────────────
 
 export async function getAdminPlaces(opts?: { search?: string; page?: number }): Promise<{
   places: AdminPlace[];
@@ -372,8 +315,8 @@ export async function getAdminPlaces(opts?: { search?: string; page?: number }):
           _count: { select: { reviews: true } },
         },
         orderBy: { createdAt: "desc" },
-        take,
         skip,
+        take,
       }),
       prisma.place.count({ where }),
     ]);
@@ -398,163 +341,134 @@ export async function getAdminPlaces(opts?: { search?: string; page?: number }):
   }
 }
 
-export interface PlaceFormData {
-  name: string;
-  nameEn?: string;
-  slug: string;
-  description?: string;
-  descriptionEn?: string;
-  category: string;
-  region: string;
-  province?: string;
-  address?: string;
-  lat?: number;
-  lng?: number;
-  phone?: string;
-  website?: string;
-  googleMapsUrl?: string;
-  priceRange: number;
-  entryFee?: number;
-  openDays: string[];
-  openTime?: string;
-  closeTime?: string;
-  hasWifi: boolean;
-  hasAC: boolean;
-  hasParking: boolean;
-  parkingFee?: number;
-  isVegetarian: boolean;
-  isAccessible: boolean;
-  isPublished: boolean;
-  isFeatured: boolean;
-  images?: string[];
-}
-
-export async function createPlace(data: PlaceFormData): Promise<{ ok: boolean; id?: string; error?: string }> {
+export async function createPlace(data: PlaceFormData): Promise<ActionResult> {
   try {
     await requireAdmin();
+    let slug = data.slug;
+    const existing = await prisma.place.findUnique({ where: { slug } });
+    if (existing) slug = `${slug}-${Date.now()}`;
 
-    // Check slug uniqueness
-    const existing = await prisma.place.findUnique({ where: { slug: data.slug } });
-    if (existing) return { ok: false, error: "Slug นี้ถูกใช้แล้ว" };
-
+    const { images, ...rest } = data;
     const place = await prisma.place.create({
       data: {
-        slug: data.slug,
-        name: data.name,
-        nameEn: data.nameEn,
-        description: data.description,
-        descriptionEn: data.descriptionEn,
-        category: data.category,
-        region: data.region,
-        province: data.province,
-        address: data.address,
-        lat: data.lat,
-        lng: data.lng,
-        phone: data.phone,
-        website: data.website,
-        googleMapsUrl: data.googleMapsUrl,
-        priceRange: data.priceRange,
-        entryFee: data.entryFee,
-        openDays: data.openDays,
-        openTime: data.openTime,
-        closeTime: data.closeTime,
-        hasWifi: data.hasWifi,
-        hasAC: data.hasAC,
-        hasParking: data.hasParking,
-        parkingFee: data.parkingFee,
-        isVegetarian: data.isVegetarian,
-        isAccessible: data.isAccessible,
-        isPublished: data.isPublished,
-        isFeatured: data.isFeatured,
-        images: data.images?.length
-          ? {
-              create: data.images.map((url, i) => ({ url, order: i })),
-            }
-          : undefined,
+        ...rest,
+        slug,
+        images: {
+          create: images.map((url, i) => ({ url, order: i })),
+        },
       },
     });
 
     revalidatePath("/admin/places");
     revalidatePath("/explore");
-    return { ok: true, id: place.id };
-  } catch (err) {
-    return { ok: false, error: (err as Error).message };
+    return { ok: true, id: place.id, slug: place.slug };
+  } catch (e) {
+    return { ok: false, error: e instanceof Error ? e.message : "เกิดข้อผิดพลาด" };
   }
 }
 
-export async function updatePlace(placeId: string, data: Partial<PlaceFormData>): Promise<{ ok: boolean; error?: string }> {
+export async function updatePlace(placeId: string, data: PlaceFormData): Promise<ActionResult> {
+  try {
+    await requireAdmin();
+    const { images, ...rest } = data;
+
+    await prisma.$transaction([
+      prisma.placeImage.deleteMany({ where: { placeId } }),
+      prisma.place.update({
+        where: { id: placeId },
+        data: {
+          ...rest,
+          images: {
+            create: images.map((url, i) => ({ url, order: i })),
+          },
+        },
+      }),
+    ]);
+
+    revalidatePath("/admin/places");
+    revalidatePath(`/place/${data.slug}`);
+    return { ok: true };
+  } catch (e) {
+    return { ok: false, error: e instanceof Error ? e.message : "เกิดข้อผิดพลาด" };
+  }
+}
+
+export async function deletePlace(placeId: string): Promise<void> {
+  await requireAdmin();
+  await prisma.placeImage.deleteMany({ where: { placeId } });
+  await prisma.place.delete({ where: { id: placeId } });
+  revalidatePath("/admin/places");
+}
+
+export async function togglePlacePublished(placeId: string, isPublished: boolean): Promise<void> {
+  await requireAdmin();
+  await prisma.place.update({ where: { id: placeId }, data: { isPublished } });
+  revalidatePath("/admin/places");
+}
+
+export async function togglePlaceFeatured(placeId: string, isFeatured: boolean): Promise<void> {
+  await requireAdmin();
+  await prisma.place.update({ where: { id: placeId }, data: { isFeatured } });
+  revalidatePath("/admin/places");
+}
+
+// ─── Guides ──────────────────────────────────────────────────────────────────
+
+export async function getGuideApplications(): Promise<{ pending: GuideApplicant[]; approved: GuideApplicant[] }> {
   try {
     await requireAdmin();
 
-    await prisma.place.update({
-      where: { id: placeId },
-      data: {
-        name: data.name,
-        nameEn: data.nameEn,
-        description: data.description,
-        descriptionEn: data.descriptionEn,
-        category: data.category,
-        region: data.region,
-        province: data.province,
-        address: data.address,
-        lat: data.lat,
-        lng: data.lng,
-        phone: data.phone,
-        website: data.website,
-        googleMapsUrl: data.googleMapsUrl,
-        priceRange: data.priceRange,
-        entryFee: data.entryFee,
-        openDays: data.openDays,
-        openTime: data.openTime,
-        closeTime: data.closeTime,
-        hasWifi: data.hasWifi,
-        hasAC: data.hasAC,
-        hasParking: data.hasParking,
-        parkingFee: data.parkingFee,
-        isVegetarian: data.isVegetarian,
-        isAccessible: data.isAccessible,
-        isPublished: data.isPublished,
-        isFeatured: data.isFeatured,
-      },
+    const mapUser = (u: {
+      id: string;
+      name: string | null;
+      username: string | null;
+      email: string | null;
+      avatarUrl: string | null;
+      bio: string | null;
+      isVerifiedGuide: boolean;
+      _count: { followers: number; posts: number };
+    }): GuideApplicant => ({
+      id: u.id,
+      name: u.name,
+      username: u.username,
+      email: u.email,
+      avatarUrl: u.avatarUrl,
+      bio: u.bio,
+      isVerifiedGuide: u.isVerifiedGuide,
+      followerCount: u._count.followers,
+      postCount: u._count.posts,
     });
 
-    revalidatePath("/admin/places");
-    revalidatePath("/explore");
-    return { ok: true };
-  } catch (err) {
-    return { ok: false, error: (err as Error).message };
+    const select = {
+      id: true,
+      name: true,
+      username: true,
+      email: true,
+      avatarUrl: true,
+      bio: true,
+      isVerifiedGuide: true,
+      _count: { select: { followers: true, posts: true } },
+    } as const;
+
+    const [pending, approved] = await Promise.all([
+      prisma.user.findMany({ where: { isGuide: true, isVerifiedGuide: false }, select }),
+      prisma.user.findMany({ where: { isGuide: true, isVerifiedGuide: true }, select }),
+    ]);
+
+    return { pending: pending.map(mapUser), approved: approved.map(mapUser) };
+  } catch {
+    return { pending: [], approved: [] };
   }
 }
 
-export async function deletePlace(placeId: string): Promise<{ ok: boolean }> {
-  try {
-    await requireAdmin();
-    await prisma.place.delete({ where: { id: placeId } });
-    revalidatePath("/admin/places");
-    return { ok: true };
-  } catch {
-    return { ok: false };
-  }
+export async function approveGuide(userId: string): Promise<void> {
+  await requireAdmin();
+  await prisma.user.update({ where: { id: userId }, data: { isVerifiedGuide: true } });
+  revalidatePath("/admin/guides");
 }
 
-export async function togglePlacePublished(placeId: string, isPublished: boolean): Promise<{ ok: boolean }> {
-  try {
-    await requireAdmin();
-    await prisma.place.update({ where: { id: placeId }, data: { isPublished } });
-    revalidatePath("/admin/places");
-    return { ok: true };
-  } catch {
-    return { ok: false };
-  }
-}
-
-export async function togglePlaceFeatured(placeId: string, isFeatured: boolean): Promise<{ ok: boolean }> {
-  try {
-    await requireAdmin();
-    await prisma.place.update({ where: { id: placeId }, data: { isFeatured } });
-    revalidatePath("/admin/places");
-    return { ok: true };
-  } catch {
-    return { ok: false };
-  }
+export async function rejectGuide(userId: string): Promise<void> {
+  await requireAdmin();
+  await prisma.user.update({ where: { id: userId }, data: { isGuide: false } });
+  revalidatePath("/admin/guides");
 }
