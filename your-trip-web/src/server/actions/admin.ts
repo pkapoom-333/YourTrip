@@ -651,3 +651,90 @@ export async function getRecentActivity(limit = 20): Promise<ActivityItem[]> {
     return [];
   }
 }
+
+// ── Content Moderation ────────────────────────────────────────────────────────
+export interface AdminPost {
+  id: string;
+  content: string;
+  type: string;
+  images: string[];
+  tags: string[];
+  likeCount: number;
+  commentCount: number;
+  reportCount: number;
+  isHidden: boolean; // maps to !isPublic
+  createdAt: Date;
+  user: { id: string; name: string | null; email: string | null; avatarUrl: string | null };
+}
+
+export async function getAdminPosts(opts?: {
+  search?: string;
+  page?: number;
+  filter?: "all" | "reported" | "hidden";
+}): Promise<{ posts: AdminPost[]; total: number }> {
+  try {
+    await requireAdmin();
+    const page = opts?.page ?? 1;
+    const pageSize = 20;
+    const search = opts?.search?.trim() ?? "";
+    const filter = opts?.filter ?? "all";
+
+    const where: Record<string, unknown> = {};
+    if (search) {
+      where.OR = [
+        { content: { contains: search, mode: "insensitive" } },
+        { user: { name: { contains: search, mode: "insensitive" } } },
+      ];
+    }
+    if (filter === "reported") where.reports = { some: {} };
+    if (filter === "hidden") where.isHidden = true;
+
+    const [posts, total] = await Promise.all([
+      (prisma as any).post.findMany({
+        where,
+        include: {
+          user: { select: { id: true, name: true, email: true, avatarUrl: true } },
+          _count: { select: { likes: true, comments: true, reports: true } },
+        },
+        orderBy: { createdAt: "desc" },
+        skip: (page - 1) * pageSize,
+        take: pageSize,
+      }),
+      (prisma as any).post.count({ where }),
+    ]);
+
+    return {
+      posts: posts.map((p: {
+        id: string; content: string; type: string; images: string[];
+        tags: string[]; isHidden: boolean; createdAt: Date;
+        user: { id: string; name: string | null; email: string | null; avatarUrl: string | null };
+        _count: { likes: number; comments: number; reports: number };
+      }) => ({
+        id: p.id, content: p.content, type: p.type, images: p.images ?? [],
+        tags: p.tags ?? [], likeCount: p._count.likes, commentCount: p._count.comments,
+        reportCount: p._count.reports, isHidden: p.isHidden ?? false, createdAt: p.createdAt,
+        user: p.user,
+      })),
+      total,
+    };
+  } catch {
+    return { posts: [], total: 0 };
+  }
+}
+
+export async function hidePost(postId: string, hidden: boolean): Promise<void> {
+  await requireAdmin();
+  await (prisma as any).post.update({
+    where: { id: postId },
+    data: { isPublic: !hidden },
+  });
+  revalidatePath("/admin/content");
+  revalidatePath("/feed");
+}
+
+export async function deletePost(postId: string): Promise<void> {
+  await requireAdmin();
+  await (prisma as any).post.delete({ where: { id: postId } });
+  revalidatePath("/admin/content");
+  revalidatePath("/feed");
+}
