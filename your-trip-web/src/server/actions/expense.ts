@@ -53,6 +53,7 @@ export async function createExpenseGroup(data: {
       description: data.description,
       emoji: data.emoji ?? "💰",
       createdById: user.id,
+      inviteCode: Math.random().toString(36).slice(2, 10) + Date.now().toString(36),
       members: {
         create: data.members.map((m) => ({
           name: m.name,
@@ -331,4 +332,60 @@ function simplifyDebts(
   }
 
   return debts;
+}
+
+// ─── Invite Link ─────────────────────────────────────────────────────────────
+
+export async function getGroupByInviteCode(inviteCode: string) {
+  const group = await (prisma as any).expenseGroup.findUnique({
+    where: { inviteCode },
+    include: {
+      members: true,
+      createdBy: { select: { id: true, name: true, avatarUrl: true } },
+    },
+  });
+  return group ?? null;
+}
+
+export async function joinGroupByInviteCode(inviteCode: string, memberName: string) {
+  const user = await getAuthUser();
+
+  const group = await (prisma as any).expenseGroup.findUnique({ where: { inviteCode } });
+  if (!group) throw new Error("ไม่พบกลุ่มนี้");
+
+  // Check if user already in group
+  const existing = await (prisma as any).expenseGroupMember.findFirst({
+    where: { groupId: group.id, userId: user.id },
+  });
+  if (existing) return { groupId: group.id };
+
+  await (prisma as any).expenseGroupMember.create({
+    data: {
+      groupId: group.id,
+      userId: user.id,
+      name: memberName,
+      color: ["#398AB9","#FF4F4F","#22C55E","#F59E0B","#8B5CF6","#EC4899"][
+        Math.floor(Math.random() * 6)
+      ],
+    },
+  });
+
+  revalidatePath("/expense");
+  return { groupId: group.id };
+}
+
+export async function regenerateInviteCode(groupId: string) {
+  const user = await getAuthUser();
+  const group = await (prisma as any).expenseGroup.findFirst({
+    where: { id: groupId, createdById: user.id },
+  });
+  if (!group) throw new Error("ไม่มีสิทธิ์");
+
+  const newCode = Math.random().toString(36).slice(2, 10) + Date.now().toString(36);
+  await (prisma as any).expenseGroup.update({
+    where: { id: groupId },
+    data: { inviteCode: newCode },
+  });
+  revalidatePath(`/expense/${groupId}`);
+  return { inviteCode: newCode };
 }

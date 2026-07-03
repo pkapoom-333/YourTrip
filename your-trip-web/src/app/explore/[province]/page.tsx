@@ -3,6 +3,7 @@ import { getPlaces } from "@/server/actions/places";
 import Link from "next/link";
 import type { Metadata } from "next";
 import { MapPin, Star, ChevronLeft, ArrowRight, Plane } from "lucide-react";
+import { WeatherWidget } from "@/components/features/WeatherWidget";
 
 const PROVINCE_EMOJI: Record<string, string> = {
   "เชียงใหม่": "🌿", "กรุงเทพ": "🏙️", "กรุงเทพมหานคร": "🏙️",
@@ -79,6 +80,11 @@ export default async function ProvincePage(
             <Plane className="w-4 h-4" />
             วางแผนทริป{decoded}
           </Link>
+        </div>
+
+        {/* Weather */}
+        <div className="px-4 pt-4">
+          <WeatherWidget destination={decoded} />
         </div>
 
         <div className="px-4 py-6 space-y-8">

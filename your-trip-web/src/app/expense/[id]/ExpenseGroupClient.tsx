@@ -2,8 +2,8 @@
 
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { ChevronLeft, Plus, Scale, Receipt, Users, Copy, ArrowRight } from "lucide-react";
-import { addExpense, deleteExpense, recordPayment } from "@/server/actions/expense";
+import { ChevronLeft, Plus, Scale, Receipt, Users, Copy, ArrowRight, Share2, RefreshCw, X } from "lucide-react";
+import { addExpense, deleteExpense, recordPayment, regenerateInviteCode } from "@/server/actions/expense";
 import type { MemberBalance, SimplifiedDebt } from "@/server/actions/expense";
 
 type Group = {
@@ -11,6 +11,7 @@ type Group = {
   name: string;
   emoji: string;
   description: string | null;
+  inviteCode?: string | null;
   members: Array<{
     id: string; name: string; color: string; avatarUrl: string | null;
     promptPay: string | null; bankAccount: string | null; bankName: string | null;
@@ -63,6 +64,28 @@ export default function ExpenseGroupClient({
   const [expError, setExpError] = useState<string | null>(null);
 
   const totalExpenses = group.expenses.reduce((s, e) => s + e.amount, 0);
+  const [showShare, setShowShare] = useState(false);
+  const [inviteCode, setInviteCode] = useState(group.inviteCode ?? "");
+  const [copied, setCopied] = useState(false);
+
+  function getShareUrl() {
+    if (typeof window === "undefined") return "";
+    return `${window.location.origin}/expense/join/${inviteCode}`;
+  }
+
+  function copyShareLink() {
+    navigator.clipboard.writeText(getShareUrl()).then(() => {
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    });
+  }
+
+  function handleRegenCode() {
+    startTransition(async () => {
+      const { inviteCode: newCode } = await regenerateInviteCode(group.id);
+      setInviteCode(newCode);
+    });
+  }
 
   const handleAddExpense = () => {
     const amount = parseFloat(expAmount);
@@ -109,9 +132,14 @@ export default function ExpenseGroupClient({
               <p className="text-xs text-gray-500 dark:text-slate-400">{group.members.length} คน · รวม {formatBaht(totalExpenses)}</p>
             </div>
           </div>
-          <button onClick={() => setShowAddExpense(true)} className="flex items-center gap-1 bg-[#398AB9] text-white px-3 py-1.5 rounded-xl text-sm font-medium">
-            <Plus className="w-4 h-4" /> เพิ่ม
-          </button>
+          <div className="flex items-center gap-2">
+            <button onClick={() => setShowShare(true)} className="p-2 rounded-xl hover:bg-gray-100 dark:hover:bg-slate-800" title="แชร์กลุ่ม">
+              <Share2 className="w-4 h-4 text-gray-600 dark:text-slate-400" />
+            </button>
+            <button onClick={() => setShowAddExpense(true)} className="flex items-center gap-1 bg-[#398AB9] text-white px-3 py-1.5 rounded-xl text-sm font-medium">
+              <Plus className="w-4 h-4" /> เพิ่ม
+            </button>
+          </div>
         </div>
 
         {/* Tabs */}
@@ -126,6 +154,56 @@ export default function ExpenseGroupClient({
         </div>
       </div>
 
+      {/* Share Modal */}
+      {showShare && (
+        <div className="fixed inset-0 bg-black/50 z-50 flex items-end sm:items-center justify-center">
+          <div className="bg-white dark:bg-slate-800 w-full sm:max-w-sm rounded-t-2xl sm:rounded-2xl p-6">
+            <div className="flex items-center justify-between mb-5">
+              <div className="flex items-center gap-2">
+                <Share2 className="w-4 h-4 text-[#398AB9]" />
+                <h2 className="font-semibold text-gray-900 dark:text-white">แชร์กลุ่ม</h2>
+              </div>
+              <button onClick={() => setShowShare(false)} className="p-1 hover:bg-gray-100 dark:hover:bg-slate-700 rounded-lg">
+                <X className="w-4 h-4 text-gray-500" />
+              </button>
+            </div>
+
+            <div className="space-y-4">
+              <div>
+                <p className="text-xs text-gray-500 dark:text-slate-400 mb-2">ลิงก์เชิญเข้าร่วมกลุ่ม</p>
+                <div className="flex items-center gap-2">
+                  <div className="flex-1 bg-gray-50 dark:bg-slate-700 border border-gray-200 dark:border-slate-600 rounded-xl px-3 py-2 text-xs text-gray-600 dark:text-slate-300 truncate font-mono">
+                    {typeof window !== "undefined" ? getShareUrl() : `yourtrip.co/expense/join/${inviteCode}`}
+                  </div>
+                  <button
+                    onClick={copyShareLink}
+                    className={`flex items-center gap-1 px-3 py-2 rounded-xl text-xs font-medium transition-colors ${
+                      copied ? "bg-green-100 text-green-700" : "bg-[#398AB9] text-white hover:bg-[#1C658C]"
+                    }`}
+                  >
+                    <Copy className="w-3 h-3" />
+                    {copied ? "คัดลอกแล้ว!" : "คัดลอก"}
+                  </button>
+                </div>
+              </div>
+
+              <div className="border-t border-gray-100 dark:border-slate-700 pt-4">
+                <p className="text-xs text-gray-400 dark:text-slate-500 mb-2">
+                  ใครก็ตามที่มีลิงก์นี้สามารถเข้าร่วมกลุ่มได้
+                </p>
+                <button
+                  onClick={handleRegenCode}
+                  disabled={isPending}
+                  className="flex items-center gap-1.5 text-xs text-gray-500 dark:text-slate-400 hover:text-red-500 transition-colors"
+                >
+                  <RefreshCw className={`w-3 h-3 ${isPending ? "animate-spin" : ""}`} />
+                  สร้างลิงก์ใหม่ (ลิงก์เดิมจะใช้ไม่ได้)
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
       {/* Add Expense Modal */}
       {showAddExpense && (
         <div className="fixed inset-0 bg-black/40 z-50 flex items-end" onClick={(e) => { if (e.target === e.currentTarget) setShowAddExpense(false); }}>

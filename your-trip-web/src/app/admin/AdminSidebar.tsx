@@ -4,7 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
   LayoutDashboard, Users, Flag, MapPin, ShieldCheck,
-  MessageSquare, ChevronRight, Menu, X, BarChart2, FileText, Megaphone,
+  MessageSquare, ChevronRight, Menu, X, BarChart2, FileText, Megaphone, Settings, Inbox, Sparkles,
 } from "lucide-react";
 import { useState } from "react";
 
@@ -13,11 +13,14 @@ const NAV = [
   { href: "/admin/users", label: "ผู้ใช้", icon: Users },
   { href: "/admin/reports", label: "รายงาน", icon: Flag },
   { href: "/admin/places", label: "สถานที่", icon: MapPin },
+  { href: "/admin/ai-places", label: "AI สร้างสถานที่", icon: Sparkles },
+  { href: "/admin/submissions", label: "แนะนำสถานที่", icon: Inbox },
   { href: "/admin/guides", label: "ไกด์", icon: ShieldCheck },
   { href: "/admin/messages", label: "ข้อความ", icon: MessageSquare },
   { href: "/admin/content", label: "โพสต์", icon: FileText },
   { href: "/admin/broadcast", label: "Broadcast", icon: Megaphone },
   { href: "/admin/analytics", label: "Analytics", icon: BarChart2 },
+  { href: "/admin/settings", label: "ตั้งค่า", icon: Settings },
 ];
 
 export default function AdminSidebar() {

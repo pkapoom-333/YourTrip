@@ -4,15 +4,32 @@ import { MapPin, Users, Compass, ChevronDown, Star, CheckCircle, Shield } from "
 import type { Metadata } from "next";
 import { getPlaces } from "@/server/actions/places";
 import { getVerifiedGuides } from "@/server/actions/profile";
+import { getPlatformStats } from "@/server/actions/stats";
 import { Avatar } from "@/components/shared/Avatar";
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? "https://your-trip-nu.vercel.app";
+
+const OG_DEFAULT = `${SITE_URL}/api/og?title=Your+Trip&subtitle=${encodeURIComponent("สังคมนักเดินทาง ค้นพบ แบ่งปัน วางแผนทริป")}&type=default`;
 
 export const metadata: Metadata = {
   title: "Your Trip — สังคมนักเดินทาง | ค้นพบ แบ่งปัน วางแผน",
   description:
     "แพลตฟอร์มสังคมสำหรับนักเดินทาง ค้นพบสถานที่ใหม่ แบ่งปันประสบการณ์ วางแผนทริป และหาเพื่อนร่วมทาง",
   alternates: { canonical: SITE_URL },
+  openGraph: {
+    title: "Your Trip — สังคมนักเดินทาง",
+    description: "ค้นพบสถานที่ แบ่งปันประสบการณ์ วางแผนทริป หาเพื่อนร่วมทาง",
+    url: SITE_URL,
+    siteName: "Your Trip",
+    type: "website",
+    images: [{ url: OG_DEFAULT, width: 1200, height: 630, alt: "Your Trip" }],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Your Trip — สังคมนักเดินทาง",
+    description: "ค้นพบสถานที่ แบ่งปันประสบการณ์ วางแผนทริป หาเพื่อนร่วมทาง",
+    images: [OG_DEFAULT],
+  },
 };
 
 const websiteJsonLd = {
@@ -69,8 +86,11 @@ const steps = [
 ];
 
 export default async function LandingPage() {
-  const { data: featuredPlaces } = await getPlaces({ featured: true, take: 4 });
-  const { data: verifiedGuides } = await getVerifiedGuides(3);
+  const [{ data: featuredPlaces }, { data: verifiedGuides }, stats] = await Promise.all([
+    getPlaces({ featured: true, take: 4 }),
+    getVerifiedGuides(3),
+    getPlatformStats(),
+  ]);
   const displayDestinations = featuredPlaces.length > 0 ? featuredPlaces : null;
 
   return (
@@ -135,9 +155,9 @@ export default async function LandingPage() {
           {/* Stats */}
           <div className="flex gap-4 sm:gap-10 mt-14 text-center">
             {[
-              { v: "10K+", l: "นักเดินทาง" },
-              { v: "50K+", l: "สถานที่" },
-              { v: "100K+", l: "รีวิว" },
+              { v: stats.userCount >= 1000 ? Math.floor(stats.userCount/1000) + "K+" : stats.userCount > 0 ? String(stats.userCount) + "+" : "10K+", l: "นักเดินทาง" },
+              { v: stats.placeCount >= 1000 ? Math.floor(stats.placeCount/1000) + "K+" : stats.placeCount > 0 ? String(stats.placeCount) + "+" : "500+", l: "สถานที่" },
+              { v: stats.reviewCount >= 1000 ? Math.floor(stats.reviewCount/1000) + "K+" : stats.reviewCount > 0 ? String(stats.reviewCount) + "+" : "5K+", l: "รีวิว" },
             ].map((s) => (
               <div key={s.l}>
                 <p className="text-2xl font-bold text-white">{s.v}</p>

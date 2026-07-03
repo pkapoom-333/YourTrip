@@ -48,6 +48,18 @@ export async function middleware(request: NextRequest) {
     "/messages",
     "/expense",
     "/admin",
+    "/people",
+    "/post",
+    "/saved",
+    "/near-me",
+    "/invite",
+    "/check-ins",
+    "/map",
+    "/collections",
+    "/activity",
+    "/discover",
+    "/onboarding",
+    "/guide",
   ];
   const isProtected = protectedRoutes.some((route) =>
     request.nextUrl.pathname.startsWith(route)
@@ -64,6 +76,5 @@ export async function middleware(request: NextRequest) {
 
 export const config = {
   matcher: [
-    "/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$))"],
+    "/((?!_next/static|_next/image|favicon.ico|.*\.(?:svg|png|jpg|jpeg|gif|webp)$))"],
 };
-

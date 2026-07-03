@@ -743,6 +743,154 @@ const places = [
       { url: "https://images.unsplash.com/photo-1501339847302-ac426a4a7cbb?auto=format&fit=crop&w=800&q=80", order: 0 },
     ]},
   },
+  // ══════════════════════════════════════════════════════════════
+  // กรุงเทพมหานคร — ร้านอาหาร + คาเฟ่ เพิ่มเติม
+  // ══════════════════════════════════════════════════════════════
+  {
+    slug: "pad-thai-thip-samai",
+    name: "ผัดไทยไฟฉิ่ง ทิพย์สมัย",
+    nameEn: "Thip Samai Pad Thai",
+    description: "ผัดไทยสูตรโบราณที่โด่งดังที่สุดในกรุงเทพ เส้นบางกรอบ ไข่หุ้มเส้น ตั้งแต่ปี 2509 คิวยาวทุกคืน",
+    descriptionEn: "Bangkok's most iconic Pad Thai since 1966. Crispy thin noodles wrapped in egg, always worth the queue.",
+    category: "restaurant", region: "central", province: "กรุงเทพมหานคร", country: "TH",
+    address: "313 Maha Chai Rd, Samran Rat, Phra Nakhon",
+    lat: 13.7538, lng: 100.4988,
+    priceRange: 1, entryFee: 0,
+    openDays: ["Daily"], openTime: "17:00", closeTime: "02:00",
+    hasWifi: false, hasAC: false, hasParking: false,
+    isVegetarian: false, isAccessible: false, isFeatured: true,
+    images: { create: [
+      { url: "https://images.unsplash.com/photo-1559314809-0d155014e29e?auto=format&fit=crop&w=800&q=80", order: 0 },
+    ]},
+  },
+  {
+    slug: "gaggan-anand-bkk",
+    name: "Gaggan Anand",
+    nameEn: "Gaggan Anand",
+    description: "ร้านอาหารอินเดียสไตล์ progressive ที่ดีที่สุดในเอเชีย ติดอันดับ World's 50 Best หลายปีซ้อน",
+    descriptionEn: "Progressive Indian cuisine ranked among Asia's best. Chef Gaggan Anand's boundary-pushing tasting menu.",
+    category: "restaurant", region: "central", province: "กรุงเทพมหานคร", country: "TH",
+    address: "68/1 Soi Langsuan, Ploenchit, Bangkok",
+    lat: 13.7420, lng: 100.5406,
+    priceRange: 4, entryFee: 0,
+    openDays: ["Wed","Thu","Fri","Sat","Sun"], openTime: "18:00", closeTime: "23:00",
+    hasWifi: true, hasAC: true, hasParking: true, parkingSpots: 20,
+    isVegetarian: false, isAccessible: true, isFeatured: true,
+    images: { create: [
+      { url: "https://images.unsplash.com/photo-1414235077428-338989a2e8c0?auto=format&fit=crop&w=800&q=80", order: 0 },
+    ]},
+  },
+  {
+    slug: "factory-coffee-bkk",
+    name: "Factory Coffee",
+    nameEn: "Factory Coffee",
+    description: "สเปเชียลตี้คอฟฟี่ย่านสีลม บรรยากาศ industrial chic เมล็ดกาแฟคัดสรรจากทั่วโลก ฮิตในหมู่ coffee enthusiast",
+    descriptionEn: "Specialty coffee in Silom with industrial-chic vibes. Single-origin beans, expert baristas, serious coffee.",
+    category: "cafe", region: "central", province: "กรุงเทพมหานคร", country: "TH",
+    address: "35 Silom Soi 7, Bang Rak, Bangkok",
+    lat: 13.7244, lng: 100.5241,
+    priceRange: 2, entryFee: 0,
+    openDays: ["Mon","Tue","Wed","Thu","Fri","Sat"], openTime: "08:00", closeTime: "18:00",
+    hasWifi: true, hasAC: true, hasParking: false,
+    isVegetarian: true, isAccessible: false, isFeatured: false,
+    images: { create: [
+      { url: "https://images.unsplash.com/photo-1495474472287-4d71bcdd2085?auto=format&fit=crop&w=800&q=80", order: 0 },
+    ]},
+  },
+  {
+    slug: "chatuchak-market",
+    name: "ตลาดนัดจตุจักร",
+    nameEn: "Chatuchak Weekend Market",
+    description: "ตลาดนัดที่ใหญ่ที่สุดในไทยและใหญ่ที่สุดในโลก มีกว่า 15,000 ร้านค้า สินค้าหัตถกรรม ของวินเทจ อาหาร",
+    descriptionEn: "World's largest weekend market with 15,000+ stalls. Crafts, vintage goods, clothing, food — a Bangkok must.",
+    category: "attraction", region: "central", province: "กรุงเทพมหานคร", country: "TH",
+    address: "Kamphaeng Phet 2 Rd, Chatuchak, Bangkok",
+    lat: 13.7999, lng: 100.5503,
+    priceRange: 1, entryFee: 0,
+    openDays: ["Sat","Sun"], openTime: "09:00", closeTime: "18:00",
+    hasWifi: false, hasAC: false, hasParking: true, parkingSpots: 500,
+    isVegetarian: false, isAccessible: true, isFeatured: true,
+    images: { create: [
+      { url: "https://images.unsplash.com/photo-1508009603885-50cf7c579365?auto=format&fit=crop&w=800&q=80", order: 0 },
+    ]},
+  },
+
+  // ══════════════════════════════════════════════════════════════
+  // เชียงใหม่ — ร้านอาหาร + คาเฟ่ เพิ่มเติม
+  // ══════════════════════════════════════════════════════════════
+  {
+    slug: "khao-soi-islam-chiangmai",
+    name: "ข้าวซอยอิสลาม",
+    nameEn: "Khao Soi Islam",
+    description: "ข้าวซอยฮาลาลที่ดีที่สุดในเชียงใหม่ น้ำแกงเข้มข้น เส้นกรอบอร่อย เปิดมาตั้งแต่ปี 2530",
+    descriptionEn: "Best halal Khao Soi in Chiang Mai — rich curry broth, crispy noodles, open since 1987.",
+    category: "restaurant", region: "north", province: "เชียงใหม่", country: "TH",
+    address: "Charoenrat Rd, Chang Khlan, Mueang Chiang Mai",
+    lat: 18.7829, lng: 98.9956,
+    priceRange: 1, entryFee: 0,
+    openDays: ["Daily"], openTime: "08:00", closeTime: "17:00",
+    hasWifi: false, hasAC: false, hasParking: true, parkingSpots: 10,
+    isVegetarian: false, isAccessible: false, isFeatured: false,
+    images: { create: [
+      { url: "https://images.unsplash.com/photo-1455619452474-d2be8b1e70cd?auto=format&fit=crop&w=800&q=80", order: 0 },
+    ]},
+  },
+  {
+    slug: "akha-ama-coffee-chiangmai",
+    name: "Akha Ama Coffee",
+    nameEn: "Akha Ama Coffee",
+    description: "คาเฟ่กาแฟจากชุมชนชาวอาข่า ดอยหมอกฟ้า เชียงใหม่ กาแฟ single origin จากชุมชนบนดอย ช่วยเหลือเกษตรกร",
+    descriptionEn: "Specialty coffee grown by Akha hilltribe farmers on Doi Mok Fa. Fair trade, single origin, incredible flavour.",
+    category: "cafe", region: "north", province: "เชียงใหม่", country: "TH",
+    address: "9/1 Hussadhisawee Rd, Si Phum, Mueang Chiang Mai",
+    lat: 18.7912, lng: 98.9851,
+    priceRange: 2, entryFee: 0,
+    openDays: ["Daily"], openTime: "08:00", closeTime: "18:00",
+    hasWifi: true, hasAC: false, hasParking: false,
+    isVegetarian: true, isAccessible: false, isFeatured: true,
+    images: { create: [
+      { url: "https://images.unsplash.com/photo-1442512595331-e89e73853f31?auto=format&fit=crop&w=800&q=80", order: 0 },
+    ]},
+  },
+
+  // ══════════════════════════════════════════════════════════════
+  // ภูเก็ต — ร้านอาหาร + กิจกรรม
+  // ══════════════════════════════════════════════════════════════
+  {
+    slug: "raya-restaurant-phuket",
+    name: "ร้านอาหาร ระยา (บ้านร่มไม้)",
+    nameEn: "Raya Restaurant",
+    description: "อาหารไทยสไตล์บาบ๋าในบ้านโคโลเนียลเก่าแก่ใจกลางเมืองภูเก็ต ต้มยำกุ้งและแกงพะแนงเลื่องชื่อระดับโลก",
+    descriptionEn: "Peranakan Thai cuisine in a heritage colonial shophouse. World-renowned Tom Yum and Panang curry.",
+    category: "restaurant", region: "south", province: "ภูเก็ต", country: "TH",
+    address: "48 Dibuk Rd, Talat Yai, Mueang Phuket",
+    lat: 7.8839, lng: 98.3928,
+    priceRange: 2, entryFee: 0,
+    openDays: ["Daily"], openTime: "10:00", closeTime: "22:00",
+    hasWifi: true, hasAC: true, hasParking: false,
+    isVegetarian: false, isAccessible: true, isFeatured: true,
+    images: { create: [
+      { url: "https://images.unsplash.com/photo-1561339429-c6d14c9fa399?auto=format&fit=crop&w=800&q=80", order: 0 },
+    ]},
+  },
+  {
+    slug: "phi-phi-island-tour",
+    name: "ทัวร์เกาะพีพี",
+    nameEn: "Phi Phi Island Tour",
+    description: "เที่ยวเกาะพีพีดอนและเกาะพีพีเล อ่าวมายา หาดทรายขาว น้ำทะเลใสแจ๋ว สถานที่ถ่ายทำ The Beach",
+    descriptionEn: "Day trip to Phi Phi Don & Phi Phi Leh — Maya Bay, crystal waters, white sand. Where The Beach was filmed.",
+    category: "activity", region: "south", province: "ภูเก็ต", country: "TH",
+    address: "Rassada Pier, Mueang Phuket",
+    lat: 7.8547, lng: 98.4060,
+    priceRange: 2, entryFee: 400,
+    openDays: ["Daily"], openTime: "07:00", closeTime: "18:00",
+    hasWifi: false, hasAC: false, hasParking: true, parkingSpots: 50,
+    isVegetarian: false, isAccessible: false, isFeatured: true,
+    images: { create: [
+      { url: "https://images.unsplash.com/photo-1537956965359-7573183d1f57?auto=format&fit=crop&w=800&q=80", order: 0 },
+    ]},
+  },
+
 ];
 
 // ─── Seed function ────────────────────────────────────────────────────────────

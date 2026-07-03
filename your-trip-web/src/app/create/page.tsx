@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect, useCallback } from "react";
 import AppShell from "@/components/AppShell";
 import { useRouter, useSearchParams } from "next/navigation";
 import { createPost } from "@/server/actions/posts";
@@ -10,12 +10,43 @@ import { Avatar } from "@/components/shared/Avatar";
 import { searchPlacesForTrip, type PlacePickerItem } from "@/server/actions/places";
 import {
   MapPin, Tag, X, ChevronLeft, Smile, AlertCircle, Loader2, Eye, EyeOff,
-  Heart, MessageCircle, Bookmark, Share2, Sparkles,
+  Heart, MessageCircle, Bookmark, Share2, Sparkles, Save, Clock,
 } from "lucide-react";
 import { generateCaption } from "@/server/actions/ai-caption";
 
 const MAX_CHARS = 500;
 const MAX_IMAGES = 4;
+const DRAFT_KEY = "yt_create_draft";
+
+interface DraftData {
+  content: string;
+  tags: string[];
+  location: string;
+  placeId?: string;
+  savedAt: string;
+}
+
+function saveDraft(data: Omit<DraftData, "savedAt">) {
+  try {
+    localStorage.setItem(DRAFT_KEY, JSON.stringify({ ...data, savedAt: new Date().toISOString() }));
+  } catch {}
+}
+
+function loadDraft(): DraftData | null {
+  try {
+    const raw = localStorage.getItem(DRAFT_KEY);
+    return raw ? (JSON.parse(raw) as DraftData) : null;
+  } catch { return null; }
+}
+
+function clearDraft() {
+  try { localStorage.removeItem(DRAFT_KEY); } catch {}
+}
+
+function formatDraftTime(iso: string): string {
+  const d = new Date(iso);
+  return d.toLocaleTimeString("th-TH", { hour: "2-digit", minute: "2-digit" });
+}
 
 const suggestedTags = [
   "เที่ยวเหนือ", "ทะเล", "ธรรมชาติ", "คาเฟ่", "ร้านอาหาร",
@@ -42,12 +73,70 @@ export default function CreatePage() {
   const [showPreview, setShowPreview] = useState(false);
   const [aiLoading, setAiLoading] = useState(false);
 
+  // Draft state
+  const [draftSavedAt, setDraftSavedAt] = useState<string | null>(null);
+  const [showDraftBanner, setShowDraftBanner] = useState(false);
+  const [pendingDraft, setPendingDraft] = useState<DraftData | null>(null);
+  const autoSaveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const isFirstMount = useRef(true);
+
+  // On mount: check for saved draft
+  useEffect(() => {
+    const d = loadDraft();
+    if (d && d.content.trim()) {
+      setPendingDraft(d);
+      setShowDraftBanner(true);
+    }
+    isFirstMount.current = false;
+  }, []);
+
+  // Auto-save draft 2s after last change (content/tags/location)
+  const triggerAutoSave = useCallback((c: string, t: string[], loc: string, pid?: string) => {
+    if (autoSaveTimer.current) clearTimeout(autoSaveTimer.current);
+    autoSaveTimer.current = setTimeout(() => {
+      if (c.trim() || t.length || loc) {
+        saveDraft({ content: c, tags: t, location: loc, placeId: pid });
+        setDraftSavedAt(new Date().toISOString());
+      }
+    }, 2000);
+  }, []);
+
+  // Trigger auto-save whenever content, tags, or location changes
+  useEffect(() => {
+    if (isFirstMount.current) return;
+    triggerAutoSave(content, tags, location, placeId);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [content, tags, location, placeId]);
+
+  function restoreDraft() {
+    if (!pendingDraft) return;
+    setContent(pendingDraft.content);
+    setTags(pendingDraft.tags ?? []);
+    setLocation(pendingDraft.location ?? "");
+    if (pendingDraft.placeId) setPlaceId(pendingDraft.placeId);
+    setShowDraftBanner(false);
+    setPendingDraft(null);
+    setDraftSavedAt(pendingDraft.savedAt);
+  }
+
+  function discardDraft() {
+    clearDraft();
+    setShowDraftBanner(false);
+    setPendingDraft(null);
+  }
+
+  function handleManualSave() {
+    if (content.trim() || tags.length || location) {
+      saveDraft({ content, tags, location, placeId });
+      setDraftSavedAt(new Date().toISOString());
+    }
+  }
+
   const remaining = MAX_CHARS - content.length;
   const canPost = content.trim().length > 0 && !isSubmitting;
 
   const displayName = user?.user_metadata?.full_name ?? user?.email?.split("@")[0] ?? "You";
   const avatarUrl = user?.user_metadata?.avatar_url as string | undefined;
-  const initials = displayName.charAt(0).toUpperCase();
 
   function searchPlace(q: string) {
     setPlaceSearchQ(q);
@@ -103,6 +192,7 @@ export default function CreatePage() {
         setError(result.error.message);
         return;
       }
+      clearDraft(); // clear draft on successful publish
       router.push("/feed");
     } catch {
       setError("เกิดข้อผิดพลาด กรุณาลองใหม่");
@@ -143,6 +233,23 @@ export default function CreatePage() {
           </div>
         </div>
 
+        {/* Draft restore banner */}
+        {showDraftBanner && pendingDraft && (
+          <div className="mx-4 mt-3 flex items-center gap-2 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-700 text-amber-800 dark:text-amber-300 text-sm px-3 py-2.5 rounded-xl">
+            <Clock className="w-4 h-4 flex-shrink-0" />
+            <span className="flex-1 text-xs">
+              มีแบบร่างที่บันทึกไว้เมื่อ {formatDraftTime(pendingDraft.savedAt)} — กู้คืนไหม?
+            </span>
+            <button onClick={restoreDraft}
+              className="text-xs font-semibold text-amber-700 dark:text-amber-400 hover:underline">
+              กู้คืน
+            </button>
+            <button onClick={discardDraft} className="ml-1 text-amber-500 dark:text-amber-600 hover:text-amber-700">
+              <X className="w-3.5 h-3.5" />
+            </button>
+          </div>
+        )}
+
         {/* Error banner */}
         {error && (
           <div className="mx-4 mt-3 flex items-center gap-2 bg-red-50 border border-red-200 text-red-700 text-sm px-3 py-2.5 rounded-xl">
@@ -152,6 +259,14 @@ export default function CreatePage() {
               <X className="w-3.5 h-3.5" />
             </button>
           </div>
+        )}
+
+        {/* Draft saved indicator */}
+        {draftSavedAt && !showPreview && (
+          <p className="text-center text-[11px] text-gray-400 dark:text-slate-500 mt-2 flex items-center justify-center gap-1">
+            <Save className="w-3 h-3" />
+            บันทึกแบบร่างเมื่อ {formatDraftTime(draftSavedAt)}
+          </p>
         )}
 
         {/* ── Preview panel ── */}
@@ -177,7 +292,7 @@ export default function CreatePage() {
 
               {/* Images */}
               {images.length > 0 && (
-                <div className={`grid gap-0.5 ${images.length === 1 ? "grid-cols-1" : images.length === 2 ? "grid-cols-2" : "grid-cols-2"}`}>
+                <div className={`grid gap-0.5 ${images.length === 1 ? "grid-cols-1" : "grid-cols-2"}`}>
                   {images.slice(0, 4).map((img, i) => (
                     <div key={i} className={`relative overflow-hidden bg-gray-100 dark:bg-slate-700 ${
                       images.length === 1 ? "aspect-video" :
@@ -388,6 +503,17 @@ export default function CreatePage() {
           <div className="flex items-center gap-4">
             <button className="text-sm text-gray-500 dark:text-slate-400 hover:text-[#398AB9] transition">
               <Smile className="w-5 h-5" />
+            </button>
+            {/* Manual save draft button */}
+            <button
+              type="button"
+              onClick={handleManualSave}
+              disabled={!content.trim() && !tags.length && !location}
+              title="บันทึกแบบร่าง"
+              className="flex items-center gap-1.5 text-xs font-medium text-gray-500 dark:text-slate-400 hover:text-[#398AB9] dark:hover:text-[#398AB9] transition disabled:opacity-30"
+            >
+              <Save className="w-4 h-4" />
+              <span className="hidden sm:inline">บันทึกร่าง</span>
             </button>
             {/* AI caption button */}
             <button

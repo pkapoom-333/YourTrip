@@ -12,6 +12,7 @@ export async function GET(request: NextRequest) {
     const { error } = await (supabase.auth as any).exchangeCodeForSession(code);
     if (!error) {
       // Sync user to DB on first login
+      let isNewUser = false;
       try {
         const { data: { user } } = await supabase.auth.getUser();
         if (user && prisma) {
@@ -20,6 +21,7 @@ export async function GET(request: NextRequest) {
             where: { id: user.id },
             select: { avatarUrl: true },
           });
+          isNewUser = !existing; // brand-new user has no DB record yet
           await prisma.user.upsert({
             where: { id: user.id },
             update: {
@@ -44,7 +46,9 @@ export async function GET(request: NextRequest) {
         console.error("[auth/callback] user sync failed:", e);
       }
 
-      return NextResponse.redirect(`${origin}${next}`);
+      // New users go through onboarding wizard; returning users go to feed (or intended page)
+      const destination = isNewUser ? "/onboarding" : next;
+      return NextResponse.redirect(`${origin}${destination}`);
     }
   }
 

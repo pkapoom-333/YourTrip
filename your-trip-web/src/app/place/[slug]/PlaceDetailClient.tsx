@@ -24,6 +24,7 @@ import { useUser } from "@/hooks/useUser";
 /* ── types ────────────────────────────────────────────────── */
 export interface PlaceData {
   id?: string;
+  province?: string;
   name: string; category: string; categoryEn: string; location: string;
   rating: number; reviewCount: number; priceRange: string; priceNote: string;
   isOpen: boolean; openUntil: string; phone: string; website: string;
@@ -604,6 +605,46 @@ export default function PlaceDetailClient({ place, slug, initialSaved = false }:
                 </div>
               )}
             </div>
+
+            {place.reviews.length > 0 && (() => {
+              const counts = [5,4,3,2,1].map((star) => ({
+                star,
+                count: place.reviews.filter((r) => Math.round(r.rating) === star).length,
+              }));
+              const total = place.reviews.length;
+              return (
+                <div className="bg-gray-50 dark:bg-slate-700/50 rounded-xl p-4 mb-4">
+                  <div className="flex items-center gap-4">
+                    {/* Big rating number */}
+                    <div className="text-center">
+                      <p className="text-4xl font-bold text-gray-900 dark:text-slate-100">{place.rating.toFixed(1)}</p>
+                      <div className="flex gap-0.5 justify-center my-1">
+                        {[1,2,3,4,5].map((i) => (
+                          <Star key={i} className={`w-3 h-3 ${i <= Math.round(place.rating) ? "fill-amber-400 text-amber-400" : "text-gray-200 dark:text-slate-600"}`} />
+                        ))}
+                      </div>
+                      <p className="text-[10px] text-gray-400 dark:text-slate-500">{total} รีวิว</p>
+                    </div>
+                    {/* Bar breakdown */}
+                    <div className="flex-1 space-y-1">
+                      {counts.map(({ star, count }) => {
+                        const pct = total > 0 ? Math.round((count / total) * 100) : 0;
+                        return (
+                          <div key={star} className="flex items-center gap-2">
+                            <span className="text-[10px] text-gray-500 dark:text-slate-400 w-2">{star}</span>
+                            <Star className="w-2.5 h-2.5 fill-amber-400 text-amber-400 flex-shrink-0" />
+                            <div className="flex-1 h-1.5 bg-gray-200 dark:bg-slate-600 rounded-full overflow-hidden">
+                              <div className="h-full bg-amber-400 rounded-full transition-all" style={{ width: `${pct}%` }} />
+                            </div>
+                            <span className="text-[10px] text-gray-400 dark:text-slate-500 w-6 text-right">{count}</span>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                </div>
+              );
+            })()}
 
             {place.reviews.length > 0 ? (
               <>

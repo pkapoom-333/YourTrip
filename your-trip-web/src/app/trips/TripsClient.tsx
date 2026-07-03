@@ -7,6 +7,7 @@ import { deleteTrip, updateTripStatus, duplicateTrip, type PublicTripItem } from
 import type { DestinationSuggestion } from "@/server/actions/savedPlaces";
 import { useToast } from "@/components/shared/Toast";
 import { Avatar } from "@/components/shared/Avatar";
+import { TripCountdownWidget } from "@/components/features/TripCountdownWidget";
 
 export interface TripSummary {
   id: string;
@@ -125,6 +126,11 @@ export default function TripsClient({ initialTrips, communityTrips = [], destina
       <div className="hidden md:flex items-center justify-between mb-6">
         <h1 className="text-xl font-bold text-gray-900 dark:text-slate-100">ทริปของฉัน</h1>
         <div className="flex items-center gap-2">
+          <Link href="/trips/templates"
+            className="flex items-center gap-2 border border-gray-200 dark:border-slate-600 text-gray-600 dark:text-slate-300 text-sm font-medium px-4 py-2 rounded-xl hover:bg-gray-50 dark:hover:bg-slate-700 transition">
+            <span>📋</span>
+            เทมเพลต
+          </Link>
           <Link href="/trips/ai-plan"
             className="flex items-center gap-2 bg-gradient-to-r from-[#398AB9] to-[#1C658C] text-white text-sm font-medium px-4 py-2 rounded-xl hover:opacity-90 transition">
             <Sparkles className="w-4 h-4" />
@@ -209,7 +215,27 @@ export default function TripsClient({ initialTrips, communityTrips = [], destina
       {/* Tabs + view toggle */}
       <div className="flex items-center gap-2 mb-4">
         <div className="flex gap-2 overflow-x-auto scrollbar-none flex-1">
-          {(["all", "upcoming", "planning", "completed"] as const).map((t) => (
+          {/* Countdown for nearest upcoming trip */}
+      {(() => {
+        const nextTrip = trips.find(
+          (t) => t.status === "upcoming" && t.startDateISO && new Date(t.startDateISO) > new Date()
+        ) ?? trips.find((t) => t.status === "upcoming");
+        if (!nextTrip || !nextTrip.startDateISO) return null;
+        return (
+          <div className="mb-4">
+            <TripCountdownWidget trip={{
+              id: nextTrip.id,
+              title: nextTrip.title,
+              destination: nextTrip.destinations?.[0] ?? nextTrip.destinations?.join(", ") ?? "ทริป",
+              startDate: nextTrip.startDateISO ?? null,
+              endDate: nextTrip.endDateISO ?? null,
+              status: nextTrip.status,
+              coverImage: nextTrip.img ?? null,
+            }} />
+          </div>
+        );
+      })()}
+      {(["all", "upcoming", "planning", "completed"] as const).map((t) => (
             <button key={t} onClick={() => setTab(t)}
               className={`px-3.5 py-1.5 rounded-full text-xs font-medium flex-shrink-0 transition ${
                 tab === t ? "bg-[#398AB9] text-white" : "bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-600 text-gray-500 dark:text-slate-400"

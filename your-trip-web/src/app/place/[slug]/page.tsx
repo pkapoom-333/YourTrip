@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
-import { getPlaceBySlug, getNearbyPlaces, type PlaceDetail } from "@/server/actions/places";
+import { getPlaceBySlug, getNearbyPlaces, getUserCheckInStatus, type PlaceDetail } from "@/server/actions/places";
 import { getSavedPlaceIds } from "@/server/actions/savedPlaces";
 import PlaceDetailClient, { type PlaceData } from "./PlaceDetailClient";
 
@@ -16,7 +16,22 @@ export async function generateMetadata(
   const title = `${place.name} — ${place.province ?? "ท่องเที่ยว"}`;
   const description = place.description?.slice(0, 160) ??
     `ข้อมูลสถานที่ ${place.name} รีวิว เวลาเปิด ราคา และการเดินทาง`;
-  const image = place.images[0]?.url;
+  const coverImage = place.images[0]?.url;
+  const avgRating = place.reviews?.length
+    ? place.reviews.reduce((s: number, r: { rating: number }) => s + r.rating, 0) / place.reviews.length
+    : 0;
+
+  // Branded OG image via /api/og
+  const ogParams = new URLSearchParams({
+    title: place.name,
+    subtitle: description,
+    category: place.category ?? "",
+    province: place.province ?? "",
+    rating: avgRating > 0 ? avgRating.toFixed(1) : "",
+    type: "place",
+    ...(coverImage ? { image: coverImage } : {}),
+  });
+  const ogImage = `${BASE_URL}/api/og?${ogParams.toString()}`;
 
   return {
     title,
@@ -29,13 +44,13 @@ export async function generateMetadata(
       description,
       url: `${BASE_URL}/place/${slug}`,
       type: "website",
-      ...(image && { images: [{ url: image, width: 1200, height: 630, alt: place.name }] }),
+      images: [{ url: ogImage, width: 1200, height: 630, alt: place.name }],
     },
     twitter: {
       card: "summary_large_image",
       title,
       description,
-      ...(image && { images: [image] }),
+      images: [ogImage],
     },
   };
 }
@@ -114,6 +129,7 @@ function mapToPlaceData(p: PlaceDetail): PlaceData {
 
   return {
     id: p.id,
+    province: p.province ?? undefined,
     name: p.name,
     category: CAT_TH[p.category] ?? p.category,
     categoryEn: CAT_EN[p.category] ?? p.category,
@@ -195,7 +211,8 @@ function buildJsonLd(place: PlaceData, slug: string): Record<string, unknown> {
   }
   return ld;
 }
-
+
+
 // ─── Page ─────────────────────────────────────────────
 export default async function PlacePage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
@@ -204,9 +221,10 @@ export default async function PlacePage({ params }: { params: Promise<{ slug: st
   const { data: dbPlace } = await getPlaceBySlug(slug);
 
   if (dbPlace) {
-    const [{ data: nearbyRaw }, savedIds] = await Promise.all([
+    const [{ data: nearbyRaw }, savedIds, checkInStatus] = await Promise.all([
       getNearbyPlaces({ excludeSlug: slug, region: dbPlace.region, category: dbPlace.category }),
       getSavedPlaceIds().catch(() => [] as string[]),
+      getUserCheckInStatus(dbPlace.id).catch(() => ({ hasCheckedIn: false, totalCheckIns: 0 })),
     ]);
 
     const nearbyPlaces = nearbyRaw.map((p) => ({

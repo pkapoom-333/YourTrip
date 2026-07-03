@@ -1,3 +1,31 @@
+## 🔥 QUEST BOARD — Sprint S15 "DEPLOY & LAUNCH" (Day 35 — 2026-07-03)
+**ช่วง:** 3–14 ก.ค. 2026 | **MVP deadline:** 14 ก.ค. 2026
+
+```
+PROGRESS ████████████████████████ 100%  CODEBASE COMPLETE — รอ push + deploy
+```
+
+### ⚔️ TIER S — Launch Blockers
+
+| # | Quest | XP | Status |
+|---|-------|----|--------|
+| S15-1 | **git push to GitHub** — รัน `fix_and_push.vbs` (340 files) | 500 | ⬜ USER ACTION |
+| S15-2 | **Vercel deploy** — import repo + env vars | 500 | ⬜ USER ACTION |
+| S15-3 | **Supabase SQL migrations** — paste all_migrations.sql | 300 | ⬜ USER ACTION |
+| S15-4 | **Supabase Auth callback URL** — set to Vercel domain | 100 | ⬜ USER ACTION |
+
+### ✅ DONE Day 35 (2026-07-03)
+
+| # | Quest | XP | Status |
+|---|-------|----|--------|
+| D35-1 | **Error boundaries** — 57 new error.tsx → 79/79 pages covered | 300 | ✅ |
+| D35-2 | **Not-found pages** — 20 new not-found.tsx for all dynamic routes | 200 | ✅ |
+| D35-3 | **OG image system** — /api/og edge runtime + layout.tsx wired | 200 | ✅ |
+| D35-4 | **TSC clean** — 0 errors across 340 TS files | 100 | ✅ |
+| D35-5 | **fix_and_push.vbs** — updated commit message | 50 | ✅ |
+
+---
+
 # 🗺️ DAILYWORK.md — YourTrip Quest Board
 > CTO Claude อ่านทุก session | ทำแบบ speedrun — commit บ่อย, ไม่ถามซ้ำ
 > Last updated: 2026-06-12
@@ -130,7 +158,7 @@ PROGRESS ██████████████████████ 98% 
 | # | Quest | XP | Status |
 |---|-------|----|--------|
 | B30 | **Trip day drag-reorder** — drag items within a day to reorder (HTML5 drag or @dnd-kit) | 150 | ✅ |
-| B31 | **Post creation preview** — show image preview before posting | 100 | ⬜ |
+| B31 | **Post creation preview** — show image preview before posting | 100 | ✅ (already built) |
 | B32 | **Dark mode user setting** — remember dark/light preference via localStorage (not just system) | 50 | ✅ |
 | B33 | **Notification mark all read** — "อ่านทั้งหมด" button on /notifications page | 50 | ✅ |
 

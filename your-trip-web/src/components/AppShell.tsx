@@ -5,7 +5,7 @@ import { usePathname, useRouter } from "next/navigation";
 import { useState, useEffect, useRef } from "react";
 import {
   Home, PlusSquare, MapPin, User,
-  Compass, Bell, Settings, Users, LogOut, UserSearch, BookMarked, Search, MessageSquare, Receipt,
+  Compass, Bell, Settings, Users, LogOut, UserSearch, BookMarked, Bookmark, Flame, Search, MessageSquare, Receipt, TrendingUp, Activity, SlidersHorizontal, UserPlus, Navigation, Trophy, Share2 as ShareIcon, CheckSquare, Map,
 } from "lucide-react";
 import { useUser } from "@/hooks/useUser";
 import { createClient } from "@/lib/supabase/client";
@@ -20,20 +20,32 @@ const sidebarItems = [
   { href: "/explore",       icon: Compass,       label: "สำรวจ" },
   { href: "/trips",         icon: MapPin,        label: "ทริป" },
   { href: "/messages",      icon: MessageSquare, label: "ข้อความ" },
-  { href: "/search/users",  icon: UserSearch,    label: "ค้นหาคน" },
-  { href: "/search/posts",  icon: Search,        label: "ค้นหาโพสต์" },
+  { href: "/search",        icon: Search,        label: "ค้นหา" },
+  { href: "/compare",       icon: SlidersHorizontal, label: "เปรียบเทียบ" },
+  { href: "/people",        icon: UserSearch,    label: "ค้นหาคน" },
+  { href: "/saved",          icon: Bookmark,      label: "บันทึกไว้" },
+  { href: "/map",             icon: Map,           label: "แผนที่" },
+  { href: "/near-me",         icon: Navigation,    label: "ใกล้ฉัน" },
   { href: "/collections",   icon: BookMarked,    label: "คอลเลกชัน" },
+  { href: "/trending",      icon: TrendingUp,    label: "กำลังนิยม" },
+  { href: "/popular",       icon: Flame,         label: "ยอดนิยม" },
+  { href: "/leaderboard",   icon: Trophy,        label: "ลีดเดอร์บอร์ด" },
+  { href: "/invite",         icon: ShareIcon,     label: "ชวนเพื่อน" },
+  { href: "/activity",      icon: Activity,      label: "กิจกรรม" },
+  { href: "/check-ins",      icon: CheckSquare,   label: "เช็คอิน" },
   { href: "/buddy",         icon: Users,         label: "Travel Buddy" },
   { href: "/expense",       icon: Receipt,       label: "หารค่าใช้จ่าย" },
   { href: "/profile",       icon: User,          label: "โปรไฟล์" },
 ];
 
-// Mobile bottom nav (4 items only — create button is separate)
-const mobileNavItems = [
-  { href: "/feed",          icon: Home,          label: "หน้าหลัก" },
-  { href: "/explore",       icon: Compass,       label: "สำรวจ" },
-  { href: "/messages",      icon: MessageSquare, label: "ข้อความ" },
-  { href: "/profile",       icon: User,          label: "โปรไฟล์" },
+// Mobile bottom nav (4 items + center create button)
+const mobileNavLeft = [
+  { href: "/feed",    icon: Home,          label: "หน้าหลัก" },
+  { href: "/explore", icon: Compass,       label: "สำรวจ" },
+];
+const mobileNavRight = [
+  { href: "/messages", icon: MessageSquare, label: "ข้อความ" },
+  { href: "/profile",  icon: User,          label: "โปรไฟล์" },
 ];
 
 function getInitials(name?: string | null, email?: string | null): string {
@@ -268,29 +280,43 @@ function BottomNav({ unread, setUnread, msgUnread, setMsgUnread }: BadgeProps) {
     if (path.startsWith("/messages")) setMsgUnread(0);
   }, [path, setUnread, setMsgUnread]);
 
+  function NavItem({ href, icon: Icon, label }: { href: string; icon: React.ElementType; label: string }) {
+    const active = path === href || path.startsWith(href + "/");
+    const isMsg = href === "/messages";
+    const badge = isMsg ? msgUnread : 0;
+    return (
+      <Link href={href}
+        className={`flex flex-col items-center gap-0.5 px-3 py-1 rounded-xl transition-all min-w-[52px] relative ${active ? "text-[#398AB9]" : "text-gray-400 dark:text-slate-500"}`}
+      >
+        <div className="relative">
+          <Icon className={`w-5 h-5 ${active ? "text-[#398AB9]" : ""}`} />
+          {badge > 0 && (
+            <span className="absolute -top-1 -right-1 w-4 h-4 bg-[#FF4F4F] rounded-full text-white text-[9px] font-bold flex items-center justify-center">
+              {badge > 9 ? "9+" : badge}
+            </span>
+          )}
+        </div>
+        <span className={`text-[10px] font-medium ${active ? "text-[#398AB9]" : ""}`}>{label}</span>
+      </Link>
+    );
+  }
+
   return (
-    <nav className="md:hidden fixed bottom-0 left-0 right-0 z-50 bg-white dark:bg-slate-800 border-t border-gray-100 dark:border-slate-700">
-      <div className="flex items-center justify-around px-2 py-2">
-        {mobileNavItems.map(({ href, icon: Icon, label }) => {
-          const active = path === href || path.startsWith(href + "/");
-          const isMsg = href === "/messages";
-          const badge = isMsg ? msgUnread : (href === "/notifications" ? unread : 0);
-          return (
-            <Link key={href} href={href}
-              className={`flex flex-col items-center gap-0.5 px-3 py-1 rounded-xl transition-all min-w-[56px] relative ${active ? "text-[#398AB9]" : "text-gray-400 dark:text-slate-500 hover:text-gray-600 dark:hover:text-slate-300"}`}
-            >
-              <div className="relative">
-                <Icon className={`w-5 h-5 ${active ? "text-[#398AB9]" : ""}`} />
-                {badge > 0 && (
-                  <span className="absolute -top-1 -right-1 w-4 h-4 bg-[#FF4F4F] rounded-full text-white text-[9px] font-bold flex items-center justify-center">
-                    {badge > 9 ? "9+" : badge}
-                  </span>
-                )}
-              </div>
-                <span className={`text-[10px] font-medium ${active ? "text-[#398AB9]" : ""}`}>{label}</span>
-            </Link>
-          );
-        })}
+    <nav className="md:hidden fixed bottom-0 left-0 right-0 z-50 bg-white dark:bg-slate-800 border-t border-gray-100 dark:border-slate-700 safe-area-bottom">
+      <div className="flex items-center justify-around px-2 py-1">
+        {mobileNavLeft.map((item) => <NavItem key={item.href} {...item} />)}
+
+        {/* Center create button */}
+        <Link href="/create"
+          className="flex flex-col items-center gap-0.5 relative -top-3"
+        >
+          <div className="w-12 h-12 rounded-2xl bg-[#398AB9] shadow-lg shadow-[#398AB9]/30 flex items-center justify-center transition hover:bg-[#1C658C] active:scale-95">
+            <PlusSquare className="w-6 h-6 text-white" />
+          </div>
+          <span className="text-[10px] font-medium text-[#398AB9]">โพสต์</span>
+        </Link>
+
+        {mobileNavRight.map((item) => <NavItem key={item.href} {...item} />)}
       </div>
     </nav>
   );

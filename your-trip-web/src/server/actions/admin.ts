@@ -794,3 +794,41 @@ export async function broadcastNotification(opts: {
   revalidatePath("/admin/broadcast");
   return { sent };
 }
+
+// ─── Site Config ────────────────────────────────────────────────────────────
+
+export async function getSiteConfigs(): Promise<Record<string, string>> {
+  await requireAdmin();
+  const rows = await (prisma as any).siteConfig.findMany();
+  const map: Record<string, string> = {};
+  for (const row of rows) map[row.key] = row.value;
+  return map;
+}
+
+export async function upsertSiteConfig(
+  key: string,
+  value: string
+): Promise<void> {
+  await requireAdmin();
+  await (prisma as any).siteConfig.upsert({
+    where: { key },
+    update: { value },
+    create: { key, value },
+  });
+  revalidatePath("/admin/settings");
+}
+
+export async function bulkUpsertSiteConfig(
+  entries: Record<string, string>
+): Promise<{ ok: boolean }> {
+  await requireAdmin();
+  for (const [key, value] of Object.entries(entries)) {
+    await (prisma as any).siteConfig.upsert({
+      where: { key },
+      update: { value },
+      create: { key, value },
+    });
+  }
+  revalidatePath("/admin/settings");
+  return { ok: true };
+}

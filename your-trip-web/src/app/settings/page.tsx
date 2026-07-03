@@ -4,7 +4,7 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import AppShell from "@/components/AppShell";
 import {
-  User, Bell, Lock, Globe, Smartphone,
+  User, Bell, Lock, Globe, Smartphone, Users,
   Moon, ChevronRight, LogOut, Trash2,
   Shield, Eye, HelpCircle, Info, Camera,
 } from "lucide-react";
@@ -116,11 +116,12 @@ function RowToggle({
 export default function SettingsPage() {
   const router = useRouter();
   const { user } = useUser();
-  const [notifLike, setNotifLike] = useLocalStorage("settings_notif_like", true);
-  const [notifComment, setNotifComment] = useLocalStorage("settings_notif_comment", true);
-  const [notifFollow, setNotifFollow] = useLocalStorage("settings_notif_follow", true);
-  const [notifBuddy, setNotifBuddy] = useLocalStorage("settings_notif_buddy", true);
-  const [notifPush, setNotifPush] = useLocalStorage("settings_notif_push", true);
+  // Notification prefs moved to /settings/notifications
+  // const [notifLike] = useLocalStorage("settings_notif_like", true);
+  // const [notifComment] = useLocalStorage("settings_notif_comment", true);
+  // const [notifFollow] = useLocalStorage("settings_notif_follow", true);
+  // const [notifBuddy] = useLocalStorage("settings_notif_buddy", true);
+  // const [notifPush] = useLocalStorage("settings_notif_push", true);
   const [privateAccount, setPrivateAccount] = useLocalStorage("settings_private", false);
   const [darkMode, setDarkMode] = useLocalStorage("settings_dark_mode", false);
 
@@ -172,6 +173,7 @@ export default function SettingsPage() {
           <RowLink icon={Lock} iconBg="bg-slate-500" label="เปลี่ยนรหัสผ่าน" />
           <RowLink icon={Globe} iconBg="bg-emerald-500" label="ภาษา" description="ภาษาไทย" />
           <RowLink icon={Shield} iconBg="bg-amber-500" label="สมัครเป็นมัคคุเทศก์" description="รับ badge 🏅 และเพิ่มรายได้จากการท่องเที่ยว" href="/guide/apply" />
+          <RowLink icon={Users} iconBg="bg-pink-500" label="ชวนเพื่อน" description="แชร์ Your Trip ให้คนที่รัก" href="/invite" />
         </Section>
 
         {/* Privacy */}
@@ -190,41 +192,12 @@ export default function SettingsPage() {
 
         {/* Notifications */}
         <Section title="การแจ้งเตือน">
-          <RowToggle
+          <RowLink
             icon={Bell}
             iconBg="bg-amber-500"
-            label="Push Notification"
-            description="แจ้งเตือนผ่านอุปกรณ์"
-            value={notifPush}
-            onChange={setNotifPush}
-          />
-          <RowToggle
-            icon={Bell}
-            iconBg="bg-red-400"
-            label="ถูกใจ"
-            value={notifLike}
-            onChange={setNotifLike}
-          />
-          <RowToggle
-            icon={Bell}
-            iconBg="bg-[#398AB9]"
-            label="ความคิดเห็น"
-            value={notifComment}
-            onChange={setNotifComment}
-          />
-          <RowToggle
-            icon={Bell}
-            iconBg="bg-emerald-500"
-            label="ผู้ติดตามใหม่"
-            value={notifFollow}
-            onChange={setNotifFollow}
-          />
-          <RowToggle
-            icon={Bell}
-            iconBg="bg-violet-500"
-            label="คำขอร่วมทริป"
-            value={notifBuddy}
-            onChange={setNotifBuddy}
+            label="การแจ้งเตือน"
+            description="Push notification, Like, Comment, ผู้ติดตาม"
+            href="/settings/notifications"
           />
         </Section>
 
@@ -268,4 +241,3 @@ export default function SettingsPage() {
     </AppShell>
  );
 }
-

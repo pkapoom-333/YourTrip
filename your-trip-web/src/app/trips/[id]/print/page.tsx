@@ -1,280 +1,111 @@
-"use client";
-
-import { use, useState, useEffect } from "react";
+import { notFound } from "next/navigation";
 import { getTripById } from "@/server/actions/trips";
-import { MapPin, Clock, Wallet, Car, Printer, ArrowLeft, Copy, Check } from "lucide-react";
-import Link from "next/link";
 
-interface TripItem {
-  id: string;
-  name: string;
-  time?: string;
-  duration?: number;
-  travelTimeTo?: number;
-  cost?: number;
-  note?: string;
-  type: string;
-  photo?: string;
+interface Props {
+  params: Promise<{ id: string }>;
 }
 
-interface TripDay {
-  day: number;
-  date: string;
-  items: TripItem[];
-}
+export default async function TripPrintPage({ params }: Props) {
+  const { id } = await params;
+  const { data: trip } = await getTripById(id);
+  if (!trip) notFound();
 
-function fmtMin(min: number) {
-  if (min < 60) return `${min} นาที`;
-  const h = Math.floor(min / 60);
-  const m = min % 60;
-  return m > 0 ? `${h} ชม. ${m} นาที` : `${h} ชม.`;
-}
-
-function buildTextExport(
-  title: string,
-  destination: string,
-  startDate: string,
-  endDate: string,
-  budget: number,
-  days: TripDay[],
-  tripId: string
-): string {
-  const header = [
-    `📋 ${title}`,
-    `📍 ${destination}`,
-    startDate ? `🗓 ${startDate}${endDate ? ` – ${endDate}` : ""}` : "",
-    budget > 0 ? `💰 งบ ฿${budget.toLocaleString()}` : "",
-    "",
-    "─".repeat(40),
-  ].filter(Boolean).join("\n");
-
-  const body = days.map((d) => {
-    const dayHeader = `\n📅 วันที่ ${d.day}${d.date ? ` — ${d.date}` : ""}`;
-    const items = d.items.map((item) => {
-      const parts = [`  • ${item.time ? `[${item.time}] ` : ""}${item.name}`];
-      if (item.duration) parts.push(`    ⏱ ${fmtMin(item.duration)}`);
-      if (item.cost) parts.push(`    ฿ ${item.cost.toLocaleString()}`);
-      if (item.note) parts.push(`    → ${item.note}`);
-      return parts.join("\n");
-    });
-    return [dayHeader, ...items].join("\n");
-  }).join("\n\n");
-
-  const totalCost = days.flatMap((d) => d.items).reduce((s, i) => s + (i.cost ?? 0), 0);
-  const footer = `\n${"─".repeat(40)}\n💸 ค่าใช้จ่ายรวม ฿${totalCost.toLocaleString()}${budget > 0 ? ` / งบ ฿${budget.toLocaleString()}` : ""}\n🔗 yourtrip.app/trips/${tripId}`;
-
-  return [header, body, footer].join("\n");
-}
-
-const typeEmoji: Record<string, string> = {
-  place: "📍",
-  food: "🍽️",
-  hotel: "🏨",
-  transport: "✈️",
-  activity: "🎯",
-};
-
-export default function TripPrintPage({ params }: { params: Promise<{ id: string }> }) {
-  const { id } = use(params);
-  const [title, setTitle] = useState("แผนทริป");
-  const [destination, setDestination] = useState("");
-  const [startDate, setStartDate] = useState("");
-  const [endDate, setEndDate] = useState("");
-  const [budget, setBudget] = useState(0);
-  const [days, setDays] = useState<TripDay[]>([]);
-  const [loaded, setLoaded] = useState(false);
-  const [copied, setCopied] = useState(false);
-
-  const fmt = new Intl.DateTimeFormat("th-TH", { day: "numeric", month: "long", year: "numeric" });
-
-  useEffect(() => {
-    getTripById(id).then(({ data }) => {
-      if (!data) return;
-      setTitle(data.title);
-      setDestination(data.destination);
-      setStartDate(data.startDate ? fmt.format(data.startDate) : "");
-      setEndDate(data.endDate ? fmt.format(data.endDate) : "");
-      setBudget(data.budget ?? 0);
-      setDays(
-        data.days.map((d) => ({
-          day: d.day,
-          date: d.date ? fmt.format(d.date) : `วันที่ ${d.day}`,
-          items: d.items.map((item) => ({
-            id: item.id,
-            name: item.name,
-            time: item.time ?? undefined,
-            duration: item.duration ?? undefined,
-            travelTimeTo: item.travelTimeTo ?? undefined,
-            cost: item.cost ?? undefined,
-            note: item.note ?? undefined,
-            type: "place",
-            photo: (item as unknown as { imageUrl?: string }).imageUrl ?? undefined,
-          })),
-        }))
-      );
-      setLoaded(true);
-    });
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [id]);
-
-  const totalCost = days.flatMap((d) => d.items).reduce((s, i) => s + (i.cost ?? 0), 0);
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const tripData = trip as any;
+  const days: any[] = tripData.days ?? [];
+  const totalPlaces = days.reduce((s: number, d: any) => s + (d.items?.length ?? 0), 0);
 
   return (
-    <div className="min-h-screen bg-white">
-      {/* Print controls — hidden when printing */}
-      <div className="print:hidden sticky top-0 z-10 bg-white border-b border-gray-200 px-4 py-3 flex items-center gap-3">
-        <Link href={`/trips/${id}`} className="flex items-center gap-1.5 text-sm text-gray-500 hover:text-gray-700 transition">
-          <ArrowLeft className="w-4 h-4" />
-          กลับ
-        </Link>
-        <div className="flex-1" />
-        <button
-          onClick={async () => {
-            const text = buildTextExport(title, destination, startDate, endDate, budget, days, id);
-            await navigator.clipboard.writeText(text).catch(() => {});
-            setCopied(true);
-            setTimeout(() => setCopied(false), 2000);
-          }}
-          className={`flex items-center gap-2 px-3 py-2 text-sm font-semibold rounded-xl border transition ${
-            copied ? "border-emerald-500 bg-emerald-50 text-emerald-600" : "border-gray-200 text-gray-600 hover:border-[#398AB9] hover:text-[#398AB9]"
-          }`}
-        >
-          {copied ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
-          {copied ? "คัดลอกแล้ว!" : "คัดลอกข้อความ"}
-        </button>
-        <button
-          onClick={() => window.print()}
-          className="flex items-center gap-2 px-4 py-2 bg-[#398AB9] text-white text-sm font-semibold rounded-xl hover:bg-[#1C658C] transition"
-        >
-          <Printer className="w-4 h-4" />
-          พิมพ์ / PDF
-        </button>
-      </div>
+    <html lang="th">
+      <head>
+        <meta charSet="utf-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <title>{tripData.title} — YourTrip Itinerary</title>
+        <style>{`
+          * { margin: 0; padding: 0; box-sizing: border-box; }
+          body { font-family: 'Segoe UI', system-ui, sans-serif; color: #1a1a1a; background: #fff; }
+          .container { max-width: 800px; margin: 0 auto; padding: 32px 24px; }
+          .header { border-bottom: 2px solid #398AB9; padding-bottom: 16px; margin-bottom: 24px; }
+          .logo { color: #398AB9; font-size: 14px; font-weight: 700; margin-bottom: 4px; }
+          .title { font-size: 28px; font-weight: 800; color: #1a1a1a; margin-bottom: 6px; }
+          .meta { color: #666; font-size: 13px; display: flex; gap: 16px; flex-wrap: wrap; margin-top: 8px; }
+          .badge { background: #398AB9; color: white; padding: 2px 10px; border-radius: 99px; font-size: 11px; font-weight: 600; }
+          .day { margin-bottom: 28px; break-inside: avoid; }
+          .day-header { background: #398AB9; color: white; padding: 8px 14px; border-radius: 8px; font-weight: 700; font-size: 14px; margin-bottom: 12px; display: flex; align-items: center; justify-content: space-between; }
+          .item { display: flex; gap: 12px; padding: 10px 0; border-bottom: 1px solid #f0f0f0; }
+          .item:last-child { border-bottom: none; }
+          .num { width: 24px; height: 24px; background: #f0f6fb; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 700; color: #398AB9; flex-shrink: 0; margin-top: 1px; }
+          .info { flex: 1; }
+          .iname { font-size: 14px; font-weight: 600; margin-bottom: 2px; }
+          .imeta { font-size: 11px; color: #888; margin-bottom: 2px; }
+          .inotes { font-size: 12px; color: #555; font-style: italic; }
+          .itime { font-size: 11px; color: #398AB9; font-weight: 600; white-space: nowrap; }
+          .footer { margin-top: 32px; padding-top: 16px; border-top: 1px solid #e5e7eb; text-align: center; color: #999; font-size: 11px; }
+          .print-btn { position: fixed; bottom: 24px; right: 24px; background: #398AB9; color: white; border: none; padding: 10px 20px; border-radius: 10px; font-size: 14px; font-weight: 600; cursor: pointer; box-shadow: 0 4px 12px rgba(57,138,185,0.4); }
+          @media print { .print-btn { display: none; } body { print-color-adjust: exact; -webkit-print-color-adjust: exact; } }
+        `}</style>
+      </head>
+      <body>
+        <div className="container">
+          <div className="header">
+            <div className="logo">Your Trip</div>
+            <h1 className="title">{tripData.title}</h1>
+            <div className="meta">
+              {tripData.destination && <span>📍 {tripData.destination}</span>}
+              {tripData.startDate && tripData.endDate && (
+                <span>📅 {new Date(tripData.startDate).toLocaleDateString("th-TH")} — {new Date(tripData.endDate).toLocaleDateString("th-TH")}</span>
+              )}
+              <span>🗓 {days.length} วัน</span>
+              <span>📌 {totalPlaces} สถานที่</span>
+              {tripData.budget && <span>💰 งบ {tripData.budget.toLocaleString()} บาท</span>}
+              <span className="badge">{
+                tripData.status === "PLANNING" ? "วางแผน" :
+                tripData.status === "CONFIRMED" ? "ยืนยันแล้ว" :
+                tripData.status === "ONGOING" ? "กำลังเดินทาง" : "เสร็จสิ้น"
+              }</span>
+            </div>
+          </div>
 
-      {/* Print content */}
-      <div className="max-w-2xl mx-auto px-6 py-8 print:px-4 print:py-4">
-        {/* Header */}
-        <div className="mb-6 pb-4 border-b-2 border-[#398AB9]">
-          <div className="flex items-start justify-between">
-            <div>
-              <h1 className="text-2xl font-bold text-gray-900">{title}</h1>
-              <div className="flex items-center gap-2 mt-1 text-sm text-gray-500">
-                <MapPin className="w-3.5 h-3.5 text-[#398AB9]" />
-                <span>{destination}</span>
+          {tripData.description && (
+            <p style={{ marginBottom: 24, color: "#555", fontSize: 14, lineHeight: 1.6 }}>{tripData.description}</p>
+          )}
+
+          {days.map((day: any) => (
+            <div key={day.id} className="day">
+              <div className="day-header">
+                <span>วันที่ {day.dayNumber ?? day.day}: {day.date ? new Date(day.date).toLocaleDateString("th-TH", { weekday: "long", day: "numeric", month: "long" }) : `วันที่ ${day.dayNumber ?? day.day}`}</span>
+                <span style={{ fontSize: 12, opacity: 0.85 }}>{day.items?.length ?? 0} สถานที่</span>
               </div>
-              {startDate && (
-                <div className="flex items-center gap-2 mt-0.5 text-sm text-gray-500">
-                  <Clock className="w-3.5 h-3.5 text-[#398AB9]" />
-                  <span>{startDate}{endDate ? ` → ${endDate}` : ""}</span>
-                </div>
+              {day.notes && (
+                <p style={{ fontSize: 12, color: "#666", margin: "0 0 10px", fontStyle: "italic", padding: "0 4px" }}>📝 {day.notes}</p>
               )}
-            </div>
-            <div className="text-right">
-              <div className="text-xs text-gray-400">งบประมาณทั้งหมด</div>
-              <div className="text-xl font-bold text-[#398AB9]">฿{totalCost.toLocaleString()}</div>
-              {budget > 0 && (
-                <div className="text-xs text-gray-400">/ ฿{budget.toLocaleString()}</div>
-              )}
-            </div>
-          </div>
-        </div>
-
-        {/* Days */}
-        {!loaded ? (
-          <p className="text-center text-gray-400 py-12">กำลังโหลด...</p>
-        ) : days.length === 0 ? (
-          <p className="text-center text-gray-400 py-12">ยังไม่มีแผนการเดินทาง</p>
-        ) : (
-          <div className="space-y-8">
-            {days.map((day) => {
-              const dayCost = day.items.reduce((s, i) => s + (i.cost ?? 0), 0);
-              return (
-                <div key={day.day} className="print:break-inside-avoid">
-                  {/* Day header */}
-                  <div className="flex items-center justify-between mb-3 pb-2 border-b border-gray-200">
-                    <div>
-                      <h2 className="text-base font-bold text-gray-800">
-                        วันที่ {day.day}
-                        {day.date && <span className="text-sm font-normal text-gray-400 ml-2">{day.date}</span>}
-                      </h2>
-                    </div>
-                    <div className="flex items-center gap-1 text-sm text-gray-500">
-                      <Wallet className="w-3.5 h-3.5" />
-                      <span className="font-medium">฿{dayCost.toLocaleString()}</span>
-                    </div>
-                  </div>
-
-                  {/* Items */}
-                  <div className="space-y-0">
-                    {day.items.map((item, idx) => (
-                      <div key={item.id}>
-                        {/* Item row */}
-                        <div className="flex items-start gap-3 py-2.5">
-                          <div className="flex flex-col items-center w-8 flex-shrink-0">
-                            <div className="w-6 h-6 rounded-full bg-[#398AB9]/10 border-2 border-[#398AB9]/30 flex items-center justify-center text-[10px] font-bold text-[#398AB9]">
-                              {idx + 1}
-                            </div>
-                            {idx < day.items.length - 1 && (
-                              <div className="w-px flex-1 bg-gray-200 mt-1" style={{ minHeight: "16px" }} />
-                            )}
-                          </div>
-                          <div className="flex-1 min-w-0 pb-1">
-                            <div className="flex items-center gap-2 flex-wrap">
-                              <span className="text-sm font-semibold text-gray-800">
-                                {typeEmoji[item.type] ?? "📍"} {item.name}
-                              </span>
-                              {item.time && (
-                                <span className="text-xs text-gray-400">{item.time}</span>
-                              )}
-                            </div>
-                            <div className="flex items-center gap-3 mt-0.5 flex-wrap">
-                              {item.duration !== undefined && (
-                                <span className="text-xs text-gray-400">
-                                  อยู่ {fmtMin(item.duration)}
-                                </span>
-                              )}
-                              {item.cost !== undefined && (
-                                <span className="text-xs text-gray-500 font-medium">
-                                  ฿{item.cost.toLocaleString()}
-                                </span>
-                              )}
-                            </div>
-                            {item.note && (
-                              <p className="text-xs text-gray-400 mt-0.5 italic">{item.note}</p>
-                            )}
-                            {item.photo && (
-                              <img
-                                src={item.photo}
-                                alt={item.name}
-                                className="mt-1.5 w-full max-w-[200px] h-20 object-cover rounded-lg"
-                              />
-                            )}
-                          </div>
-                        </div>
-                        {/* Travel connector */}
-                        {idx < day.items.length - 1 && item.travelTimeTo !== undefined && (
-                          <div className="flex items-center gap-3 pl-11 py-1">
-                            <div className="flex items-center gap-1.5 text-xs text-gray-400">
-                              <Car className="w-3 h-3" />
-                              <span>เดินทาง {fmtMin(item.travelTimeTo)}</span>
-                            </div>
-                          </div>
-                        )}
+              {(day.items?.length ?? 0) === 0 ? (
+                <p style={{ fontSize: 13, color: "#aaa", padding: "8px 4px" }}>— ยังไม่มีรายการ —</p>
+              ) : (
+                (day.items ?? []).map((item: any, i: number) => (
+                  <div key={item.id} className="item">
+                    <div className="num">{i + 1}</div>
+                    <div className="info">
+                      <div className="iname">
+                        {item.type === "place" ? "📍 " : item.type === "restaurant" ? "🍽 " : "🏨 "}
+                        {item.place?.name ?? item.title ?? item.customTitle ?? "สถานที่"}
                       </div>
-                    ))}
+                      {item.place?.province && <div className="imeta">{item.place.province}</div>}
+                      {item.notes && <div className="inotes">{item.notes}</div>}
+                    </div>
+                    {item.startTime && (
+                      <div className="itime">{item.startTime}{item.endTime ? ` – ${item.endTime}` : ""}</div>
+                    )}
                   </div>
-                </div>
-              );
-            })}
-          </div>
-        )}
+                ))
+              )}
+            </div>
+          ))}
 
-        {/* Footer */}
-        <div className="mt-8 pt-4 border-t border-gray-200 flex items-center justify-between text-xs text-gray-400">
-          <span>สร้างด้วย YourTrip • your-trip-nu.vercel.app</span>
-          <span className="print:block hidden">{new Date().toLocaleDateString("th-TH")}</span>
+          <div className="footer">สร้างโดย Your Trip · ส่งออก {new Date().toLocaleDateString("th-TH")}</div>
         </div>
-      </div>
-    </div>
+        <button className="print-btn" onClick={() => window.print()}>🖨 พิมพ์ / บันทึก PDF</button>
+      </body>
+    </html>
   );
 }

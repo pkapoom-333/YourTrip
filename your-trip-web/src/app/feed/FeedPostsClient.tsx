@@ -3,7 +3,7 @@
 import { useState, useRef, useCallback, useEffect } from "react";
 import Link from "next/link";
 import { PostCard, type PostCardData } from "@/components/features/PostCard";
-import { getFeed } from "@/server/actions/posts";
+import { getFeed, getForYouFeed } from "@/server/actions/posts";
 import { Loader2, ImagePlus, MapPin, Smile, Plane } from "lucide-react";
 import { useUser } from "@/hooks/useUser";
 import { Avatar } from "@/components/shared/Avatar";
@@ -153,10 +153,13 @@ export function FeedPostsClient({ initialPosts, initialCursor, initialHasMore = 
     if (loading || !hasMore) return;
     setLoading(true);
     try {
-      const { data, nextCursor, hasMore: more } = await getFeed(cursor, activeTab === "following");
-      setPosts((prev) => [...prev, ...data.map(mapPost)]);
-      setCursor(nextCursor);
-      setHasMore(more);
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const result = activeTab === "forYou"
+        ? await getForYouFeed(cursor)
+        : await getFeed(cursor, true);
+      setPosts((prev) => [...prev, ...(result.data as any[]).map(mapPost)]);
+      setCursor(result.nextCursor);
+      setHasMore(result.data.length === 10);
     } catch { /* silent */ } finally { setLoading(false); }
   }, [cursor, hasMore, loading, activeTab]);
 
@@ -166,10 +169,13 @@ export function FeedPostsClient({ initialPosts, initialCursor, initialHasMore = 
     setActiveTag("ทั้งหมด");
     setLoading(true);
     try {
-      const { data, nextCursor, hasMore: more } = await getFeed(undefined, tab === "following");
-      setPosts(data.map(mapPost));
-      setCursor(nextCursor);
-      setHasMore(more);
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const result = tab === "forYou"
+        ? await getForYouFeed(undefined)
+        : await getFeed(undefined, true);
+      setPosts((result.data as any[]).map(mapPost));
+      setCursor(result.nextCursor);
+      setHasMore(result.data.length === 10);
     } catch { /* silent */ } finally { setLoading(false); }
   }
 
@@ -177,7 +183,12 @@ export function FeedPostsClient({ initialPosts, initialCursor, initialHasMore = 
     if (refreshing || loading) return;
     setRefreshing(true);
     try {
-      const { data, nextCursor, hasMore: more } = await getFeed(undefined, activeTab === "following");
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const result = activeTab === "forYou"
+        ? await getForYouFeed(undefined)
+        : await getFeed(undefined, true);
+      const { data, nextCursor } = { data: result.data as any[], nextCursor: result.nextCursor };
+      const more = result.data.length === 10;
       setPosts(data.map(mapPost));
       setCursor(nextCursor);
       setHasMore(more);

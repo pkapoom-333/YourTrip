@@ -3,8 +3,8 @@
 import { useState, useRef } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Heart, MessageCircle, Send, Bookmark, MapPin, MoreHorizontal, Flag, Link2, X, ChevronLeft, ChevronRight, Maximize2 } from "lucide-react";
-import { toggleLike, toggleSave, reportPost } from "@/server/actions/posts";
+import { Heart, MessageCircle, Send, Bookmark, MapPin, MoreHorizontal, Flag, Link2, X, ChevronLeft, ChevronRight, Maximize2, Pin } from "lucide-react";
+import { toggleLike, toggleSave, pinPost, reportPost } from "@/server/actions/posts";
 import { CommentSection } from "./CommentSection";
 import { Avatar } from "@/components/shared/Avatar";
 import { useToast } from "@/components/shared/Toast";
@@ -42,6 +42,8 @@ export interface PostCardData {
   time: string;
   tags: string[];
   place?: { id: string; slug: string; name: string } | null;
+  isPinned?: boolean;
+  isOwn?: boolean;
 }
 
 function fmt(n: number) {
@@ -81,6 +83,7 @@ export function PostCard({ post, onTagClick }: { post: PostCardData; onTagClick?
   const [reportReason, setReportReason] = useState<ReportReason | "">("");
   const [reportSubmitting, setReportSubmitting] = useState(false);
   const [reported, setReported] = useState(false);
+  const [pinned, setPinned] = useState(post.isPinned ?? false);
   const [commentCount, setCommentCount] = useState(post.comments);
   const { success, error, info } = useToast();
   const router = useRouter();
@@ -219,6 +222,7 @@ export function PostCard({ post, onTagClick }: { post: PostCardData; onTagClick?
           ) : null}
         </div>
         <div className="flex items-center gap-2">
+          {pinned && <span className="text-[10px] text-[#398AB9] flex items-center gap-0.5"><Pin className="w-2.5 h-2.5" />ปิน</span>}
           <span className="text-[10px] text-gray-400 dark:text-slate-500">{post.time}</span>
           <div className="relative">
             <button
@@ -238,6 +242,20 @@ export function PostCard({ post, onTagClick }: { post: PostCardData; onTagClick?
                     <Link2 className="w-4 h-4 text-gray-400 dark:text-slate-500" />
                     คัดลอกลิงก์
                   </button>
+                  {post.isOwn && (
+                    <button
+                      onClick={async () => {
+                        const newVal = !pinned;
+                        setPinned(newVal);
+                        setMenuOpen(false);
+                        await pinPost(String(post.id), newVal);
+                      }}
+                      className="flex items-center gap-2.5 w-full px-3.5 py-2 text-sm text-gray-700 dark:text-slate-300 hover:bg-gray-50 dark:hover:bg-slate-700/50 transition text-left"
+                    >
+                      <Pin className="w-4 h-4 text-gray-400 dark:text-slate-500" />
+                      {pinned ? "เลิกปิน" : "ปินโพสต์"}
+                    </button>
+                  )}
                   {!reported && (
                     <button
                       onClick={() => { setMenuOpen(false); setReportOpen(true); }}
@@ -364,7 +382,7 @@ export function PostCard({ post, onTagClick }: { post: PostCardData; onTagClick?
                 onClick={(e) => {
                   e.stopPropagation();
                   if (onTagClick) onTagClick(tag);
-                  else router.push(`/tags/${encodeURIComponent(tag)}`);
+                  else router.push(`/tag/${encodeURIComponent(tag)}`);
                 }}
                 className="text-[10px] bg-black/50 text-white px-2 py-0.5 rounded-full backdrop-blur-sm hover:bg-[#398AB9]/80 transition"
               >

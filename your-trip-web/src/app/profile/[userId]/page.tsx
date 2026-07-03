@@ -7,7 +7,7 @@ import Link from "next/link";
 import {
   ChevronLeft, MapPin, Grid3X3, Star,
   Heart, UserPlus, UserCheck, MessageCircle, Map,
-  MoreVertical, ShieldOff, Shield, X, Activity, Camera,
+  MoreVertical, ShieldOff, Shield, X, Activity, Camera, Share2,
 } from "lucide-react";
 import {
   getProfile,
@@ -352,6 +352,13 @@ export default function UserProfilePage() {
               >
                 <MessageCircle className="w-4 h-4" />
                 ส่งคำขอทริป
+              </Link>
+              <Link
+                href={`/profile/${profile.id}/card`}
+                className="flex items-center justify-center w-10 border border-gray-200 dark:border-slate-600 text-gray-600 dark:text-slate-300 rounded-xl hover:bg-gray-50 dark:hover:bg-slate-700 transition"
+                title="แชร์โปรไฟล์"
+              >
+                <Share2 className="w-4 h-4" />
               </Link>
             </div>
           )}

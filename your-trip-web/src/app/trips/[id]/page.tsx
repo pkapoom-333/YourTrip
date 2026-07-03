@@ -930,18 +930,27 @@ export default function TripDetailPage({ params }: { params: Promise<{ id: strin
               <Printer className="w-4 h-4" />
             </Link>
             {isPublic && (
-              <button
-                onClick={async () => {
-                  const url = window.location.href;
-                  const dataUrl = await QRCode.toDataURL(url, { width: 256, margin: 2 });
-                  setQrDataUrl(dataUrl);
-                  setShowQR(true);
-                }}
-                className="w-8 h-8 bg-black/30 backdrop-blur-sm rounded-full flex items-center justify-center text-white hover:bg-black/50 transition"
-                title="QR Code สำหรับแชร์"
-              >
-                <QrCode className="w-4 h-4" />
-              </button>
+              <>
+                <Link
+                  href={`/trips/${trip.id}/share`}
+                  className="w-8 h-8 bg-black/30 backdrop-blur-sm rounded-full flex items-center justify-center text-white hover:bg-black/50 transition"
+                  title="Share Card"
+                >
+                  <ExternalLink className="w-4 h-4" />
+                </Link>
+                <button
+                  onClick={async () => {
+                    const url = window.location.href;
+                    const dataUrl = await QRCode.toDataURL(url, { width: 256, margin: 2 });
+                    setQrDataUrl(dataUrl);
+                    setShowQR(true);
+                  }}
+                  className="w-8 h-8 bg-black/30 backdrop-blur-sm rounded-full flex items-center justify-center text-white hover:bg-black/50 transition"
+                  title="QR Code สำหรับแชร์"
+                >
+                  <QrCode className="w-4 h-4" />
+                </button>
+              </>
             )}
             {isOwner && (
               <button

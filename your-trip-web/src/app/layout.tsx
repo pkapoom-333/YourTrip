@@ -23,6 +23,8 @@ export const dynamic = "force-dynamic";
 
 const BASE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? "https://yourtrip.app";
 
+const OG_DEFAULT = `/api/og?title=${encodeURIComponent("Your Trip — สังคมนักเดินทาง")}&subtitle=${encodeURIComponent("ค้นพบสถานที่สวยงาม แบ่งปันประสบการณ์ท่องเที่ยว")}`;
+
 export const metadata: Metadata = {
   metadataBase: new URL(BASE_URL),
   title: {
@@ -44,7 +46,7 @@ export const metadata: Metadata = {
       "ค้นพบสถานที่สวยงาม แบ่งปันประสบการณ์ท่องเที่ยว วางแผนทริป และหาเพื่อนร่วมทางในแอปเดียว",
     images: [
       {
-        url: "/og-image.png",
+        url: OG_DEFAULT,
         width: 1200,
         height: 630,
         alt: "Your Trip — สังคมนักเดินทาง",
@@ -55,7 +57,7 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: "Your Trip — สังคมนักเดินทาง",
     description: "ค้นพบสถานที่สวยงาม แบ่งปันประสบการณ์ท่องเที่ยว",
-    images: ["/og-image.png"],
+    images: [OG_DEFAULT],
   },
   manifest: "/manifest.webmanifest",
   appleWebApp: {
@@ -64,7 +66,6 @@ export const metadata: Metadata = {
     title: "Your Trip",
   },
   icons: {
-    apple: "/icon-192.png",
     icon: "/icon.svg",
   },
   robots: {

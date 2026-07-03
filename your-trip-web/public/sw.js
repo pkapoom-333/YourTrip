@@ -3,7 +3,7 @@ const STATIC_CACHE = `${CACHE_VERSION}-static`;
 const IMAGE_CACHE = `${CACHE_VERSION}-images`;
 const OFFLINE_URL = "/offline.html";
 
-const PRECACHE_URLS = [OFFLINE_URL, "/manifest.webmanifest", "/icon.svg", "/icon-192.png"];
+const PRECACHE_URLS = [OFFLINE_URL, "/manifest.webmanifest", "/icon.svg"];
 
 // ─── Install ───────────────────────────────────────────────────────────────
 self.addEventListener("install", (event) => {
@@ -101,3 +101,33 @@ async function trimCache(cache, maxEntries) {
     await Promise.all(toDelete.map((k) => cache.delete(k)));
   }
 }
+
+// ─── Push Notifications ────────────────────────────────────────────────────
+self.addEventListener("push", (event) => {
+  if (!event.data) return;
+  let payload = { title: "Your Trip", body: "มีอะไรใหม่สำหรับคุณ!", url: "/notifications" };
+  try { payload = { ...payload, ...event.data.json() }; } catch {}
+
+  event.waitUntil(
+    self.registration.showNotification(payload.title, {
+      body: payload.body,
+      icon: "/icon.svg",
+      badge: "/icon.svg",
+      data: { url: payload.url },
+      vibrate: [100, 50, 100],
+    })
+  );
+});
+
+self.addEventListener("notificationclick", (event) => {
+  event.notification.close();
+  const url = event.notification.data?.url ?? "/notifications";
+  event.waitUntil(
+    clients.matchAll({ type: "window", includeUncontrolled: true }).then((clientList) => {
+      for (const client of clientList) {
+        if (client.url.includes(url) && "focus" in client) return client.focus();
+      }
+      if (clients.openWindow) return clients.openWindow(url);
+    })
+  );
+});

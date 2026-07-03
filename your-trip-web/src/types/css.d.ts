@@ -1,0 +1,5 @@
+// CSS module declarations for TypeScript
+declare module "*.css" {
+  const styles: Record<string, string>;
+  export default styles;
+}

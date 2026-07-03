@@ -1,6 +1,7 @@
 "use server";
 
 import { prisma } from "@/lib/prisma";
+import { revalidatePath } from "next/cache";
 import { createClient as createServerClient } from "@/lib/supabase/server";
 import { createNotification } from "./notifications";
 import { NotificationType } from "@prisma/client";
@@ -673,6 +674,329 @@ export async function getActiveUsers(take = 12): Promise<{ data: ActiveUser[] }>
       take,
     });
     return { data: rows.map((r) => r.user) };
+  } catch {
+    return { data: [] };
+  }
+}
+
+
+// ── For You Feed (interest-based) ──────────────────────────────────────
+const dbForYou = prisma as any;
+
+export async function getForYouFeed(cursor?: string): Promise<{
+  data: Array<{
+    id: string; content: string; images: string[]; tags: string[];
+    location: string | null; createdAt: Date; likesCount: number; commentsCount: number;
+    isLiked: boolean; isSaved: boolean; isVideo: boolean;
+    user: { id: string; name: string | null; username: string | null; avatarUrl: string | null };
+    place: { id: string; slug: string; name: string } | null;
+  }>;
+  nextCursor?: string;
+}> {
+  try {
+    const supabase = await createServerClient();
+    const { data: { user: me } } = await supabase.auth.getUser();
+
+    let interests: string[] = [];
+    let followingIds: string[] = [];
+    if (me) {
+      const userData = await dbForYou.user.findUnique({
+        where: { id: me.id },
+        select: { interests: true },
+      });
+      interests = (userData?.interests as string[] | null) ?? [];
+
+      const follows = await prisma.follow.findMany({
+        where: { followerId: me.id },
+        select: { followingId: true },
+      });
+      followingIds = follows.map((f: { followingId: string }) => f.followingId);
+    }
+
+    const orClauses: Record<string, unknown>[] = [];
+    if (followingIds.length) orClauses.push({ userId: { in: followingIds } });
+    if (interests.length) orClauses.push({ tags: { hasSome: interests } });
+    if (!orClauses.length) orClauses.push({ isPublic: true });
+
+    const posts = await dbForYou.post.findMany({
+      take: 10,
+      ...(cursor ? { skip: 1, cursor: { id: cursor } } : {}),
+      where: { isPublic: true, OR: orClauses },
+      orderBy: { createdAt: "desc" },
+      include: {
+        user: { select: { id: true, name: true, username: true, avatarUrl: true } },
+        place: { select: { id: true, slug: true, name: true } },
+        _count: { select: { likes: true, comments: true } },
+      },
+    }) as Array<{
+      id: string; content: string; images: string[]; tags: string[];
+      location: string | null; createdAt: Date; userId: string;
+      user: { id: string; name: string | null; username: string | null; avatarUrl: string | null };
+      place: { id: string; slug: string; name: string } | null;
+      _count: { likes: number; comments: number };
+    }>;
+
+    const nextCursor = posts.length === 10 ? posts[posts.length - 1].id : undefined;
+    const postIds = posts.map((p) => p.id);
+
+    const [likedSet, savedSet] = me
+      ? await Promise.all([
+          prisma.like.findMany({ where: { userId: me.id, postId: { in: postIds } }, select: { postId: true } })
+            .then((rows) => new Set(rows.map((r) => r.postId))),
+          prisma.save.findMany({ where: { userId: me.id, postId: { in: postIds } }, select: { postId: true } })
+            .then((rows) => new Set(rows.map((r) => r.postId))),
+        ])
+      : [new Set<string>(), new Set<string>()];
+
+    return {
+      data: posts.map((p) => ({
+        id: p.id, content: p.content, images: p.images, tags: p.tags,
+        location: p.location, createdAt: p.createdAt,
+        likesCount: p._count.likes, commentsCount: p._count.comments,
+        isLiked: likedSet.has(p.id), isSaved: savedSet.has(p.id),
+        isVideo: false, user: p.user, place: p.place ?? null,
+      })),
+      nextCursor,
+    };
+  } catch {
+    return { data: [] };
+  }
+}
+
+
+// ── Pin / Unpin Post ──────────────────────────────────────────────────
+// NOTE: isPinned is in schema.prisma but the generated client may lag.
+// Using (prisma as unknown as Record<string,unknown>) avoids `any` lint.
+// After running `npx prisma generate` these casts can be removed.
+/* eslint-disable @typescript-eslint/no-explicit-any */
+const _postRepo = prisma as any;
+
+export async function pinPost(postId: string, pin: boolean): Promise<{ ok: boolean; error?: string }> {
+  try {
+    const supabase = await createServerClient();
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return { ok: false, error: "ไม่ได้เข้าสู่ระบบ" };
+
+    const post = await prisma.post.findFirst({ where: { id: postId, userId: user.id } });
+    if (!post) return { ok: false, error: "ไม่มีสิทธิ์" };
+
+    if (pin) {
+      const pinned: { id: string }[] = await _postRepo.post.findMany({
+        where: { userId: user.id, isPinned: true },
+        orderBy: { createdAt: "asc" },
+        select: { id: true },
+      });
+      if (pinned.length >= 3) {
+        await _postRepo.post.update({ where: { id: pinned[0].id }, data: { isPinned: false } });
+      }
+    }
+
+    await _postRepo.post.update({ where: { id: postId }, data: { isPinned: pin } });
+    revalidatePath(`/profile`);
+    return { ok: true };
+  } catch (e) {
+    return { ok: false, error: String(e) };
+  }
+}
+/* eslint-enable @typescript-eslint/no-explicit-any */
+
+interface PinnedPost { id: string; images: string[]; likesCount: number; commentsCount: number; }
+export async function getPinnedPosts(userId: string): Promise<{ data: PinnedPost[] }> {
+  try {
+    let resolvedId = userId;
+    if (userId === "me") {
+      const supabase = await createServerClient();
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return { data: [] };
+      resolvedId = user.id;
+    }
+    // TODO: remove cast after `npx prisma generate` picks up isPinned from schema
+    const posts = await (prisma as any).post.findMany({
+      where: { userId: resolvedId, isPinned: true },
+      orderBy: { createdAt: "desc" },
+      take: 3,
+      include: { _count: { select: { likes: true, comments: true } } },
+    }) as Array<{ id: string; images: string[]; _count: { likes: number; comments: number } }>;
+
+    return {
+      data: posts.map((p) => ({
+        id: p.id, images: p.images,
+        likesCount: p._count.likes, commentsCount: p._count.comments,
+      })),
+    };
+  } catch {
+    return { data: [] };
+  }
+}
+
+export interface SavedPostItem {
+  id: string;
+  content: string;
+  images: string[];
+  tags: string[];
+  likesCount: number;
+  commentsCount: number;
+  createdAt: Date;
+  savedAt: Date;
+  user: { id: string; name: string | null; username: string | null; avatarUrl: string | null };
+  place: { id: string; slug: string; name: string } | null;
+}
+
+export async function getSavedPosts(take = 30): Promise<{ data: SavedPostItem[] }> {
+  try {
+    const supabase = await createServerClient();
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return { data: [] };
+
+    const saves = await prisma.save.findMany({
+      where: { userId: user.id },
+      orderBy: { createdAt: "desc" },
+      take,
+      include: {
+        post: {
+          include: {
+            user: { select: { id: true, name: true, username: true, avatarUrl: true } },
+            place: { select: { id: true, slug: true, name: true } },
+            _count: { select: { likes: true, comments: true } },
+          },
+        },
+      },
+    });
+
+    return {
+      data: saves.map((s) => ({
+        id: s.post.id,
+        content: s.post.content,
+        images: s.post.images,
+        tags: s.post.tags,
+        likesCount: s.post._count.likes,
+        commentsCount: s.post._count.comments,
+        createdAt: s.post.createdAt,
+        savedAt: s.createdAt,
+        user: s.post.user,
+        place: s.post.place,
+      })),
+    };
+  } catch {
+    return { data: [] };
+  }
+}
+
+export interface LikedByUser {
+  id: string;
+  name: string | null;
+  username: string | null;
+  avatarUrl: string | null;
+  isFollowing: boolean;
+}
+
+export async function getPostLikes(postId: string, take = 50): Promise<{ data: LikedByUser[] }> {
+  try {
+    const supabase = await createServerClient();
+    const { data: { user: me } } = await supabase.auth.getUser();
+
+    const likes = await prisma.like.findMany({
+      where: { postId },
+      orderBy: { createdAt: "desc" },
+      take,
+      include: {
+        user: { select: { id: true, name: true, username: true, avatarUrl: true } },
+      },
+    });
+
+    // Check which ones the current user follows
+    const likerIds = likes.map((l) => l.user.id);
+    const follows = me && likerIds.length > 0
+      ? await prisma.follow.findMany({
+          where: { followerId: me.id, followingId: { in: likerIds } },
+          select: { followingId: true },
+        })
+      : [];
+    const followingSet = new Set(follows.map((f) => f.followingId));
+
+    return {
+      data: likes.map((l) => ({
+        id: l.user.id,
+        name: l.user.name,
+        username: l.user.username,
+        avatarUrl: l.user.avatarUrl,
+        isFollowing: followingSet.has(l.user.id),
+      })),
+    };
+  } catch {
+    return { data: [] };
+  }
+}
+
+export interface PopularPost {
+  id: string;
+  content: string;
+  images: string[];
+  likesCount: number;
+  commentsCount: number;
+  createdAt: Date;
+  user: { id: string; name: string | null; username: string | null; avatarUrl: string | null };
+  place: { slug: string; name: string } | null;
+}
+
+export async function getPopularThisWeek(take = 9): Promise<{ data: PopularPost[] }> {
+  try {
+    const weekAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
+
+    // Get post IDs with most likes in past 7 days
+    const recentLikes = await (prisma as any).like.groupBy({
+      by: ["postId"],
+      where: { createdAt: { gte: weekAgo } },
+      _count: { postId: true },
+      orderBy: { _count: { postId: "desc" } },
+      take: take * 2,
+    }) as Array<{ postId: string; _count: { postId: number } }>;
+
+    const postIds = recentLikes.map((l) => l.postId);
+    if (postIds.length === 0) {
+      // fallback: most liked posts overall
+      const fallback = await prisma.post.findMany({
+        where: { isPublic: true },
+        orderBy: { likes: { _count: "desc" } },
+        take,
+        include: {
+          user: { select: { id: true, name: true, username: true, avatarUrl: true } },
+          place: { select: { slug: true, name: true } },
+          _count: { select: { likes: true, comments: true } },
+        },
+      });
+      return {
+        data: fallback.map((p) => ({
+          id: p.id, content: p.content, images: p.images,
+          likesCount: p._count.likes, commentsCount: p._count.comments, createdAt: p.createdAt,
+          user: p.user, place: p.place,
+        })),
+      };
+    }
+
+    const posts = await prisma.post.findMany({
+      where: { id: { in: postIds }, isPublic: true },
+      include: {
+        user: { select: { id: true, name: true, username: true, avatarUrl: true } },
+        place: { select: { slug: true, name: true } },
+        _count: { select: { likes: true, comments: true } },
+      },
+      take,
+    });
+
+    const sortedByLikes = posts.sort((a, b) => {
+      const aCount = recentLikes.find((l) => l.postId === a.id)?._count.postId ?? 0;
+      const bCount = recentLikes.find((l) => l.postId === b.id)?._count.postId ?? 0;
+      return bCount - aCount;
+    });
+
+    return {
+      data: sortedByLikes.map((p) => ({
+        id: p.id, content: p.content, images: p.images,
+        likesCount: p._count.likes, commentsCount: p._count.comments, createdAt: p.createdAt,
+        user: p.user, place: p.place,
+      })),
+    };
   } catch {
     return { data: [] };
   }

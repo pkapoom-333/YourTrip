@@ -5,7 +5,8 @@ import AppShell from "@/components/AppShell";
 import Link from "next/link";
 import { Settings, MapPin, Grid3X3, Bookmark, Heart, Star, Map, Camera, Activity, MessageCircle } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { getProfile, getUserPosts, getUserSavedPosts, getRecentActivity, type PostGridItem, type ActivityItem } from "@/server/actions/profile";
+import { getProfile, getUserPosts, getUserSavedPosts, getRecentActivity, getUserActivityDates, type PostGridItem, type ActivityItem } from "@/server/actions/profile";
+import { ActivityHeatmap } from "@/components/features/ActivityHeatmap";
 import { getSavedPlaces, type SavedPlaceItem } from "@/server/actions/savedPlaces";
 import { getUserTrips } from "@/server/actions/trips";
 import { Star as StarIcon } from "lucide-react";
@@ -85,6 +86,7 @@ export default function ProfilePage() {
   }>>([]);
   const [savedSubTab, setSavedSubTab] = useState<"posts" | "places">("places");
   const [activityItems, setActivityItems] = useState<ActivityItem[]>([]);
+  const [activityDates, setActivityDates] = useState<string[]>([]);
 
   useEffect(() => {
     getProfile().then(({ data }) => {
@@ -124,6 +126,7 @@ export default function ProfilePage() {
       setProfile((prev) => ({ ...prev, tripsCount: Math.max(prev.tripsCount, trips.length) }));
     });
     getRecentActivity().then(({ data }) => setActivityItems(data));
+    getUserActivityDates().then(({ data }) => setActivityDates(data));
   }, []);
 
   return (
@@ -489,6 +492,11 @@ export default function ProfilePage() {
         {/* ── Activity Timeline ── */}
         {tab === "activity" && (
           <div className="bg-white dark:bg-slate-800 min-h-[300px] px-4 py-5">
+            {activityDates.length > 0 && (
+              <div className="mb-6 overflow-x-auto">
+                <ActivityHeatmap dates={activityDates} weeks={26} label="กิจกรรม" />
+              </div>
+            )}
             {activityItems.length === 0 ? (
               <div className="flex flex-col items-center justify-center py-16 text-center px-8">
                 <Activity className="w-12 h-12 text-gray-200 dark:text-slate-600 mb-4" />

@@ -29,6 +29,8 @@ model User {
   isVerified      Boolean  @default(false)
   isGuide         Boolean  @default(false)
   isVerifiedGuide Boolean  @default(false)
+  isOnboarded     Boolean  @default(false)
+  interests       String[] @default([])
   // TODO: run add_travel_fields SQL in Supabase SQL Editor to add these columns to DB
 
   // Relations
@@ -54,6 +56,8 @@ model User {
   sentMessages  Message[]        @relation("MessageSender")
   expenseGroupsCreated ExpenseGroup[]       @relation("ExpenseGroupCreator")
   expenseGroupMemberships ExpenseGroupMember[] @relation("ExpenseGroupMemberships")
+  checkIns           CheckIn[]
+  tripCollaborations TripCollaborator[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -165,10 +169,14 @@ model Place {
   savedBy     SavedPlace[]
   posts       Post[]
   collections CollectionPlace[]
+  checkIns    CheckIn[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
+  @@index([province, category])
+  @@index([isFeatured, isPublished])
+  @@index([category, isPublished])
   @@map("places")
 }
 
@@ -227,6 +235,7 @@ model Post {
   location String?
   tags     String[]
   isPublic Boolean  @default(true)
+  isPinned Boolean  @default(false)
   placeId  String?  // optional linked place
 
   // Relations
@@ -240,6 +249,9 @@ model Post {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
+  @@index([userId, createdAt(sort: Desc)])
+  @@index([placeId])
+  @@index([isPublic, createdAt(sort: Desc)])
   @@map("posts")
 }
 

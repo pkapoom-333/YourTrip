@@ -1,2 +1,0 @@
-To https://github.com/pkapoom-333/YourTrip.git
-   8788361..c3b2d92  main -> main

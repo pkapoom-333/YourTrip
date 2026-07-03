@@ -8,6 +8,9 @@ import type { PlaceListItem } from "@/server/actions/places";
 import { searchUsers, followUser, unfollowUser, type UserCard } from "@/server/actions/profile";
 import { Avatar } from "@/components/shared/Avatar";
 import { useToast } from "@/components/shared/Toast";
+import { NearMeWidget } from "@/components/features/NearMeWidget";
+import { TrendingTagsWidget } from "@/components/features/TrendingTagsWidget";
+import { PlaceOfDayCard } from "@/components/features/PlaceOfDayCard";
 
 /* ── static data ── */
 const categories = [
@@ -546,6 +549,42 @@ export default function ExploreClient({ initialPlaces, initialSaved = [] }: { in
 
       {/* Places section */}
       {searchMode === "places" && <>
+
+      {/* Place of the Day */}
+      {!query.trim() && (
+        <div className="mb-5">
+          <PlaceOfDayCard />
+        </div>
+      )}
+
+      {/* Near Me Widget — only when not searching */}
+      {!query.trim() && (
+        <div className="mb-5 -mx-4">
+          <NearMeWidget compact />
+        </div>
+      )}
+
+      {/* Trending Tags — only when not searching */}
+      {!query.trim() && (
+        <div className="mb-5">
+          <p className="text-xs font-bold text-gray-400 dark:text-slate-500 uppercase tracking-wider mb-2.5">แท็กยอดนิยม</p>
+          <TrendingTagsWidget compact />
+        </div>
+      )}
+
+      {/* Submit place banner */}
+      {!query.trim() && (
+        <Link href="/place/submit" className="flex items-center gap-3 bg-[#398AB9]/5 dark:bg-[#398AB9]/10 border border-[#398AB9]/20 rounded-2xl p-3.5 mb-5 hover:bg-[#398AB9]/10 transition group">
+          <div className="w-9 h-9 bg-[#398AB9] rounded-xl flex items-center justify-center flex-shrink-0">
+            <span className="text-white text-lg">📍</span>
+          </div>
+          <div>
+            <p className="text-sm font-semibold text-[#398AB9]">แนะนำสถานที่ใหม่</p>
+            <p className="text-xs text-gray-500 dark:text-slate-400">รู้จักสถานที่ดีๆ? แนะนำให้ชุมชนได้เลย</p>
+          </div>
+          <svg className="ml-auto w-4 h-4 text-[#398AB9] group-hover:translate-x-0.5 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" /></svg>
+        </Link>
+      )}
 
       {/* Category tabs */}
       <div className="flex gap-2 overflow-x-auto scrollbar-none mb-5 pb-1">

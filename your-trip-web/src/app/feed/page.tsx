@@ -21,6 +21,8 @@ import { MapPin as MapPinIcon } from "lucide-react";
 import { FeedPostsClient } from "./FeedPostsClient";
 import SuggestedUsers from "@/components/features/SuggestedUsers";
 import StoriesRow from "@/components/features/StoriesRow";
+import { PlaceOfWeekWidget } from "@/components/features/PlaceOfWeekWidget";
+import { DailyInspirationWidget } from "@/components/features/DailyInspirationWidget";
 
 const fmtTime = (d: Date) => {
   const diff = Date.now() - new Date(d).getTime();
@@ -153,6 +155,16 @@ export default async function FeedPage() {
             {/* Suggested users to follow */}
             <div className="mb-4">
               <SuggestedUsers />
+            </div>
+
+            {/* Daily Inspiration */}
+            <div className="mb-4">
+              <DailyInspirationWidget />
+            </div>
+
+            {/* Place of the Week */}
+            <div className="mb-4">
+              <PlaceOfWeekWidget />
             </div>
 
             {/* Community Trips — from DB */}
