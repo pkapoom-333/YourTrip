@@ -27,8 +27,11 @@ function loadEnv(file: string) {
 loadEnv(".env");
 loadEnv(".env.local");
 
-const DATABASE_URL = process.env.DATABASE_URL!;
-const DIRECT_URL = process.env.DIRECT_URL;
+// Fallback URL ensures prisma generate succeeds even when DATABASE_URL is not
+// set in the build environment (prisma generate does not connect to the DB).
+const DATABASE_URL =
+  process.env.DATABASE_URL ??
+  "postgresql://placeholder:placeholder@localhost:5432/placeholder";
 
 export default defineConfig({
   schema: "prisma/schema.prisma",
