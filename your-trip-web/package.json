@@ -4,11 +4,10 @@
   "private": true,
   "scripts": {
     "dev": "next dev --port 5555",
-    "build": "prisma generate && next build",
+    "build": "next build",
     "start": "next start",
     "lint": "eslint",
-    "seed:real": "npx ts-node --compiler-options '{\"module\":\"CommonJS\"}' prisma/seed-places-real.ts",
-    "postinstall": "prisma generate"
+    "seed:real": "npx ts-node --compiler-options '{\"module\":\"CommonJS\"}' prisma/seed-places-real.ts"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.102.0",
