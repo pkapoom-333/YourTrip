@@ -1,6 +1,31 @@
 # PROGRESS.md
 # Travel Community App — Dev Log
 
+## Status: Phase 3 | Day 35 cont.5 | 2026-07-04 — ✅ Vercel BUILD GREEN
+
+### Session Log — 2026-07-04
+#### ✅ Completed — Vercel Build Fixed (commit `7c450ca`)
+Root-caused and fixed 4 layers of build errors from FUSE filesystem truncation + Turbopack strictness:
+
+1. **`3451080`** — `@prisma/client` 7.3.0→7.8.0 version mismatch (root cause: 1-sec prisma generate fail)
+2. **`9376af7`** — `schema.prisma:630` FUSE-truncated `PaymentRecord.to` field (missing `fields/references + closing }`)
+3. **`111696d`** — 4 Turbopack errors:
+   - `admin/ai-places/page.tsx` — `export const metadata` in `"use client"` file
+   - `server/actions/trips.ts` — `getTripTemplates()` + `getTripTemplate()` not async in `"use server"` file
+   - `server/actions/profile.ts:1293` — orphaned FUSE-duplicated lines causing parse error
+4. **`7c450ca`** — `"use server"` incorrectly in 3 page files (popular, trending, post/[id]) → object export error at page collection
+
+**Result**: Build now passes ✅ (1m 8s) — deployed at https://your-trip-nu.vercel.app
+
+#### ▶️ Next session starts here
+Task: S15-3 Supabase Auth callback + S15-4 SQL migration
+1. Supabase → Auth → add `https://your-trip-nu.vercel.app/auth/callback`
+2. Supabase SQL Editor → paste `prisma/all_migrations.sql`
+3. Test auth flow on live site
+Context: Build is green. Site deploys. Backend DB still has no data (migrations not run yet).
+
+---
+
 ## Status: Phase 3 | Day 35 cont.3 | 2026-07-03 — DEPLOY READY ✅
 
 → **DONE Day 35 cont.3 (pre-deploy hardening)**:

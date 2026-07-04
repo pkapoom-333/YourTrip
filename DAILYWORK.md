@@ -9,10 +9,10 @@ PROGRESS ███████████████████████�
 
 | # | Quest | XP | Status |
 |---|-------|----|--------|
-| S15-1 | **git push to GitHub** — รัน `fix_and_push.vbs` (340 files) | 500 | ⬜ USER ACTION |
-| S15-2 | **Vercel deploy** — import repo + env vars | 500 | ⬜ USER ACTION |
-| S15-3 | **Supabase SQL migrations** — paste all_migrations.sql | 300 | ⬜ USER ACTION |
-| S15-4 | **Supabase Auth callback URL** — set to Vercel domain | 100 | ⬜ USER ACTION |
+| S15-1 | **git push to GitHub** — รัน `fix_and_push.vbs` (340 files) | 500 | ✅ Done (commits 3451080→7c450ca) |
+| S15-2 | **Vercel deploy** — import repo + env vars | 500 | ✅ Done — https://your-trip-nu.vercel.app (1m 8s build GREEN) |
+| S15-3 | **Supabase SQL migrations** — paste all_migrations.sql | 300 | ⬜ NEXT |
+| S15-4 | **Supabase Auth callback URL** — set to Vercel domain | 100 | ⬜ NEXT |
 
 ### ✅ DONE Day 35 (2026-07-03)
 
