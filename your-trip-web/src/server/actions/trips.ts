@@ -836,11 +836,11 @@ const TRIP_TEMPLATES: TripTemplate[] = [
   },
 ];
 
-export function getTripTemplates(): TripTemplate[] {
+export async function getTripTemplates(): Promise<TripTemplate[]> {
   return TRIP_TEMPLATES;
 }
 
-export function getTripTemplate(id: string): TripTemplate | null {
+export async function getTripTemplate(id: string): Promise<TripTemplate | null> {
   return TRIP_TEMPLATES.find((t) => t.id === id) ?? null;
 }
 
@@ -852,7 +852,7 @@ export async function createTripFromTemplate(
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return { error: "กรุณาเข้าสู่ระบบ" };
 
-    const tpl = getTripTemplate(templateId);
+    const tpl = await getTripTemplate(templateId);
     if (!tpl) return { error: "ไม่พบ template" };
 
     const trip = await prisma.trip.create({

@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { Sparkles, Plus, Loader2, CheckCircle2, XCircle, MapPin } from "lucide-react";
 
-export const metadata = { title: "AI Places Generator — Admin" };
+// metadata export removed — this is a Client Component ("use client")
 
 const PROVINCES = [
   "เชียงใหม่","กรุงเทพมหานคร","ภูเก็ต","กระบี่","เชียงราย",

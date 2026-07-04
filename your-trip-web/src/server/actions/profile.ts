@@ -1290,11 +1290,3 @@ export async function getUserActivityDates(targetUserId?: string): Promise<{ dat
     return { data: [] };
   }
 }
-  ...reviews.map((r: { createdAt: Date }) => toDateStr(r.createdAt)),
-    ];
-
-    return { data: all };
-  } catch {
-    return { data: [] };
-  }
-}

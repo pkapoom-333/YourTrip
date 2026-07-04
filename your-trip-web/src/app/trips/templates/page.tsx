@@ -7,8 +7,8 @@ export const metadata = {
   description: "เริ่มวางแผนทริปได้เลยด้วยเทมเพลตสำเร็จรูป",
 };
 
-export default function TripsTemplatesPage() {
-  const templates = getTripTemplates();
+export default async function TripsTemplatesPage() {
+  const templates = await getTripTemplates();
   return (
     <AppShell>
       <TripsTemplatesClient templates={templates} />
