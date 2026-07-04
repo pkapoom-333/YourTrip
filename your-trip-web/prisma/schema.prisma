@@ -627,7 +627,11 @@ model PaymentRecord {
   paidAt  DateTime @default(now())
 
   from ExpenseGroupMember @relation("PaymentSender", fields: [fromId], references: [id])
-  to   ExpenseGroupMember @relation("PaymentReceiver", fiel
+  to   ExpenseGroupMember @relation("PaymentReceiver", fields: [toId], references: [id])
+
+  @@map("payment_records")
+}
+
 // ────────────────────────────────────────────────────────────
 // CHECK-INS — User checking in to a place
 // ────────────────────────────────────────────────────────────
