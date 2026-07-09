@@ -1,7 +1,29 @@
 # PROGRESS.md
 # Travel Community App — Dev Log
 
-## Status: Phase 3 | Day 35 cont.5 | 2026-07-04 — ✅ Vercel BUILD GREEN
+## Status: Phase 3 | Sprint S16 | 2026-07-10 — Schema hardening + System Posts + Interest Ranking
+
+### Session Log — 2026-07-10 (Sprint S16)
+
+#### ✅ Completed
+1. **Schema fixes** — `Trip ↔ ExpenseGroup` real 1:1 relation (`tripId @unique`, back-ref), `Post.postType` (`enum PostType { user place_highlight trip_idea }`) + `Post.isSystemPost`, `User.isSystemAccount`, `Trip.tags String[]`. Added real `TripExpense` and `PackingItem` models (previously `prisma as any` hacks in `trips.ts`) and `ExpenseGroup.inviteCode`.
+2. **🔴 Found + fixed a real production bug**: `expense_groups` / `expense_group_members` / `expenses` / `expense_splits` / `payment_records` were created directly via the Supabase Management API (Day 24) with **snake_case** columns (`trip_id`, `created_by_id`, `paid_by_id`, …), but `schema.prisma` declared camelCase fields with **no `@map`** — meaning every `prisma.expenseGroup.*` query has been silently failing against production since it was built (confirmed via direct DB introspection: `expense_groups` has 0 rows, feature never actually worked). Added explicit `@map(...)` to every field across all 5 expense models to match the live columns. Verified with a live query — now fails only on the *new* `invite_code` column, which is expected (pending migration below).
+3. **Found + fixed `TripCollaborator` field mismatch**: schema had `createdAt`, but the already-drafted (unrun) migration SQL creates the column as `addedAt` with `role DEFAULT 'editor'`. Renamed the Prisma field to `addedAt` to match, removed the `prisma as any` workaround in `trips.ts` (`getTripCollaborators` was silently returning `[]` because `orderBy: { addedAt }}` doesn't exist on the `createdAt`-typed field).
+4. **Found + fixed `all_migrations.sql` bug**: the "Day 35 Performance Indexes" block used snake_case column names (`is_featured`, `user_id`, …) for `places`/`posts`/`notifications`, which are actually camelCase (unmapped) tables — those `CREATE INDEX` statements would have failed when pasted into Supabase SQL Editor. Fixed to use quoted camelCase names.
+5. `src/lib/interests.ts` — canonical `INTEREST_LIST` (15 keys, Thai labels + emoji + category), shared by Trip ranking, feed ranking, and (future) tag suggestions.
+6. `prisma/seed-system-user.ts` — seeds the official `YourTrip` account (`system-yourtrip-0000-0000-000000000001`) + 10 `place_highlight` posts about real Thai destinations. **Not yet run against production** — see Pending below.
+7. **System posts in feed**: `getSystemPosts()` in `posts.ts`, wired into `feed/page.tsx` → `FeedPostsClient` via new `systemPosts` prop. Interleaves 1 system post per 5 user posts (rotating) on the "สำหรับคุณ" tab; shows all system posts + a welcome banner when a new user's feed is completely empty. `PostCard` renders a small `📍 สถานที่แนะนำ` / `✈️ ไอเดียทริป` badge + left accent border for system posts.
+8. **Trip ranking by interest**: `getPublicTripsRanked(userInterests, limit)` in `trips.ts` — score = `interest_overlap×3 + exp(-daysSinceUpdate/30)×1 + min(collaborators,5)×0.5`, falls back to plain `getPublicTrips` when the user has no interests set. Wired into `/trips` (fetches `User.interests` server-side). `TripsClient` shows matched-interest badges on community trip cards + a "ตั้งค่าความสนใจ" banner when the user has none set.
+9. **Feed personalization scoring**: rewrote `getForYouFeed()` — removed the `prisma as any` cast (no longer needed), fetches a 30-post candidate window per page, scores in-memory (`tagOverlap×3 + following×2 + recency(7d half-life) + engagement×0.5`), returns the top 10, cursor continues past the whole candidate window so pagination never repeats posts.
+10. `npx tsc --noEmit`: **0 new errors** (one pre-existing, unrelated `next.config.ts` `eslint` key error confirmed via `git stash` — not caused by this session). `eslint` on touched files: no new errors introduced (baseline 6 errors → 5 after removing 2 `as any` casts).
+
+#### ⚠️ PENDING — Supabase SQL migration (run before next deploy)
+`prisma/all_migrations.sql` now includes this session's additions (`users.isSystemAccount`, `PostType` enum + `posts.postType`/`isSystemPost`, `trips.tags`, `expense_groups.invite_code` + unique constraints) **on top of** everything already queued from Day 35 and earlier (`isOnboarded`, `interests`, `trip_collaborators`, `check_ins`, `packing_items`, `trip_expenses`, `posts.isPinned`, performance indexes) — none of which have been applied to production yet (verified via direct introspection: `users.isOnboarded`, `posts.isSystemPost`, `trip_collaborators` etc. all absent from the live DB).
+
+**Next session should**:
+1. Paste `your-trip-web/prisma/all_migrations.sql` into the Supabase SQL Editor (still S15-3, now bigger).
+2. Run `npx ts-node --compiler-options '{"module":"CommonJS"}' prisma/seed-system-user.ts` to create the system account + 10 posts.
+3. Smoke-test `/feed` (system post badges + empty-state banner) and `/trips` (interest ranking badges).
 
 ### Session Log — 2026-07-04
 #### ✅ Completed — Vercel Build Fixed (commit `7c450ca`)

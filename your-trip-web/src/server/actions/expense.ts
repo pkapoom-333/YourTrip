@@ -337,7 +337,7 @@ function simplifyDebts(
 // ─── Invite Link ─────────────────────────────────────────────────────────────
 
 export async function getGroupByInviteCode(inviteCode: string) {
-  const group = await (prisma as any).expenseGroup.findUnique({
+  const group = await prisma.expenseGroup.findUnique({
     where: { inviteCode },
     include: {
       members: true,
@@ -350,16 +350,16 @@ export async function getGroupByInviteCode(inviteCode: string) {
 export async function joinGroupByInviteCode(inviteCode: string, memberName: string) {
   const user = await getAuthUser();
 
-  const group = await (prisma as any).expenseGroup.findUnique({ where: { inviteCode } });
+  const group = await prisma.expenseGroup.findUnique({ where: { inviteCode } });
   if (!group) throw new Error("ไม่พบกลุ่มนี้");
 
   // Check if user already in group
-  const existing = await (prisma as any).expenseGroupMember.findFirst({
+  const existing = await prisma.expenseGroupMember.findFirst({
     where: { groupId: group.id, userId: user.id },
   });
   if (existing) return { groupId: group.id };
 
-  await (prisma as any).expenseGroupMember.create({
+  await prisma.expenseGroupMember.create({
     data: {
       groupId: group.id,
       userId: user.id,
@@ -376,16 +376,71 @@ export async function joinGroupByInviteCode(inviteCode: string, memberName: stri
 
 export async function regenerateInviteCode(groupId: string) {
   const user = await getAuthUser();
-  const group = await (prisma as any).expenseGroup.findFirst({
+  const group = await prisma.expenseGroup.findFirst({
     where: { id: groupId, createdById: user.id },
   });
   if (!group) throw new Error("ไม่มีสิทธิ์");
 
   const newCode = Math.random().toString(36).slice(2, 10) + Date.now().toString(36);
-  await (prisma as any).expenseGroup.update({
+  await prisma.expenseGroup.update({
     where: { id: groupId },
     data: { inviteCode: newCode },
   });
   revalidatePath(`/expense/${groupId}`);
   return { inviteCode: newCode };
+}
+
+export async function createExpenseGroupForTrip(
+  tripId: string,
+  opts?: { syncCollaborators?: boolean }
+) {
+  const user = await getAuthUser();
+
+  const trip = await prisma.trip.findUnique({
+    where: { id: tripId },
+    include: { collaborators: { include: { user: { select: { id: true, name: true, avatarUrl: true } } } } },
+  });
+  if (!trip) throw new Error("ไม่พบทริป");
+
+  const existing = await prisma.expenseGroup.findUnique({ where: { tripId } });
+  if (existing) return { groupId: existing.id };
+
+  const members: Array<{ name: string; userId?: string; avatarUrl?: string; color?: string }> = [
+    { name: trip.userId === user.id ? "ฉัน" : "เจ้าของทริป", userId: trip.userId },
+  ];
+  if (opts?.syncCollaborators) {
+    for (const c of trip.collaborators) {
+      if (c.userId === trip.userId) continue;
+      members.push({ name: c.user.name ?? "สมาชิก", userId: c.userId, avatarUrl: c.user.avatarUrl ?? undefined });
+    }
+  }
+
+  const group = await prisma.expenseGroup.create({
+    data: {
+      name: trip.title,
+      emoji: "💰",
+      tripId,
+      createdById: user.id,
+      inviteCode: Math.random().toString(36).slice(2, 10) + Date.now().toString(36),
+      members: {
+        create: members.map((m, i) => ({
+          name: m.name,
+          userId: m.userId,
+          avatarUrl: m.avatarUrl,
+          color: ["#398AB9","#FF4F4F","#22C55E","#F59E0B","#8B5CF6","#EC4899"][i % 6],
+        })),
+      },
+    },
+  });
+
+  revalidatePath(`/trips/${tripId}`);
+  return { groupId: group.id };
+}
+
+export async function getExpenseGroupByTripId(tripId: string) {
+  const group = await prisma.expenseGroup.findUnique({
+    where: { tripId },
+    include: { members: true, _count: { select: { expenses: true } } },
+  });
+  return group ?? null;
 }

@@ -1,3 +1,28 @@
+## 🔥 QUEST BOARD — Sprint S16 "SYSTEM POSTS + INTEREST RANKING" (2026-07-10)
+**ช่วง:** 10 ก.ค.+ | **MVP deadline:** 14 ก.ค. 2026
+
+```
+PROGRESS ████████████████████████ 100%  CODE COMPLETE — รอ SQL migration + seed
+```
+
+### ⚔️ TIER S — This Sprint
+
+| # | Quest | XP | Status |
+|---|-------|----|--------|
+| S16-1 | **Schema fixes** — Trip↔ExpenseGroup relation, PostType enum, isSystemAccount, Trip.tags, TripExpense/PackingItem real models | 300 | ✅ |
+| S16-2 | **🔴 Fixed expense_groups snake_case bug** — 5 expense models had zero `@map`, feature broken since Day 24 (0 rows in prod). Added `@map` everywhere | 300 | ✅ |
+| S16-3 | **Fixed TripCollaborator addedAt mismatch** — schema had `createdAt`, migration SQL had `addedAt` → renamed field, removed dead `as any` | 100 | ✅ |
+| S16-4 | **Fixed all_migrations.sql index bug** — Day 35 indexes used snake_case on camelCase tables, would've failed on paste | 100 | ✅ |
+| S16-5 | **lib/interests.ts** — canonical 15-key interest vocabulary | 100 | ✅ |
+| S16-6 | **System user + 10 system posts seed** — `prisma/seed-system-user.ts` | 200 | ✅ (not yet run — needs migration first) |
+| S16-7 | **System posts in feed** — getSystemPosts + interleave (1/5) + empty-state welcome | 250 | ✅ |
+| S16-8 | **Trip ranking by interest** — getPublicTripsRanked + matched-interest badges + banner | 250 | ✅ |
+| S16-9 | **Feed personalization scoring** — getForYouFeed real in-memory ranking | 200 | ✅ |
+| S16-10 | **Supabase SQL migration** — paste updated `all_migrations.sql` | 300 | ⬜ NEXT |
+| S16-11 | **Run seed-system-user.ts** — after S16-10 | 50 | ⬜ NEXT |
+
+---
+
 ## 🔥 QUEST BOARD — Sprint S15 "DEPLOY & LAUNCH" (Day 35 — 2026-07-03)
 **ช่วง:** 3–14 ก.ค. 2026 | **MVP deadline:** 14 ก.ค. 2026
 
@@ -11,7 +36,7 @@ PROGRESS ███████████████████████�
 |---|-------|----|--------|
 | S15-1 | **git push to GitHub** — รัน `fix_and_push.vbs` (340 files) | 500 | ✅ Done (commits 3451080→7c450ca) |
 | S15-2 | **Vercel deploy** — import repo + env vars | 500 | ✅ Done — https://your-trip-nu.vercel.app (1m 8s build GREEN) |
-| S15-3 | **Supabase SQL migrations** — paste all_migrations.sql | 300 | ⬜ NEXT |
+| S15-3 | **Supabase SQL migrations** — paste all_migrations.sql (now bigger — see S16-10) | 300 | ⬜ NEXT |
 | S15-4 | **Supabase Auth callback URL** — set to Vercel domain | 100 | ⬜ NEXT |
 
 ### ✅ DONE Day 35 (2026-07-03)

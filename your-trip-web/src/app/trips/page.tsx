@@ -1,8 +1,10 @@
 import type { Metadata } from "next";
 import AppShell from "@/components/AppShell";
 import TripsClient, { type TripSummary } from "./TripsClient";
-import { getUserTrips, getPublicTrips, type PublicTripItem } from "@/server/actions/trips";
+import { getUserTrips, getPublicTripsRanked } from "@/server/actions/trips";
 import { getDestinationSuggestions, type DestinationSuggestion } from "@/server/actions/savedPlaces";
+import { prisma } from "@/lib/prisma";
+import { createClient } from "@/lib/supabase/server";
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? "https://your-trip-nu.vercel.app";
 
@@ -22,9 +24,21 @@ function mapStatus(raw: string): TripSummary["status"] {
 }
 
 export default async function TripsPage() {
+  const supabase = await createClient();
+  const { data: { user: authUser } } = await supabase.auth.getUser();
+
+  let userInterests: string[] = [];
+  if (authUser) {
+    const profile = await prisma.user.findUnique({
+      where: { id: authUser.id },
+      select: { interests: true },
+    }).catch(() => null);
+    userInterests = profile?.interests ?? [];
+  }
+
   const [{ data: rawTrips }, { data: communityTrips }, { data: destinationSuggestions }] = await Promise.all([
     getUserTrips(),
-    getPublicTrips(12),
+    getPublicTripsRanked(userInterests, 12),
     getDestinationSuggestions(5),
   ]);
 
@@ -55,7 +69,7 @@ export default async function TripsPage() {
       <header className="md:hidden sticky top-0 z-40 bg-white dark:bg-slate-800 border-b border-gray-100 dark:border-slate-700 px-4 py-3">
         <span className="text-lg font-bold text-[#398AB9]">ทริปของฉัน</span>
       </header>
-      <TripsClient initialTrips={trips} communityTrips={communityTrips} destinationSuggestions={destinationSuggestions} />
+      <TripsClient initialTrips={trips} communityTrips={communityTrips} destinationSuggestions={destinationSuggestions} hasInterests={userInterests.length > 0} />
     </AppShell>
   );
 }

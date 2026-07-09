@@ -333,6 +333,45 @@ export async function getFeed(cursor?: string, followingOnly = false) {
   }
 }
 
+// ─── System Posts (official YourTrip content) ──────────────────────────────
+
+export async function getSystemPosts(take = 6) {
+  try {
+    const posts = await prisma.post.findMany({
+      take,
+      where: { isSystemPost: true, isPublic: true },
+      orderBy: { createdAt: "desc" },
+      include: {
+        user: { select: { id: true, name: true, username: true, avatarUrl: true, isVerified: true } },
+        place: { select: { id: true, slug: true, name: true } },
+        _count: { select: { likes: true, comments: true } },
+      },
+    });
+
+    return {
+      data: posts.map((p) => ({
+        id: p.id,
+        userId: p.userId,
+        content: p.content,
+        images: p.images,
+        location: p.location,
+        tags: p.tags,
+        createdAt: p.createdAt,
+        user: p.user,
+        likesCount: p._count.likes,
+        commentsCount: p._count.comments,
+        likedByMe: false,
+        savedByMe: false,
+        place: p.place ? { id: p.place.id, slug: p.place.slug, name: p.place.name } : null,
+        isSystemPost: true,
+        postType: p.postType,
+      })),
+    };
+  } catch {
+    return { data: [] };
+  }
+}
+
 export interface PostDetail {
   id: string;
   content: string;
@@ -680,8 +719,9 @@ export async function getActiveUsers(take = 12): Promise<{ data: ActiveUser[] }>
 }
 
 
-// ── For You Feed (interest-based) ──────────────────────────────────────
-const dbForYou = prisma as any;
+// ── For You Feed (interest-based, in-memory scored) ──────────────────────
+const PAGE_SIZE = 10;
+const CANDIDATE_SIZE = 30; // fetch a wider window, score in-memory, return top PAGE_SIZE
 
 export async function getForYouFeed(cursor?: string): Promise<{
   data: Array<{
@@ -700,17 +740,17 @@ export async function getForYouFeed(cursor?: string): Promise<{
     let interests: string[] = [];
     let followingIds: string[] = [];
     if (me) {
-      const userData = await dbForYou.user.findUnique({
+      const userData = await prisma.user.findUnique({
         where: { id: me.id },
         select: { interests: true },
       });
-      interests = (userData?.interests as string[] | null) ?? [];
+      interests = userData?.interests ?? [];
 
       const follows = await prisma.follow.findMany({
         where: { followerId: me.id },
         select: { followingId: true },
       });
-      followingIds = follows.map((f: { followingId: string }) => f.followingId);
+      followingIds = follows.map((f) => f.followingId);
     }
 
     const orClauses: Record<string, unknown>[] = [];
@@ -718,8 +758,10 @@ export async function getForYouFeed(cursor?: string): Promise<{
     if (interests.length) orClauses.push({ tags: { hasSome: interests } });
     if (!orClauses.length) orClauses.push({ isPublic: true });
 
-    const posts = await dbForYou.post.findMany({
-      take: 10,
+    // Candidate window — ordered by recency, scored + re-ranked in-memory below.
+    // nextCursor points past this whole window so pagination never repeats posts.
+    const candidates = await prisma.post.findMany({
+      take: CANDIDATE_SIZE,
       ...(cursor ? { skip: 1, cursor: { id: cursor } } : {}),
       where: { isPublic: true, OR: orClauses },
       orderBy: { createdAt: "desc" },
@@ -728,16 +770,10 @@ export async function getForYouFeed(cursor?: string): Promise<{
         place: { select: { id: true, slug: true, name: true } },
         _count: { select: { likes: true, comments: true } },
       },
-    }) as Array<{
-      id: string; content: string; images: string[]; tags: string[];
-      location: string | null; createdAt: Date; userId: string;
-      user: { id: string; name: string | null; username: string | null; avatarUrl: string | null };
-      place: { id: string; slug: string; name: string } | null;
-      _count: { likes: number; comments: number };
-    }>;
+    });
 
-    const nextCursor = posts.length === 10 ? posts[posts.length - 1].id : undefined;
-    const postIds = posts.map((p) => p.id);
+    const nextCursor = candidates.length === CANDIDATE_SIZE ? candidates[candidates.length - 1].id : undefined;
+    const postIds = candidates.map((p) => p.id);
 
     const [likedSet, savedSet] = me
       ? await Promise.all([
@@ -748,8 +784,23 @@ export async function getForYouFeed(cursor?: string): Promise<{
         ])
       : [new Set<string>(), new Set<string>()];
 
+    const followingSet = new Set(followingIds);
+    const now = Date.now();
+
+    // score = (interest_tag_overlap × 3) + (following_bonus × 2) + (recency_decay × 1) + (engagement × 0.5)
+    const scored = candidates.map((p) => {
+      const tagOverlap = interests.length ? p.tags.filter((t) => interests.includes(t)).length : 0;
+      const daysSince = (now - p.createdAt.getTime()) / 86_400_000;
+      const recency = Math.exp(-daysSince / 7); // half-life ~7 days
+      const following = followingSet.has(p.userId) ? 1 : 0;
+      const engagement = Math.min((p._count.likes + p._count.comments * 2) / 100, 1);
+      const score = tagOverlap * 3 + following * 2 + recency + engagement * 0.5;
+      return { p, score };
+    });
+    scored.sort((a, b) => b.score - a.score);
+
     return {
-      data: posts.map((p) => ({
+      data: scored.slice(0, PAGE_SIZE).map(({ p }) => ({
         id: p.id, content: p.content, images: p.images, tags: p.tags,
         location: p.location, createdAt: p.createdAt,
         likesCount: p._count.likes, commentsCount: p._count.comments,

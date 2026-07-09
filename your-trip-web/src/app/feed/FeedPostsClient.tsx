@@ -70,6 +70,32 @@ function FeedEmptyState() {
   );
 }
 
+function WelcomeBanner() {
+  return (
+    <div className="bg-[#398AB9]/5 border border-[#398AB9]/20 rounded-2xl px-4 py-3 flex items-center gap-2">
+      <span className="text-lg">👋</span>
+      <p className="text-xs text-gray-600 dark:text-slate-300">
+        <span className="font-semibold">ยินดีต้อนรับ!</span> นี่คือสถานที่น่าสนใจใน YourTrip — เริ่มติดตามคนอื่นหรือโพสต์รูปแรกเพื่อ feed ส่วนตัว
+      </p>
+    </div>
+  );
+}
+
+// Interleave 1 system post per `every` user posts (rotating through systemPosts)
+function interleavePosts(userPosts: PostCardData[], systemPosts: PostCardData[], every = 5): PostCardData[] {
+  if (systemPosts.length === 0) return userPosts;
+  const result: PostCardData[] = [];
+  let sysIdx = 0;
+  userPosts.forEach((post, i) => {
+    result.push(post);
+    if ((i + 1) % every === 0) {
+      result.push(systemPosts[sysIdx % systemPosts.length]);
+      sysIdx++;
+    }
+  });
+  return result;
+}
+
 // Popular tags shown as filter chips
 const POPULAR_TAGS = ["ทั้งหมด", "เที่ยวเหนือ", "ธรรมชาติ", "คาเฟ่", "ต่างประเทศ", "ทะเล", "Hiking", "อาหาร", "โรแมนติก"];
 
@@ -99,6 +125,7 @@ interface FeedPostsClientProps {
   initialPosts: PostCardData[];
   initialCursor?: string;
   initialHasMore?: boolean;
+  systemPosts?: PostCardData[];
 }
 
 const PULL_THRESHOLD = 70;
@@ -132,7 +159,7 @@ function mapPost(p: {
   };
 }
 
-export function FeedPostsClient({ initialPosts, initialCursor, initialHasMore = false }: FeedPostsClientProps) {
+export function FeedPostsClient({ initialPosts, initialCursor, initialHasMore = false, systemPosts = [] }: FeedPostsClientProps) {
   const [activeTab, setActiveTab] = useState<FeedTab>("forYou");
   const [posts, setPosts] = useState<PostCardData[]>(initialPosts);
   const [cursor, setCursor] = useState<string | undefined>(initialCursor);
@@ -286,7 +313,9 @@ export function FeedPostsClient({ initialPosts, initialCursor, initialHasMore = 
           </Link>
         </div>
       )}
-      {posts.length === 0 && !loading && activeTab === "forYou" && <FeedEmptyState />}
+      {posts.length === 0 && !loading && activeTab === "forYou" && systemPosts.length === 0 && <FeedEmptyState />}
+
+      {posts.length === 0 && !loading && activeTab === "forYou" && systemPosts.length > 0 && <WelcomeBanner />}
 
       {filteredPosts.length === 0 && posts.length > 0 && !loading && (
         <div className="bg-white dark:bg-slate-800 md:rounded-2xl border border-gray-100 dark:border-slate-700 py-12 text-center text-sm text-gray-400 dark:text-slate-500">
@@ -294,7 +323,13 @@ export function FeedPostsClient({ initialPosts, initialCursor, initialHasMore = 
         </div>
       )}
 
-      {filteredPosts.map((post) => (
+      {(
+        activeTag === "ทั้งหมด" && activeTab === "forYou"
+          ? posts.length === 0
+            ? systemPosts
+            : interleavePosts(filteredPosts, systemPosts)
+          : filteredPosts
+      ).map((post) => (
         <PostCard key={String(post.id)} post={post} onTagClick={(tag) => setActiveTag(tag)} />
       ))}
 

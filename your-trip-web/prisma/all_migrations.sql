@@ -183,15 +183,53 @@ CREATE INDEX IF NOT EXISTS idx_place_submissions_province ON place_submissions(p
 
 
 -- ── Performance Indexes (Day 35 — 2026-07-03) ────────────────────────────────
+-- NOTE: places/posts/notifications use Prisma's default camelCase columns
+-- (unlike the expense_* tables) — index definitions below were originally
+-- written with snake_case names that don't exist and would fail; fixed here.
 -- Place queries (explore, province, category filter)
-CREATE INDEX IF NOT EXISTS idx_places_province_category ON places(province, category);
-CREATE INDEX IF NOT EXISTS idx_places_featured_published ON places(is_featured, is_published);
-CREATE INDEX IF NOT EXISTS idx_places_category_published ON places(category, is_published);
+CREATE INDEX IF NOT EXISTS idx_places_province_category ON places("province", "category");
+CREATE INDEX IF NOT EXISTS idx_places_featured_published ON places("isFeatured", "isPublished");
+CREATE INDEX IF NOT EXISTS idx_places_category_published ON places("category", "isPublished");
 
 -- Post feed queries (ordered by date per user)
-CREATE INDEX IF NOT EXISTS idx_posts_user_created ON posts(user_id, created_at DESC);
-CREATE INDEX IF NOT EXISTS idx_posts_place ON posts(place_id);
-CREATE INDEX IF NOT EXISTS idx_posts_public_created ON posts(is_public, created_at DESC);
+CREATE INDEX IF NOT EXISTS idx_posts_user_created ON posts("userId", "createdAt" DESC);
+CREATE INDEX IF NOT EXISTS idx_posts_place ON posts("placeId");
+CREATE INDEX IF NOT EXISTS idx_posts_public_created ON posts("isPublic", "createdAt" DESC);
 
 -- Notification unread queries
-CREATE INDEX IF NOT EXISTS idx_notifications_user_read_date ON notifications(user_id, is_read, created_at DESC);
+CREATE INDEX IF NOT EXISTS idx_notifications_user_read_date ON notifications("userId", "isRead", "createdAt" DESC);
+
+-- ── 20260710000001_system_posts_and_interest_ranking (Sprint S16 — 2026-07-10) ──
+
+-- users: system account flag
+ALTER TABLE "users" ADD COLUMN IF NOT EXISTS "isSystemAccount" BOOLEAN NOT NULL DEFAULT false;
+
+-- posts: PostType enum + system post fields
+DO $$ BEGIN
+  CREATE TYPE "PostType" AS ENUM ('user', 'place_highlight', 'trip_idea');
+EXCEPTION
+  WHEN duplicate_object THEN NULL;
+END $$;
+
+ALTER TABLE "posts" ADD COLUMN IF NOT EXISTS "postType" "PostType" NOT NULL DEFAULT 'user';
+ALTER TABLE "posts" ADD COLUMN IF NOT EXISTS "isSystemPost" BOOLEAN NOT NULL DEFAULT false;
+CREATE INDEX IF NOT EXISTS "posts_isSystemPost_postType_idx" ON "posts"("isSystemPost", "postType");
+
+-- trips: interest tags for ranking
+ALTER TABLE "trips" ADD COLUMN IF NOT EXISTS "tags" TEXT[] DEFAULT '{}';
+
+-- expense_groups: invite code + 1:1 trip link
+-- (expense_groups/expense_group_members/expenses/expense_splits/payment_records use
+--  snake_case columns — created via Management API, not `prisma migrate`. schema.prisma
+--  now has explicit @map(...) on every field in those 5 models to match.)
+ALTER TABLE "expense_groups" ADD COLUMN IF NOT EXISTS "invite_code" TEXT;
+DO $$ BEGIN
+  ALTER TABLE "expense_groups" ADD CONSTRAINT "expense_groups_invite_code_key" UNIQUE ("invite_code");
+EXCEPTION
+  WHEN duplicate_object THEN NULL;
+END $$;
+DO $$ BEGIN
+  ALTER TABLE "expense_groups" ADD CONSTRAINT "expense_groups_trip_id_key" UNIQUE ("trip_id");
+EXCEPTION
+  WHEN duplicate_object THEN NULL;
+END $$;

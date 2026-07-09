@@ -161,6 +161,68 @@ export async function getPublicTrips(limit = 12): Promise<{ data: PublicTripItem
   }
 }
 
+export interface RankedTripItem extends PublicTripItem {
+  matchedInterests: string[];
+}
+
+// Score = (interest_overlap × 3) + (recency_decay × 1) + (collaboratorCount × 0.5)
+// recency_decay = exp(-daysSinceUpdate / 30) — half-life ~30 days
+export async function getPublicTripsRanked(
+  userInterests: string[],
+  limit = 12
+): Promise<{ data: RankedTripItem[] }> {
+  if (userInterests.length === 0) {
+    const { data } = await getPublicTrips(limit);
+    return { data: data.map((t) => ({ ...t, matchedInterests: [] })) };
+  }
+
+  try {
+    const supabase = await createServerClient();
+    const { data: { user } } = await supabase.auth.getUser();
+
+    const trips = await prisma.trip.findMany({
+      where: {
+        isPublic: true,
+        ...(user ? { userId: { not: user.id } } : {}),
+      },
+      orderBy: { updatedAt: "desc" },
+      take: limit * 3,
+      include: {
+        user: { select: { name: true, avatarUrl: true } },
+        days: { include: { _count: { select: { items: true } } } },
+        _count: { select: { collaborators: true } },
+      },
+    });
+
+    const now = Date.now();
+    const scored = trips.map((t) => {
+      const matchedInterests = t.tags.filter((tag) => userInterests.includes(tag));
+      const daysSince = (now - t.updatedAt.getTime()) / 86_400_000;
+      const recency = Math.exp(-daysSince / 30);
+      const collabBonus = Math.min(t._count.collaborators, 5);
+      const score = matchedInterests.length * 3 + recency + collabBonus * 0.5;
+      return { t, score, matchedInterests };
+    });
+    scored.sort((a, b) => b.score - a.score);
+
+    return {
+      data: scored.slice(0, limit).map(({ t, matchedInterests }) => ({
+        id: t.id,
+        title: t.title,
+        destination: t.destination,
+        coverImage: t.coverImage,
+        startDate: t.startDate,
+        endDate: t.endDate,
+        itemCount: t.days.reduce((sum, d) => sum + d._count.items, 0),
+        owner: { name: t.user.name, avatarUrl: t.user.avatarUrl },
+        matchedInterests,
+      })),
+    };
+  } catch {
+    return { data: [] };
+  }
+}
+
 export async function getTripById(tripId: string) {
   try {
     const supabase = await createServerClient();
@@ -511,7 +573,6 @@ export async function toggleTripPublic(
 }
 
 // ── Trip Collaboration ───────────────────────────────────────────────
-const dbTrips = prisma as any;
 
 export interface TripCollaboratorItem {
   id: string;
@@ -526,12 +587,12 @@ export async function getTripCollaborators(tripId: string): Promise<{ data: Trip
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return { data: [] };
 
-    const rows = await dbTrips.tripCollaborator.findMany({
+    const rows = await prisma.tripCollaborator.findMany({
       where: { tripId },
       include: { user: { select: { id: true, name: true, avatarUrl: true, username: true } } },
       orderBy: { addedAt: "asc" },
     });
-    return { data: rows as TripCollaboratorItem[] };
+    return { data: rows };
   } catch {
     return { data: [] };
   }
@@ -552,7 +613,7 @@ export async function addTripCollaborator(
     if (!trip) return { ok: false, error: "ไม่มีสิทธิ์" };
     if (targetUserId === user.id) return { ok: false, error: "ไม่สามารถเพิ่มตัวเองได้" };
 
-    await dbTrips.tripCollaborator.upsert({
+    await prisma.tripCollaborator.upsert({
       where: { tripId_userId: { tripId, userId: targetUserId } },
       create: { tripId, userId: targetUserId, role },
       update: { role },
@@ -574,7 +635,7 @@ export async function removeTripCollaborator(
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return { ok: false };
 
-    await dbTrips.tripCollaborator.delete({
+    await prisma.tripCollaborator.delete({
       where: { tripId_userId: { tripId, userId: targetUserId } },
     });
 
@@ -889,7 +950,6 @@ export async function createTripFromTemplate(
 }
 
 // ── Packing List ──────────────────────────────────────────────────────
-const dbPack = prisma as any;
 
 export interface PackingItemData {
   id: string;
@@ -923,11 +983,11 @@ const DEFAULT_PACKING_ITEMS: Array<{ name: string; category: string }> = [
 
 export async function getPackingList(tripId: string): Promise<{ data: PackingItemData[] }> {
   try {
-    const rows = await dbPack.packingItem.findMany({
+    const rows = await prisma.packingItem.findMany({
       where: { tripId },
       orderBy: [{ order: "asc" }, { createdAt: "asc" }],
     });
-    return { data: rows as PackingItemData[] };
+    return { data: rows };
   } catch {
     return { data: [] };
   }
@@ -935,9 +995,9 @@ export async function getPackingList(tripId: string): Promise<{ data: PackingIte
 
 export async function initPackingList(tripId: string): Promise<{ ok: boolean }> {
   try {
-    const existing = await dbPack.packingItem.count({ where: { tripId } });
+    const existing = await prisma.packingItem.count({ where: { tripId } });
     if (existing > 0) return { ok: true };
-    await dbPack.packingItem.createMany({
+    await prisma.packingItem.createMany({
       data: DEFAULT_PACKING_ITEMS.map((item, i) => ({ tripId, ...item, order: i })),
     });
     return { ok: true };
@@ -952,11 +1012,11 @@ export async function addPackingItem(
   category = "other"
 ): Promise<{ data: PackingItemData | null }> {
   try {
-    const count = await dbPack.packingItem.count({ where: { tripId } });
-    const item = await dbPack.packingItem.create({
+    const count = await prisma.packingItem.count({ where: { tripId } });
+    const item = await prisma.packingItem.create({
       data: { tripId, name: name.trim(), category, order: count },
     });
-    return { data: item as PackingItemData };
+    return { data: item };
   } catch {
     return { data: null };
   }
@@ -967,7 +1027,7 @@ export async function togglePackingItem(
   isPacked: boolean
 ): Promise<{ ok: boolean }> {
   try {
-    await dbPack.packingItem.update({ where: { id: itemId }, data: { isPacked } });
+    await prisma.packingItem.update({ where: { id: itemId }, data: { isPacked } });
     return { ok: true };
   } catch {
     return { ok: false };
@@ -976,7 +1036,7 @@ export async function togglePackingItem(
 
 export async function deletePackingItem(itemId: string): Promise<{ ok: boolean }> {
   try {
-    await dbPack.packingItem.delete({ where: { id: itemId } });
+    await prisma.packingItem.delete({ where: { id: itemId } });
     return { ok: true };
   } catch {
     return { ok: false };
@@ -984,7 +1044,6 @@ export async function deletePackingItem(itemId: string): Promise<{ ok: boolean }
 }
 
 // ── Trip Budget Tracker ───────────────────────────────────────────────
-const dbExp = prisma as any;
 
 export interface TripExpenseItem {
   id: string;
@@ -1011,10 +1070,10 @@ export async function getTripBudget(tripId: string): Promise<{ data: BudgetSumma
     });
     if (!trip) return { data: null };
 
-    const expenses = await dbExp.tripExpense.findMany({
+    const expenses = await prisma.tripExpense.findMany({
       where: { tripId },
       orderBy: { date: "desc" },
-    }) as TripExpenseItem[];
+    });
 
     const totalSpent = expenses.reduce((s: number, e: TripExpenseItem) => s + e.amount, 0);
     const byCategory: Record<string, number> = {};
@@ -1044,11 +1103,11 @@ export async function addTripExpense(
   paidBy?: string
 ): Promise<{ data: TripExpenseItem | null }> {
   try {
-    const item = await dbExp.tripExpense.create({
+    const item = await prisma.tripExpense.create({
       data: { tripId, name: name.trim(), amount, category, paidBy: paidBy ?? null },
     });
     revalidatePath(`/trips/${tripId}`);
-    return { data: item as TripExpenseItem };
+    return { data: item };
   } catch {
     return { data: null };
   }
@@ -1056,7 +1115,7 @@ export async function addTripExpense(
 
 export async function deleteTripExpense(expenseId: string): Promise<{ ok: boolean }> {
   try {
-    await dbExp.tripExpense.delete({ where: { id: expenseId } });
+    await prisma.tripExpense.delete({ where: { id: expenseId } });
     return { ok: true };
   } catch {
     return { ok: false };

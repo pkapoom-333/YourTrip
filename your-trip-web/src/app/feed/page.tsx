@@ -11,7 +11,7 @@ export const metadata: Metadata = {
   alternates: { canonical: `${SITE_URL}/feed` },
 };
 import { type PostCardData } from "@/components/features/PostCard";
-import { getFeed, getTrendingHashtags } from "@/server/actions/posts";
+import { getFeed, getTrendingHashtags, getSystemPosts } from "@/server/actions/posts";
 import { getPlaces } from "@/server/actions/places";
 import { getPublicTrips } from "@/server/actions/trips";
 import { getStories } from "@/server/actions/stories";
@@ -44,6 +44,7 @@ export default async function FeedPage() {
     { data: trendingHashtags },
     storyResult,
     myProfileResult,
+    { data: dbSystemPosts },
   ] = await Promise.all([
     getFeed(),
     getPlaces({ featured: true, take: 3 }),
@@ -51,6 +52,7 @@ export default async function FeedPage() {
     getTrendingHashtags(6),
     getStories(),
     authUser ? getProfile(authUser.id) : Promise.resolve({ data: null }),
+    getSystemPosts(6),
   ]);
 
   const storyGroups = storyResult.data;
@@ -75,6 +77,28 @@ export default async function FeedPage() {
     time: fmtTime(p.createdAt),
     tags: p.tags ?? [],
     place: p.place ?? null,
+  }));
+
+  const systemPosts: PostCardData[] = dbSystemPosts.map((p) => ({
+    id: p.id,
+    caption: p.content,
+    img: p.images?.[0] ?? undefined,
+    images: p.images ?? [],
+    user: {
+      id: p.user?.id ?? undefined,
+      name: p.user?.name ?? "YourTrip",
+      avatarUrl: p.user?.avatarUrl ?? undefined,
+      location: p.location ?? undefined,
+    },
+    likes: p.likesCount,
+    comments: p.commentsCount,
+    liked: false,
+    saved: false,
+    time: fmtTime(p.createdAt),
+    tags: p.tags ?? [],
+    place: p.place ?? null,
+    isSystemPost: true,
+    postType: p.postType,
   }));
 
   return (
@@ -124,6 +148,7 @@ export default async function FeedPage() {
               initialPosts={feedPosts}
               initialCursor={nextCursor}
               initialHasMore={dbPosts.length > 0 ? (hasMore ?? false) : false}
+              systemPosts={systemPosts}
             />
           </div>
 

@@ -31,6 +31,7 @@ model User {
   isVerifiedGuide Boolean  @default(false)
   isOnboarded     Boolean  @default(false)
   interests       String[] @default([])
+  isSystemAccount Boolean  @default(false)
   // TODO: run add_travel_fields SQL in Supabase SQL Editor to add these columns to DB
 
   // Relations
@@ -237,6 +238,8 @@ model Post {
   isPublic Boolean  @default(true)
   isPinned Boolean  @default(false)
   placeId  String?  // optional linked place
+  postType     PostType @default(user)
+  isSystemPost Boolean  @default(false)
 
   // Relations
   user     User      @relation(fields: [userId], references: [id], onDelete: Cascade)
@@ -252,7 +255,14 @@ model Post {
   @@index([userId, createdAt(sort: Desc)])
   @@index([placeId])
   @@index([isPublic, createdAt(sort: Desc)])
+  @@index([isSystemPost, postType])
   @@map("posts")
+}
+
+enum PostType {
+  user
+  place_highlight
+  trip_idea
 }
 
 model Like {
@@ -315,10 +325,14 @@ model Trip {
   status      TripStatus @default(PLANNING)
   isPublic    Boolean   @default(false)
   budget      Int?      // THB
+  tags        String[]  @default([]) // interest tags for ranking/matching
 
   user          User               @relation(fields: [userId], references: [id], onDelete: Cascade)
   days          TripDay[]
   collaborators TripCollaborator[]
+  expenseGroup  ExpenseGroup?
+  tripExpenses  TripExpense[]
+  packingItems  PackingItem[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -545,17 +559,23 @@ model Message {
 // EXPENSE SPLITTER — ขุนทอง-style
 // ─────────────────────────────────────────
 
+// NOTE: expense_groups / expense_group_members / expenses / expense_splits /
+// payment_records were created directly in Supabase via the Management API
+// with snake_case columns — everything below is @map'd to match the live DB.
+
 model ExpenseGroup {
   id          String   @id @default(uuid())
   name        String
   description String?
   emoji       String   @default("💰")
-  tripId      String?
-  createdById String
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  tripId      String?  @unique @map("trip_id")
+  inviteCode  String?  @unique @map("invite_code")
+  createdById String   @map("created_by_id")
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
 
   createdBy User                 @relation("ExpenseGroupCreator", fields: [createdById], references: [id])
+  trip      Trip?                @relation(fields: [tripId], references: [id], onDelete: SetNull)
   members   ExpenseGroupMember[]
   expenses  Expense[]
 
@@ -564,13 +584,13 @@ model ExpenseGroup {
 
 model ExpenseGroupMember {
   id          String  @id @default(uuid())
-  groupId     String
-  userId      String?
+  groupId     String  @map("group_id")
+  userId      String? @map("user_id")
   name        String
-  avatarUrl   String?
-  promptPay   String?
-  bankAccount String?
-  bankName    String?
+  avatarUrl   String? @map("avatar_url")
+  promptPay   String? @map("prompt_pay")
+  bankAccount String? @map("bank_account")
+  bankName    String? @map("bank_name")
   color       String  @default("#398AB9")
 
   group            ExpenseGroup    @relation(fields: [groupId], references: [id], onDelete: Cascade)
@@ -585,16 +605,16 @@ model ExpenseGroupMember {
 
 model Expense {
   id        String   @id @default(uuid())
-  groupId   String
+  groupId   String   @map("group_id")
   name      String
   amount    Float
   currency  String   @default("THB")
-  paidById  String
-  splitType String   @default("equal")
+  paidById  String   @map("paid_by_id")
+  splitType String   @default("equal") @map("split_type")
   notes     String?
   category  String   @default("general")
   date      DateTime @default(now())
-  createdAt DateTime @default(now())
+  createdAt DateTime @default(now()) @map("created_at")
 
   group  ExpenseGroup       @relation(fields: [groupId], references: [id], onDelete: Cascade)
   paidBy ExpenseGroupMember @relation("ExpensePayer", fields: [paidById], references: [id])
@@ -605,10 +625,10 @@ model Expense {
 
 model ExpenseSplit {
   id        String  @id @default(uuid())
-  expenseId String
-  memberId  String
+  expenseId String  @map("expense_id")
+  memberId  String  @map("member_id")
   amount    Float
-  isPaid    Boolean @default(false)
+  isPaid    Boolean @default(false) @map("is_paid")
 
   expense Expense            @relation(fields: [expenseId], references: [id], onDelete: Cascade)
   member  ExpenseGroupMember @relation(fields: [memberId], references: [id], onDelete: Cascade)
@@ -619,12 +639,12 @@ model ExpenseSplit {
 
 model PaymentRecord {
   id      String   @id @default(uuid())
-  groupId String
-  fromId  String
-  toId    String
+  groupId String   @map("group_id")
+  fromId  String   @map("from_id")
+  toId    String   @map("to_id")
   amount  Float
   note    String?
-  paidAt  DateTime @default(now())
+  paidAt  DateTime @default(now()) @map("paid_at")
 
   from ExpenseGroupMember @relation("PaymentSender", fields: [fromId], references: [id])
   to   ExpenseGroupMember @relation("PaymentReceiver", fields: [toId], references: [id])
@@ -657,15 +677,54 @@ model CheckIn {
 // ────────────────────────────────────────────────────────────
 
 model TripCollaborator {
-  id        String   @id @default(uuid())
-  tripId    String
-  userId    String
-  role      String   @default("viewer") // "editor" | "viewer"
-  createdAt DateTime @default(now())
+  id      String   @id @default(uuid())
+  tripId  String
+  userId  String
+  role    String   @default("editor") // "editor" | "viewer"
+  addedAt DateTime @default(now())
 
   trip Trip @relation(fields: [tripId], references: [id], onDelete: Cascade)
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([tripId, userId])
   @@map("trip_collaborators")
+}
+
+// ────────────────────────────────────────────────────────────
+// TRIP EXPENSE — Personal budget tracking per trip
+// ────────────────────────────────────────────────────────────
+
+model TripExpense {
+  id        String   @id @default(uuid())
+  tripId    String
+  name      String
+  amount    Float    // THB
+  category  String   @default("other")
+  paidBy    String?  // free-text name
+  date      DateTime @default(now())
+  createdAt DateTime @default(now())
+
+  trip Trip @relation(fields: [tripId], references: [id], onDelete: Cascade)
+
+  @@index([tripId])
+  @@map("trip_expenses")
+}
+
+// ────────────────────────────────────────────────────────────
+// PACKING LIST
+// ────────────────────────────────────────────────────────────
+
+model PackingItem {
+  id        String   @id @default(uuid())
+  tripId    String
+  name      String
+  category  String   @default("other")
+  isPacked  Boolean  @default(false)
+  order     Int      @default(0)
+  createdAt DateTime @default(now())
+
+  trip Trip @relation(fields: [tripId], references: [id], onDelete: Cascade)
+
+  @@index([tripId])
+  @@map("packing_items")
 }

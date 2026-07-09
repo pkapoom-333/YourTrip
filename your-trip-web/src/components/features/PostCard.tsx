@@ -44,6 +44,8 @@ export interface PostCardData {
   place?: { id: string; slug: string; name: string } | null;
   isPinned?: boolean;
   isOwn?: boolean;
+  isSystemPost?: boolean;
+  postType?: string;
 }
 
 function fmt(n: number) {
@@ -189,7 +191,7 @@ export function PostCard({ post, onTagClick }: { post: PostCardData; onTagClick?
 
   return (
     <>
-    <article className="bg-white dark:bg-slate-800 border border-gray-100 dark:border-slate-700 rounded-2xl overflow-hidden">
+    <article className={`bg-white dark:bg-slate-800 border rounded-2xl overflow-hidden ${post.isSystemPost ? "border-gray-100 dark:border-slate-700 border-l-2 border-l-[#398AB9]" : "border-gray-100 dark:border-slate-700"}`}>
       {/* Post header */}
       <div className="flex items-center gap-3 p-3.5">
         {post.user.id ? (
@@ -200,13 +202,20 @@ export function PostCard({ post, onTagClick }: { post: PostCardData; onTagClick?
           <Avatar src={post.user.avatarUrl} name={post.user.name} />
         )}
         <div className="flex-1 min-w-0">
-          {post.user.id ? (
-            <Link href={`/profile/${post.user.id}`} className="text-sm font-semibold text-gray-900 dark:text-slate-100 hover:text-[#398AB9] transition">
-              {post.user.name}
-            </Link>
-          ) : (
-            <p className="text-sm font-semibold text-gray-900 dark:text-slate-100">{post.user.name}</p>
-          )}
+          <div className="flex items-center gap-1.5">
+            {post.user.id ? (
+              <Link href={`/profile/${post.user.id}`} className="text-sm font-semibold text-gray-900 dark:text-slate-100 hover:text-[#398AB9] transition">
+                {post.user.name}
+              </Link>
+            ) : (
+              <p className="text-sm font-semibold text-gray-900 dark:text-slate-100">{post.user.name}</p>
+            )}
+            {post.isSystemPost && (
+              <span className="text-[9px] font-medium px-1.5 py-0.5 rounded-full bg-[#398AB9]/10 text-[#398AB9]">
+                {post.postType === "trip_idea" ? "✈️ ไอเดียทริป" : "📍 สถานที่แนะนำ"}
+              </span>
+            )}
+          </div>
           {/* Place badge (linked to DB place) — takes priority over free-text location */}
           {post.place ? (
             <Link href={`/place/${post.place.slug}`}

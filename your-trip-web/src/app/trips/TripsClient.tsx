@@ -3,7 +3,8 @@
 import { useState } from "react";
 import Link from "next/link";
 import { Plus, MapPin, Calendar, Users, ChevronRight, ChevronLeft, Map as MapIcon, Plane, Trash2, X, ChevronDown, Copy, Check, Globe, Search, Sparkles, LayoutList, CalendarDays } from "lucide-react";
-import { deleteTrip, updateTripStatus, duplicateTrip, type PublicTripItem } from "@/server/actions/trips";
+import { deleteTrip, updateTripStatus, duplicateTrip, type RankedTripItem } from "@/server/actions/trips";
+import { getInterestLabel } from "@/lib/interests";
 import type { DestinationSuggestion } from "@/server/actions/savedPlaces";
 import { useToast } from "@/components/shared/Toast";
 import { Avatar } from "@/components/shared/Avatar";
@@ -45,7 +46,7 @@ function tripDuration(startISO?: string, endISO?: string): number {
   return isNaN(diff) ? 0 : Math.max(1, Math.ceil(diff / 86_400_000) + 1);
 }
 
-export default function TripsClient({ initialTrips, communityTrips = [], destinationSuggestions = [] }: { initialTrips: TripSummary[]; communityTrips?: PublicTripItem[]; destinationSuggestions?: DestinationSuggestion[] }) {
+export default function TripsClient({ initialTrips, communityTrips = [], destinationSuggestions = [], hasInterests = true }: { initialTrips: TripSummary[]; communityTrips?: RankedTripItem[]; destinationSuggestions?: DestinationSuggestion[]; hasInterests?: boolean }) {
   const [tab, setTab] = useState<"all" | "upcoming" | "planning" | "completed">("all");
   const [trips, setTrips] = useState<TripSummary[]>(initialTrips);
   const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
@@ -386,6 +387,12 @@ export default function TripsClient({ initialTrips, communityTrips = [], destina
               {communityTrips.length} ทริป
             </span>
           </div>
+          {!hasInterests && (
+            <div className="bg-[#398AB9]/5 border border-[#398AB9]/20 rounded-xl p-3 mb-3 flex items-center justify-between gap-2">
+              <p className="text-xs text-gray-600 dark:text-slate-300">ตั้งค่าความสนใจเพื่อดูทริปที่เหมาะกับคุณ</p>
+              <Link href="/profile/edit" className="text-[11px] text-[#398AB9] font-medium whitespace-nowrap hover:underline">ตั้งค่า →</Link>
+            </div>
+          )}
           <div className="grid grid-cols-2 gap-3 md:grid-cols-3">
             {communityTrips.map((t) => (
               <Link
@@ -415,6 +422,15 @@ export default function TripsClient({ initialTrips, communityTrips = [], destina
                     <MapPin className="w-2.5 h-2.5 flex-shrink-0" />
                     <span className="truncate">{t.destination}</span>
                   </div>
+                  {t.matchedInterests.length > 0 && (
+                    <div className="flex gap-1 mt-1.5 flex-wrap">
+                      {t.matchedInterests.slice(0, 2).map((tag) => (
+                        <span key={tag} className="text-[9px] px-1.5 py-0.5 bg-[#398AB9]/10 text-[#398AB9] rounded-full">
+                          {getInterestLabel(tag) ?? tag}
+                        </span>
+                      ))}
+                    </div>
+                  )}
                   <div className="flex items-center gap-1.5 mt-2">
                     <Avatar
                       src={t.owner.avatarUrl}
