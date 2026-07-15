@@ -1,3 +1,18 @@
+## 🔥 QUEST BOARD — Sprint S29 "PINNED POSTS + PASSPORT + STORY SWIPE" (2026-07-16)
+**เป้า:** Profile pinned posts + travel passport stats + story UX improvements
+
+```
+PROGRESS ████████████████████████ 100%  CODE COMPLETE
+```
+
+| # | Quest | XP | Status |
+|---|-------|----|--------|
+| S29-1 | **Profile pinned posts grid** — `getPinnedPosts` on profile page, amber pin badge | 300 | ✅ |
+| S29-2 | **Story viewer swipe between groups** — horizontal swipe ≥60px jumps group + hold-to-pause dim | 250 | ✅ |
+| S29-3 | **Profile travel passport stats** — tripsCount + placesVisited + totalTripDays panel + interests on public profile | 300 | ✅ |
+
+---
+
 ## 🔥 QUEST BOARD — Sprint S28 "PROFILE INTERESTS + MAP PINS" (2026-07-16)
 **เป้า:** Profile interests editor + Explore map color category pins
 

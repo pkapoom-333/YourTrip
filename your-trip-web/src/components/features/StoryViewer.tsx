@@ -105,12 +105,26 @@ export default function StoryViewer({ groups, initialGroupIndex, myUserId, onClo
     const dx = e.changedTouches[0].clientX - touchStartX.current;
     const dy = e.changedTouches[0].clientY - touchStartY.current;
     setPaused(false);
+    const absDx = Math.abs(dx);
+    const absDy = Math.abs(dy);
     // Swipe down → close
-    if (dy > 80 && Math.abs(dy) > Math.abs(dx)) { onClose(); return; }
-    // Tap left/right thirds
+    if (dy > 80 && absDy > absDx) { onClose(); return; }
+    // Horizontal swipe between story groups (>= 60px, more horizontal than vertical)
+    if (absDx > 60 && absDx > absDy * 1.5) {
+      if (dx < 0) {
+        // Swipe left → next group
+        if (groupIdx < groups.length - 1) { setGroupIdx((i) => i + 1); setStoryIdx(0); }
+        else onClose();
+      } else {
+        // Swipe right → prev group
+        if (groupIdx > 0) { setGroupIdx((i) => i - 1); setStoryIdx(0); }
+      }
+      return;
+    }
+    // Tap left/right thirds (small movement = tap)
     const screenW = window.innerWidth;
     const tapX = e.changedTouches[0].clientX;
-    if (Math.abs(dx) < 10 && Math.abs(dy) < 10) {
+    if (absDx < 10 && absDy < 10) {
       if (tapX < screenW / 3) goBack();
       else advance();
     }
@@ -213,6 +227,15 @@ export default function StoryViewer({ groups, initialGroupIndex, myUserId, onClo
           <X className="w-5 h-5" />
         </button>
       </div>
+
+      {/* Pause dim overlay */}
+      {paused && !showViewers && (
+        <div className="absolute inset-0 z-[15] bg-black/40 flex items-center justify-center pointer-events-none">
+          <div className="w-14 h-14 rounded-full bg-black/50 backdrop-blur-sm flex items-center justify-center">
+            <span className="text-white text-2xl">⏸</span>
+          </div>
+        </div>
+      )}
 
       {/* Media */}
       <div className="w-full h-full max-w-md mx-auto relative flex items-center justify-center">

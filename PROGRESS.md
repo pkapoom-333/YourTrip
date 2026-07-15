@@ -1,3 +1,27 @@
+## Status: Phase 3 | Sprint S29 | 2026-07-16 — Pinned Posts + Profile Passport + Story Swipe
+
+### Session Log — 2026-07-16 (Sprint S29)
+
+#### ✅ Completed
+1. **S29-1: Profile pinned posts grid** — `src/app/profile/[userId]/page.tsx`: Added `pinnedPosts` state, calls `getPinnedPosts(userId)` on load. When pinned posts exist, shows "📌 โพสต์ปักหมุด" section above the regular posts grid with amber pin badge overlay on each pinned thumbnail. Works for own profile and other profiles. (S29-1)
+2. **S29-2: Story viewer swipe between groups** — `src/components/features/StoryViewer.tsx`: Horizontal swipe ≥60px (more horizontal than vertical by 1.5×) now jumps to next/prev story group directly. Previously only tap-on-thirds worked; now swiping left = next group, right = prev group. Added hold-to-pause visual: semi-transparent ⏸ overlay appears when user holds down anywhere on the story. (S29-2)
+3. **S29-3: Profile travel passport stats** — `src/app/profile/[userId]/page.tsx`: Added `tripsCount`, `placesVisited`, `totalTripDays` to ProfileState + loaded from `getProfile` return (already computed). Displays a gradient "travel passport" mini-panel below interests showing 🗺️ ทริป | 📍 สถานที่ | 📅 วันเดินทาง stats. Also added `interests: user.interests` to `getProfile` return in `server/actions/profile.ts`. (S29-3)
+
+#### ⚠️ PENDING (user action required — 1 item only)
+1. **Add Vercel env vars** (go to vercel.com → your-trip project → Settings → Environment Variables):
+   - `NEXT_PUBLIC_VAPID_PUBLIC_KEY` = (in .env.local)
+   - `VAPID_PRIVATE_KEY` = (in .env.local)
+   - `VAPID_SUBJECT` = `mailto:pakpoomtee24@gmail.com`
+   - `CRON_SECRET` = (in .env.local)
+
+#### ▶️ Next (S30 candidates)
+- Trip share as post (bridge trip planning → social)
+- Full-text search (Postgres tsvector on places + posts)
+- Explore: distance sort when user allows geolocation
+- Profile: edit cover photo / banner
+
+---
+
 ## Status: Phase 3 | Sprint S28 | 2026-07-16 — Profile Interests + Explore Map Category Pins
 
 ### Session Log — 2026-07-16 (Sprint S28)

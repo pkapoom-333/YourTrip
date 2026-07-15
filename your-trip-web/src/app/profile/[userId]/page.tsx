@@ -7,7 +7,7 @@ import Link from "next/link";
 import {
   ChevronLeft, MapPin, Grid3X3, Star,
   Heart, UserPlus, UserCheck, MessageCircle, Map,
-  MoreVertical, ShieldOff, Shield, X, Activity, Camera, Share2,
+  MoreVertical, ShieldOff, Shield, X, Activity, Camera, Share2, Pin,
 } from "lucide-react";
 import {
   getProfile,
@@ -21,7 +21,9 @@ import {
   type PostGridItem,
   type ActivityItem,
 } from "@/server/actions/profile";
+import { getPinnedPosts } from "@/server/actions/posts";
 import { getUserPublicTrips, type PublicTripItem } from "@/server/actions/trips";
+import { INTEREST_LIST } from "@/lib/interests";
 import { Avatar } from "@/components/shared/Avatar";
 import { useUser } from "@/hooks/useUser";
 import { useToast } from "@/components/shared/Toast";
@@ -37,6 +39,10 @@ interface ProfileState {
   followersCount: number;
   followingCount: number;
   isVerifiedGuide: boolean;
+  interests: string[];
+  tripsCount: number;
+  placesVisited: number;
+  totalTripDays: number;
 }
 
 const AVATAR_COLORS = [
@@ -57,6 +63,7 @@ export default function UserProfilePage() {
   const [followerCount, setFollowerCount] = useState(0);
   const [loading, setLoading] = useState(true);
   const [menuOpen, setMenuOpen] = useState(false);
+  const [pinnedPosts, setPinnedPosts] = useState<{ id: string; images: string[]; likesCount: number; commentsCount: number }[]>([]);
   const [isBlocked, setIsBlocked] = useState(false);
   const [blockLoading, setBlockLoading] = useState(false);
   const [confirmBlock, setConfirmBlock] = useState(false);
@@ -74,8 +81,10 @@ export default function UserProfilePage() {
       checkIsFollowing(userId),
       getUserPublicTrips(userId),
       getRecentActivity(userId),
-    ]).then(([profileRes, postsRes, followRes, tripsRes, activityRes]) => {
+      getPinnedPosts(userId),
+    ]).then(([profileRes, postsRes, followRes, tripsRes, activityRes, pinnedRes]) => {
       setActivityItems(activityRes.data);
+      setPinnedPosts(pinnedRes.data);
       if (profileRes.data) {
         setProfile({
           id: profileRes.data.id ?? userId,
@@ -88,6 +97,10 @@ export default function UserProfilePage() {
           followersCount: profileRes.data.followersCount,
           followingCount: profileRes.data.followingCount,
           isVerifiedGuide: (profileRes.data as { isVerifiedGuide?: boolean }).isVerifiedGuide ?? false,
+          interests: (profileRes.data as { interests?: string[] }).interests ?? [],
+          tripsCount: (profileRes.data as { tripsCount?: number }).tripsCount ?? 0,
+          placesVisited: (profileRes.data as { placesVisited?: number }).placesVisited ?? 0,
+          totalTripDays: (profileRes.data as { totalTripDays?: number }).totalTripDays ?? 0,
         });
         setFollowerCount(profileRes.data.followersCount);
       }
@@ -310,6 +323,52 @@ export default function UserProfilePage() {
             {profile.bio && (
               <p className="text-sm text-gray-500 dark:text-slate-400 mt-2 leading-relaxed">{profile.bio}</p>
             )}
+
+            {/* Interests */}
+            {profile.interests.length > 0 && (
+              <div className="flex flex-wrap gap-1.5 mt-3">
+                {profile.interests.map((key) => {
+                  const item = INTEREST_LIST.find((i) => i.key === key);
+                  if (!item) return null;
+                  return (
+                    <span key={key} className="flex items-center gap-1 px-2.5 py-1 bg-[#398AB9]/10 dark:bg-[#398AB9]/20 text-[#1C658C] dark:text-[#398AB9] rounded-full text-xs font-medium">
+                      <span>{item.emoji}</span>
+                      <span>{item.label}</span>
+                    </span>
+                  );
+                })}
+              </div>
+            )}
+
+            {/* Travel stats passport */}
+            {(profile.tripsCount > 0 || profile.placesVisited > 0 || profile.totalTripDays > 0) && (
+              <div className="flex items-center gap-3 mt-3 px-3 py-2.5 bg-gradient-to-r from-[#398AB9]/8 to-[#1C658C]/5 dark:from-[#398AB9]/15 dark:to-[#1C658C]/10 rounded-xl border border-[#398AB9]/15 dark:border-[#398AB9]/20">
+                {profile.tripsCount > 0 && (
+                  <div className="flex flex-col items-center flex-1">
+                    <span className="text-base font-bold text-[#1C658C] dark:text-[#398AB9]">{profile.tripsCount}</span>
+                    <span className="text-[10px] text-gray-400 dark:text-slate-500">🗺️ ทริป</span>
+                  </div>
+                )}
+                {profile.placesVisited > 0 && (
+                  <>
+                    {profile.tripsCount > 0 && <div className="w-px h-8 bg-[#398AB9]/20" />}
+                    <div className="flex flex-col items-center flex-1">
+                      <span className="text-base font-bold text-[#1C658C] dark:text-[#398AB9]">{profile.placesVisited}</span>
+                      <span className="text-[10px] text-gray-400 dark:text-slate-500">📍 สถานที่</span>
+                    </div>
+                  </>
+                )}
+                {profile.totalTripDays > 0 && (
+                  <>
+                    {(profile.tripsCount > 0 || profile.placesVisited > 0) && <div className="w-px h-8 bg-[#398AB9]/20" />}
+                    <div className="flex flex-col items-center flex-1">
+                      <span className="text-base font-bold text-[#1C658C] dark:text-[#398AB9]">{profile.totalTripDays}</span>
+                      <span className="text-[10px] text-gray-400 dark:text-slate-500">📅 วันเดินทาง</span>
+                    </div>
+                  </>
+                )}
+              </div>
+            )}
           </div>
 
           {/* Action buttons */}
@@ -384,6 +443,52 @@ export default function UserProfilePage() {
             </button>
           ))}
         </div>
+
+        {/* Pinned posts */}
+        {tab === "posts" && pinnedPosts.length > 0 && (
+          <div className="bg-white dark:bg-slate-800 border-b border-gray-100 dark:border-slate-700">
+            <div className="flex items-center gap-1.5 px-4 pt-3 pb-2">
+              <Pin className="w-3.5 h-3.5 text-amber-500 fill-amber-500" />
+              <span className="text-xs font-semibold text-gray-500 dark:text-slate-400 uppercase tracking-wide">โพสต์ปักหมุด</span>
+            </div>
+            <div className="grid grid-cols-3 gap-px bg-gray-100 dark:bg-slate-700">
+              {pinnedPosts.map((p) => (
+                <Link
+                  key={p.id}
+                  href={`/post/${p.id}`}
+                  className="relative aspect-square bg-gray-200 dark:bg-slate-700 overflow-hidden group block"
+                >
+                  {p.images[0] ? (
+                    <img
+                      src={p.images[0]}
+                      alt=""
+                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                      referrerPolicy="no-referrer"
+                    />
+                  ) : (
+                    <div className="w-full h-full bg-gray-100 dark:bg-slate-700 flex items-center justify-center">
+                      <Grid3X3 className="w-6 h-6 text-gray-300 dark:text-slate-500" />
+                    </div>
+                  )}
+                  {/* Pin badge */}
+                  <div className="absolute top-1.5 right-1.5 w-5 h-5 rounded-full bg-amber-500/90 flex items-center justify-center">
+                    <Pin className="w-2.5 h-2.5 text-white fill-white" />
+                  </div>
+                  <div className="absolute inset-0 bg-black/0 group-hover:bg-black/40 transition flex items-center justify-center gap-4 opacity-0 group-hover:opacity-100">
+                    <div className="flex items-center gap-1 text-white font-semibold text-sm">
+                      <Heart className="w-4 h-4 fill-white" />
+                      {p.likesCount}
+                    </div>
+                    <div className="flex items-center gap-1 text-white font-semibold text-sm">
+                      <MessageCircle className="w-4 h-4 fill-white" />
+                      {p.commentsCount}
+                    </div>
+                  </div>
+                </Link>
+              ))}
+            </div>
+          </div>
+        )}
 
         {/* Posts grid */}
         {tab === "posts" && (

@@ -129,6 +129,7 @@ export async function getProfile(userId?: string) {
         tripsCount: user._count.trips,
         placesVisited,
         totalTripDays,
+        interests: user.interests ?? [],
       },
     };
   } catch {
