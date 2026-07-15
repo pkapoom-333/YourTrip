@@ -5,9 +5,10 @@ import AppShell from "@/components/AppShell";
 import { useRouter } from "next/navigation";
 import { updateProfile, getProfile } from "@/server/actions/profile";
 import { upload as blobUpload } from "@vercel/blob/client";
+import { INTEREST_LIST } from "@/lib/interests";
 import {
   ChevronLeft, Camera, User, Globe,
-  MapPin, FileText, Save, Link as LinkIcon, Loader2,
+  MapPin, FileText, Save, Link as LinkIcon, Loader2, Heart,
 } from "lucide-react";
 
 const AVATAR_COLORS = [
@@ -34,6 +35,7 @@ export default function EditProfilePage() {
     gender: "Other" as "Male" | "Female" | "Other",
     dateOfBirth: "",
   });
+  const [interests, setInterests] = useState<string[]>([]);
 
   // Load real profile on mount
   useEffect(() => {
@@ -46,13 +48,24 @@ export default function EditProfilePage() {
         bio: data.bio ?? f.bio,
         location: data.location ?? f.location,
         website: data.website ?? f.website,
+        gender: (data.gender as "Male" | "Female" | "Other") ?? f.gender,
+        dateOfBirth: data.dateOfBirth
+          ? new Date(data.dateOfBirth).toISOString().split("T")[0]
+          : f.dateOfBirth,
       }));
+      if (data.interests?.length) setInterests(data.interests);
       if (data.avatarUrl) {
         setAvatarUrl(data.avatarUrl);
         setAvatarPreview(data.avatarUrl);
       }
     }).catch(() => {});
   }, []);
+
+  function toggleInterest(key: string) {
+    setInterests((prev) =>
+      prev.includes(key) ? prev.filter((k) => k !== key) : [...prev, key]
+    );
+  }
 
   const set = (key: string) => (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
@@ -115,6 +128,7 @@ export default function EditProfilePage() {
         gender: form.gender,
         dateOfBirth: form.dateOfBirth || undefined,
         avatarUrl: avatarUrl || undefined,
+        interests,
       });
       if ("error" in result && result.error) {
         setErrorMsg(result.error.message);
@@ -335,6 +349,37 @@ export default function EditProfilePage() {
                 onChange={set("dateOfBirth")}
                 className="w-full px-4 py-3 border border-gray-200 dark:border-slate-600 rounded-xl text-sm focus:outline-none focus:border-[#398AB9] text-gray-600 dark:text-slate-300 bg-white dark:bg-slate-700/50"
               />
+            </div>
+
+            {/* Interests */}
+            <div>
+              <label className="flex items-center gap-1.5 text-xs font-semibold text-gray-500 dark:text-slate-400 mb-2 uppercase tracking-wide">
+                <Heart className="w-3.5 h-3.5" /> ความสนใจ
+              </label>
+              <p className="text-xs text-gray-400 dark:text-slate-500 mb-3">เลือกสิ่งที่คุณชอบเที่ยว เพื่อรับเนื้อหาที่ตรงใจ</p>
+              <div className="flex flex-wrap gap-2">
+                {INTEREST_LIST.map((item) => {
+                  const active = interests.includes(item.key);
+                  return (
+                    <button
+                      key={item.key}
+                      type="button"
+                      onClick={() => toggleInterest(item.key)}
+                      className={`flex items-center gap-1.5 px-3 py-2 rounded-xl border text-sm font-medium transition-all ${
+                        active
+                          ? "bg-[#398AB9] border-[#398AB9] text-white shadow-sm shadow-[#398AB9]/30"
+                          : "bg-white dark:bg-slate-700/50 border-gray-200 dark:border-slate-600 text-gray-600 dark:text-slate-300 hover:border-[#398AB9] hover:text-[#398AB9]"
+                      }`}
+                    >
+                      <span>{item.emoji}</span>
+                      <span>{item.label}</span>
+                    </button>
+                  );
+                })}
+              </div>
+              {interests.length > 0 && (
+                <p className="text-xs text-[#398AB9] mt-2">เลือกแล้ว {interests.length} รายการ</p>
+              )}
             </div>
           </div>
 

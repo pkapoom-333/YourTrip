@@ -26,6 +26,9 @@ export async function updateProfile(input: UpdateProfileInput) {
         bio: parsed.data.bio ?? undefined,
         location: parsed.data.location ?? undefined,
         website: parsed.data.website ?? undefined,
+        ...(parsed.data.gender ? { gender: parsed.data.gender } : {}),
+        ...(parsed.data.dateOfBirth ? { dateOfBirth: new Date(parsed.data.dateOfBirth) } : {}),
+        ...(parsed.data.interests !== undefined ? { interests: parsed.data.interests } : {}),
         ...(parsed.data.avatarUrl ? { avatarUrl: parsed.data.avatarUrl } : {}),
       },
       create: {
@@ -33,6 +36,7 @@ export async function updateProfile(input: UpdateProfileInput) {
         email: user.email!,
         name: parsed.data.name,
         username: parsed.data.username,
+        ...(parsed.data.interests !== undefined ? { interests: parsed.data.interests } : {}),
         ...(parsed.data.avatarUrl ? { avatarUrl: parsed.data.avatarUrl } : {}),
       },
     });

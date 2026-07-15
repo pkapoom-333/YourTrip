@@ -1,3 +1,18 @@
+## 🔥 QUEST BOARD — Sprint S28 "PROFILE INTERESTS + MAP PINS" (2026-07-16)
+**เป้า:** Profile interests editor + Explore map color category pins
+
+```
+PROGRESS ████████████████████████ 100%  CODE COMPLETE
+```
+
+| # | Quest | XP | Status |
+|---|-------|----|--------|
+| S28-1 | **Profile interests editor** — INTEREST_LIST chip picker in /profile/edit, saves to DB | 350 | ✅ |
+| S28-2 | **Explore map category pins** — color-coded Leaflet DivIcons, legend, dynamic refresh | 300 | ✅ |
+| S28-3 | **AI planner save-to-trip** — verified saveAITrip server action (no changes needed) | 50 | ✅ |
+
+---
+
 ## 🔥 QUEST BOARD — Sprint S27 "QUICK REPLY + STORY RING + EXPENSE CHART" (2026-07-13)
 **เป้า:** Inline reply from notifications + animated story ring + expense category breakdown
 

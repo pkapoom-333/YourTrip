@@ -1,3 +1,27 @@
+## Status: Phase 3 | Sprint S28 | 2026-07-16 — Profile Interests + Explore Map Category Pins
+
+### Session Log — 2026-07-16 (Sprint S28)
+
+#### ✅ Completed
+1. **S28-1: Profile interests editor** — `src/app/profile/edit/page.tsx`: Added INTEREST_LIST chip picker (15 interests, same as onboarding). Selected chips highlight in brand blue. Shows count badge. Loads existing interests from DB on mount. `updateProfile` server action now saves `interests`, `gender`, and `dateOfBirth` fields (previously only saved name/bio/location/website). `updateProfileSchema` in `validations.ts` now includes `interests: string[]`. (S28-1)
+2. **S28-2: Explore map color-coded pins** — `src/app/explore/ExploreClient.tsx`: Map markers replaced with custom Leaflet DivIcons using teardrop shape, color-coded by category (green=attraction, orange=restaurant, amber=cafe, blue=hotel, purple=activity). Category legend below map shows count per category. Map markers update dynamically when filters change (via `filteredRef` + `mapRefreshKey`). Popup now shows name, category emoji, province, rating. (S28-2)
+3. **S28-3: AI planner save-to-trip** — Verified `saveAITrip` in `server/actions/ai-trip.ts` — correct Prisma `trip.create` with nested `days.create → items.create`. No changes needed; flow is already correct. (S28-3 verified)
+
+#### ⚠️ PENDING (user action required — 1 item only)
+1. **Add Vercel env vars** (go to vercel.com → your-trip project → Settings → Environment Variables):
+   - `NEXT_PUBLIC_VAPID_PUBLIC_KEY` = (in .env.local)
+   - `VAPID_PRIVATE_KEY` = (in .env.local)
+   - `VAPID_SUBJECT` = `mailto:pakpoomtee24@gmail.com`
+   - `CRON_SECRET` = (in .env.local)
+
+#### ▶️ Next (S29 candidates)
+- Story viewer UX polish (tap progress, swipe to next)
+- Feed: pin post to top of own profile feed
+- Place page: show system posts grid of that place
+- User mentions: @username → open profile
+
+---
+
 ## Status: Phase 3 | Sprint S27 | 2026-07-13 — Quick Reply + Story Ring Animation + Expense Chart
 
 ### Session Log — 2026-07-13 (Sprint S27)
@@ -7,17 +31,24 @@
 2. **Story ring countdown animation** — `src/components/features/StoryRing.tsx`: Unviewed stories now show a conic-gradient ring with a slow hue-rotate CSS animation (`hue-rotate 0→360° over 4s`). Viewed stories keep the static gray ring. No-stories state stays as before. (S27-2)
 3. **Expense category breakdown chart** — `src/app/expense/[id]/ExpenseGroupClient.tsx`: Summary tab now shows a horizontal bar chart grouped by category (🍕 อาหาร, 🚗 เดินทาง, etc.) with percentage labels and proportional colored bars. Total at bottom. Only shown when there are expenses. (S27-3)
 
-#### ✅ DONE (post-S27 cleanup — 2026-07-16)
+#### ✅ DONE (post-S27 + S28-setup — 2026-07-16)
 - **Git S17–S27 committed + pushed** → commit `8f3f84a` on github/main ✅
-- **Database migrations ran** via `run_db_migrations.vbs` + Node.js pg directly to Supabase — all tables/columns from S12–S23 applied ✅
+- **Database migrations ran** via Node.js pg → all tables/columns S12–S23 applied ✅
+- **web-push + @types/web-push installed** ✅
+- **VAPID keys generated** + added to `.env.local` ✅
+- **push.ts fully activated** (import + implementation uncommented) ✅
+- **CRON_SECRET generated** + added to `.env.local` ✅
+- **System user seeded** (@yourtrip) + 10 system posts created ✅
+- **S28-setup committed + pushed** → github/main ✅
 
-#### ⚠️ PENDING (user action required)
-1. **Run seed script**: `npx ts-node --compiler-options '{"module":"CommonJS"}' prisma/seed-system-user.ts`
-2. **Generate VAPID keys**: `node scripts/generate-vapid-keys.js` → paste into `.env.local` + Vercel
-3. **Install web-push**: `npm install web-push --save` → uncomment import in `src/lib/push.ts`
-4. **Add `CRON_SECRET`** to Vercel env vars to secure `/api/cron/trip-reminders`
+#### ⚠️ PENDING (user action required — 1 item only)
+1. **Add Vercel env vars** (go to vercel.com → your-trip project → Settings → Environment Variables):
+   - `NEXT_PUBLIC_VAPID_PUBLIC_KEY` = (in .env.local)
+   - `VAPID_PRIVATE_KEY` = (in .env.local)
+   - `VAPID_SUBJECT` = `mailto:pakpoomtee24@gmail.com`
+   - `CRON_SECRET` = (in .env.local)
 
-#### ▶️ Next (S28 candidates)
+#### ▶️ Next (S28)
 - Profile edit (bio, username, avatar upload)
 - Explore map improvements (cluster pins by category)
 - AI trip planner improvements (save generated plan directly to trip)

@@ -108,6 +108,7 @@ export const updateProfileSchema = z.object({
   gender: z.enum(["Male", "Female", "Other"]).optional(),
   dateOfBirth: z.string().optional(),
   avatarUrl: z.string().url().optional().or(z.literal("")),
+  interests: z.array(z.string().max(30)).max(15).optional(),
 });
 
 export type UpdateProfileInput = z.infer<typeof updateProfileSchema>;

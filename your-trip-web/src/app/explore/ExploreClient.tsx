@@ -313,12 +313,57 @@ export default function ExploreClient({ initialPlaces, initialSaved = [] }: { in
   }
   const [viewMode, setViewMode] = useState<"grid" | "list" | "map">("grid");
   const mapContainerRef = useRef<HTMLDivElement>(null);
-  const leafletMapRef = useRef<{ remove: () => void } | null>(null);
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const leafletMapRef = useRef<any>(null);
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const markersLayerRef = useRef<any>(null);
+  // ref holds latest filtered so marker-refresh effect can read it without TDZ issue
+  const filteredRef = useRef<typeof initialPlaces>([]);
+  // incremented after filtered changes to trigger marker refresh
+  const [mapRefreshKey, setMapRefreshKey] = useState(0);
 
+  // Category colors for map pins (static constant — no deps issue)
+  const CATEGORY_COLORS: Record<string, { bg: string; emoji: string }> = {
+    attraction: { bg: "#22c55e", emoji: "🏔" },
+    restaurant:  { bg: "#f97316", emoji: "🍜" },
+    cafe:        { bg: "#f59e0b", emoji: "☕" },
+    hotel:       { bg: "#3b82f6", emoji: "🏨" },
+    activity:    { bg: "#a855f7", emoji: "🤿" },
+  };
+
+  // Helper: populate markers from filteredRef
+  const refreshMarkers = useCallback(async () => {
+    if (!markersLayerRef.current || !leafletMapRef.current) return;
+    const L = (await import("leaflet")).default;
+    markersLayerRef.current.clearLayers();
+    const withCoords = filteredRef.current.filter((p: typeof initialPlaces[0]) => p.lat && p.lng);
+    withCoords.forEach((p: typeof initialPlaces[0]) => {
+      const cat = CATEGORY_COLORS[p.category] ?? { bg: "#6b7280", emoji: "📍" };
+      const icon = L.divIcon({
+        className: "",
+        iconSize: [32, 32],
+        iconAnchor: [16, 32],
+        popupAnchor: [0, -32],
+        html: `<div style="width:32px;height:32px;border-radius:50% 50% 50% 0;background:${cat.bg};transform:rotate(-45deg);border:2px solid white;box-shadow:0 2px 6px rgba(0,0,0,0.3);display:flex;align-items:center;justify-content:center;"><span style="transform:rotate(45deg);font-size:13px;">${cat.emoji}</span></div>`,
+      });
+      L.marker([p.lat!, p.lng!], { icon }).addTo(markersLayerRef.current)
+        .bindPopup(`<div style="min-width:160px"><a href="/place/${p.slug}" style="font-weight:700;color:#398AB9;font-size:13px;text-decoration:none">${p.name}</a><div style="font-size:11px;color:#888;margin-top:2px">${cat.emoji} ${p.province ?? p.country ?? ""}</div>${p.rating ? `<div style="font-size:11px;margin-top:4px">&#9733; ${p.rating.toFixed(1)}</div>` : ""}</div>`);
+    });
+    if (withCoords.length > 0) {
+      leafletMapRef.current.fitBounds(
+        L.latLngBounds(withCoords.map((p: typeof initialPlaces[0]) => [p.lat!, p.lng!] as [number, number])),
+        { padding: [30, 30], maxZoom: 12 }
+      );
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // Init (or destroy) map when entering/leaving map mode
   useEffect(() => {
     if (viewMode !== "map") {
       leafletMapRef.current?.remove();
       leafletMapRef.current = null;
+      markersLayerRef.current = null;
       return;
     }
     const container = mapContainerRef.current;
@@ -335,34 +380,23 @@ export default function ExploreClient({ initialPlaces, initialSaved = [] }: { in
         document.head.appendChild(link);
       }
       if (cancelled || !container || leafletMapRef.current) return;
-
-      (L.Icon.Default.prototype as unknown as Record<string, unknown>)._getIconUrl = undefined;
-      L.Icon.Default.mergeOptions({
-        iconRetinaUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png",
-        iconUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png",
-        shadowUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png",
-      });
-
       const map = L.map(container).setView([13.0, 101.0], 6);
       leafletMapRef.current = map;
       L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
-        attribution: "© OpenStreetMap",
-        maxZoom: 18,
+        attribution: "© OpenStreetMap", maxZoom: 18,
       }).addTo(map);
-
-      const withCoords = filtered.filter((p) => p.lat && p.lng);
-      withCoords.forEach((p) => {
-        L.marker([p.lat!, p.lng!]).addTo(map)
-          .bindPopup(`<a href="/place/${p.slug}" style="font-weight:600;color:#398AB9">${p.name}</a><br><span style="font-size:11px;color:#888">${p.category} · ${p.province ?? p.country}</span>`);
-      });
-      if (withCoords.length > 0) {
-        map.fitBounds(L.latLngBounds(withCoords.map((p) => [p.lat!, p.lng!] as [number, number])), { padding: [30, 30], maxZoom: 12 });
-      }
+      markersLayerRef.current = L.layerGroup().addTo(map);
+      await refreshMarkers();
     };
     init();
     return () => { cancelled = true; };
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [viewMode]);
+  }, [viewMode, refreshMarkers]);
+
+  // Refresh markers when mapRefreshKey increments (triggered after filters change in map mode)
+  useEffect(() => {
+    if (mapRefreshKey === 0) return; // skip initial mount
+    refreshMarkers();
+  }, [mapRefreshKey, refreshMarkers]);
 
   const filtered = initialPlaces
     .filter((p) => {
@@ -389,12 +423,18 @@ export default function ExploreClient({ initialPlaces, initialSaved = [] }: { in
       return b.rating - a.rating;
     });
 
+  // Keep filteredRef in sync and trigger map marker refresh when in map mode
+  filteredRef.current = filtered;
   // Reset display count when filters change
   const filterKey = `${query}|${activeCategory}|${activeRegion}|${sortKey}|${activeTags.join(",")}`;
   const [prevFilterKey, setPrevFilterKey] = useState(filterKey);
   if (filterKey !== prevFilterKey) {
     setPrevFilterKey(filterKey);
     setDisplayCount(PAGE_SIZE);
+    // Refresh map markers when filters change while in map mode
+    if (viewMode === "map") {
+      setMapRefreshKey((k) => k + 1);
+    }
   }
 
   const displayedPlaces = filtered.slice(0, displayCount);
@@ -731,6 +771,25 @@ export default function ExploreClient({ initialPlaces, initialSaved = [] }: { in
       {viewMode === "map" && (
         <div className="mb-4">
           <div ref={mapContainerRef} className="w-full h-[60vh] min-h-[360px] rounded-2xl overflow-hidden border border-gray-100 dark:border-slate-700 bg-gray-100 dark:bg-slate-800" />
+          {/* Category legend */}
+          <div className="flex flex-wrap gap-2 mt-2 px-1">
+            {[
+              { cat: "attraction", color: "#22c55e", emoji: "🏔️", label: "สถานที่เที่ยว" },
+              { cat: "restaurant",  color: "#f97316", emoji: "🍜", label: "ร้านอาหาร" },
+              { cat: "cafe",        color: "#f59e0b", emoji: "☕", label: "คาเฟ่" },
+              { cat: "hotel",       color: "#3b82f6", emoji: "🏨", label: "ที่พัก" },
+              { cat: "activity",    color: "#a855f7", emoji: "🤿", label: "กิจกรรม" },
+            ].map(({ cat, color, emoji, label }) => {
+              const count = filtered.filter((p) => p.lat && p.lng && p.category === cat).length;
+              if (count === 0) return null;
+              return (
+                <span key={cat} className="flex items-center gap-1.5 text-xs text-gray-600 dark:text-slate-300 bg-white dark:bg-slate-700 border border-gray-100 dark:border-slate-600 px-2 py-1 rounded-full">
+                  <span className="w-2.5 h-2.5 rounded-full inline-block flex-shrink-0" style={{ background: color }} />
+                  {emoji} {label} ({count})
+                </span>
+              );
+            })}
+          </div>
           {filtered.filter((p) => p.lat && p.lng).length === 0 && (
             <p className="text-center text-xs text-gray-400 dark:text-slate-500 mt-2">ไม่มีสถานที่ที่มีพิกัดในผลการค้นหา</p>
           )}
