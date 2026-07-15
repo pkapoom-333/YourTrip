@@ -1,0 +1,7 @@
+
+✅ Add these to your-trip-web/.env.local:
+
+NEXT_PUBLIC_VAPID_PUBLIC_KEY=BJqGuGyGLM_io3Oafo3IFtyQDEQ2bE2H_MiSMyANWklOwqsc1MQ2DWulWLVrX_7rwEv9pZQRb_LI6YEu3-Yl_pM
+VAPID_PRIVATE_KEY=MIGHAgEAMBMGByqGSM49AgEGCCqGSM49AwEHBG0wawIBAQQgHgCkrzVcAotnK95cz-1fSvNe_bUrLPmxaFzJObDqt4ShRANCAASahrhshizP4qNzmn6NyBbckAxENmxNh_zIkjMgDVpJTsKrHNTENg1rpVi1a1_-68BL_aWUEW_yyOmBLt_mJf6T
+VAPID_SUBJECT=mailto:pakpoomtee24@gmail.com
+

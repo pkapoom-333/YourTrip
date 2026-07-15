@@ -7,13 +7,15 @@
 2. **Story ring countdown animation** — `src/components/features/StoryRing.tsx`: Unviewed stories now show a conic-gradient ring with a slow hue-rotate CSS animation (`hue-rotate 0→360° over 4s`). Viewed stories keep the static gray ring. No-stories state stays as before. (S27-2)
 3. **Expense category breakdown chart** — `src/app/expense/[id]/ExpenseGroupClient.tsx`: Summary tab now shows a horizontal bar chart grouped by category (🍕 อาหาร, 🚗 เดินทาง, etc.) with percentage labels and proportional colored bars. Total at bottom. Only shown when there are expenses. (S27-3)
 
-#### ⚠️ PENDING (user action required — cumulative)
-1. **Run `fix_git_lock.vbs`** → then run `git_s27_commit.vbs` to commit S17–S27 and push
-2. **Paste `all_migrations.sql`** into Supabase SQL Editor (includes S22 pushSubscription + S23 story_reactions)
-3. **Run seed script**: `npx ts-node --compiler-options '{"module":"CommonJS"}' prisma/seed-system-user.ts`
-4. **Generate VAPID keys**: `node scripts/generate-vapid-keys.js` → paste into `.env.local` + Vercel
-5. **Install web-push**: `npm install web-push --save` → uncomment import in `src/lib/push.ts`
-6. **Add `CRON_SECRET`** to Vercel env vars to secure `/api/cron/trip-reminders`
+#### ✅ DONE (post-S27 cleanup — 2026-07-16)
+- **Git S17–S27 committed + pushed** → commit `8f3f84a` on github/main ✅
+- **Database migrations ran** via `run_db_migrations.vbs` + Node.js pg directly to Supabase — all tables/columns from S12–S23 applied ✅
+
+#### ⚠️ PENDING (user action required)
+1. **Run seed script**: `npx ts-node --compiler-options '{"module":"CommonJS"}' prisma/seed-system-user.ts`
+2. **Generate VAPID keys**: `node scripts/generate-vapid-keys.js` → paste into `.env.local` + Vercel
+3. **Install web-push**: `npm install web-push --save` → uncomment import in `src/lib/push.ts`
+4. **Add `CRON_SECRET`** to Vercel env vars to secure `/api/cron/trip-reminders`
 
 #### ▶️ Next (S28 candidates)
 - Profile edit (bio, username, avatar upload)

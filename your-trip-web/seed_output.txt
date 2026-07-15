@@ -1,0 +1,8 @@
+
+🌱 Seeding system user + system posts...
+
+  ✅ System user ready (@yourtrip)
+  ✅ Posts: 10 created, 0 skipped
+
+✅ Seed complete!
+

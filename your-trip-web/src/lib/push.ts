@@ -14,7 +14,7 @@
  * TODO: install web-push once npm is available, then uncomment the import below.
  */
 
-// import webpush from "web-push";
+import webpush from "web-push";
 
 export interface PushPayload {
   title: string;
@@ -47,7 +47,6 @@ export async function sendWebPush(
     return false;
   }
 
-  /* TODO: Uncomment after `npm install web-push`
   try {
     webpush.setVapidDetails(subject, publicKey, privateKey);
     await webpush.sendNotification(
@@ -68,9 +67,4 @@ export async function sendWebPush(
     console.error("[sendWebPush]", e);
     return false;
   }
-  */
-
-  // Placeholder until web-push is installed
-  console.log("[push] Would send:", payload, "to endpoint:", (subscription as { endpoint?: string }).endpoint);
-  return false;
 }
