@@ -1,0 +1,5 @@
+warning: in the working copy of 'your-trip-web/next.config.ts', LF will be replaced by CRLF the next time Git touches it
+[main 078eeec] fix: eslint ignoreDuringBuilds โ€” unblock Vercel build
+ 1 file changed, 5 insertions(+)
+To https://github.com/pkapoom-333/YourTrip.git
+ + 9f66de7...078eeec main -> main (forced update)

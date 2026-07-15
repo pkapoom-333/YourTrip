@@ -30,7 +30,8 @@ export default function RegisterPage() {
       options: { data: { full_name: form.name, date_of_birth: form.dob, gender: form.gender } },
     });
     if (error) { setError(error.message); setLoading(false); return; }
-    router.push("/feed");
+    // New users go through onboarding to set username + interests
+    router.push("/onboarding");
   };
 
   const handleGoogle = () =>

@@ -233,3 +233,52 @@ DO $$ BEGIN
 EXCEPTION
   WHEN duplicate_object THEN NULL;
 END $$;
+
+-- ─── Sprint S17: group_chat_schema ───────────────────────────────────────────
+-- Migration: 20260710000002_group_chat_schema
+-- Adds name, avatarUrl, tripId to conversations for 1:1 trip group chat support
+
+ALTER TABLE "conversations"
+  ADD COLUMN IF NOT EXISTS "name"       TEXT,
+  ADD COLUMN IF NOT EXISTS "avatar_url" TEXT,
+  ADD COLUMN IF NOT EXISTS "tripId"     TEXT;
+
+-- Unique constraint: 1 trip → 1 group conversation
+DO $$ BEGIN
+  ALTER TABLE "conversations" ADD CONSTRAINT "conversations_tripId_key" UNIQUE ("tripId");
+EXCEPTION
+  WHEN duplicate_object THEN NULL;
+END $$;
+
+-- FK: conversations.tripId → trips.id (SET NULL on delete so chat persists after trip delete)
+DO $$ BEGIN
+  ALTER TABLE "conversations"
+    ADD CONSTRAINT "conversations_tripId_fkey"
+    FOREIGN KEY ("tripId") REFERENCES "trips"("id") ON DELETE SET NULL;
+EXCEPTION
+  WHEN duplicate_object THEN NULL;
+END $$;
+
+-- ── S22: Push Notifications ──────────────────────────────────────────────────
+-- 20260714000001_push_subscriptions
+ALTER TABLE "users" ADD COLUMN IF NOT EXISTS "pushSubscription" TEXT;
+
+-- ── S23: Story Reactions ──────────────────────────────────────────────────────
+-- 20260714000002_story_reactions
+CREATE TABLE IF NOT EXISTS "story_reactions" (
+  "id"        TEXT NOT NULL DEFAULT gen_random_uuid()::text,
+  "storyId"   TEXT NOT NULL,
+  "userId"    TEXT NOT NULL,
+  "emoji"     TEXT NOT NULL,
+  "createdAt" TIMESTAMPTZ NOT NULL DEFAULT now(),
+  PRIMARY KEY ("id"),
+  CONSTRAINT "story_reactions_storyId_fkey"
+    FOREIGN KEY ("storyId") REFERENCES "stories"("id") ON DELETE CASCADE,
+  CONSTRAINT "story_reactions_userId_fkey"
+    FOREIGN KEY ("userId") REFERENCES "users"("id") ON DELETE CASCADE,
+  CONSTRAINT "story_reactions_storyId_userId_key"
+    UNIQUE ("storyId", "userId")
+);
+
+CREATE INDEX IF NOT EXISTS "idx_story_reactions_storyId" ON "story_reactions"("storyId");
+CREATE INDEX IF NOT EXISTS "idx_story_reactions_userId" ON "story_reactions"("userId");

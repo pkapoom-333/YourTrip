@@ -57,12 +57,21 @@ function isVideo(url: string) {
 }
 
 function renderCaption(text: string) {
-  const parts = text.split(/(@\w+)/g);
+  // Split on both @mentions and #hashtags (including Thai characters)
+  const parts = text.split(/([@#][\w฀-๿]+)/g);
   return parts.map((part, i) => {
     if (part.startsWith("@") && part.length > 1) {
       const username = part.slice(1);
       return (
         <Link key={i} href={`/u/${username}`} className="text-[#398AB9] font-medium hover:underline">
+          {part}
+        </Link>
+      );
+    }
+    if (part.startsWith("#") && part.length > 1) {
+      const tag = part.slice(1);
+      return (
+        <Link key={i} href={`/tags/${encodeURIComponent(tag)}`} className="text-[#398AB9] font-medium hover:underline">
           {part}
         </Link>
       );

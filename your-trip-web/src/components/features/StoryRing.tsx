@@ -2,7 +2,7 @@
 
 /**
  * StoryRing — avatar circle with gradient border when user has active stories.
- * Gradient = unviewed, gray = all viewed, none = no stories.
+ * Gradient = unviewed (with spin animation), gray = all viewed, none = no stories.
  */
 interface StoryRingProps {
   avatarUrl?: string | null;
@@ -37,38 +37,57 @@ export default function StoryRing({
     .slice(0, 2)
     .toUpperCase();
 
+  const hasUnviewed = hasStories && !allViewed;
+
+  // For unviewed stories: animated conic-gradient ring that slowly spins
+  const outerStyle = hasUnviewed
+    ? {
+        background: "conic-gradient(from 0deg, #f9a825, #e91e8c, #398AB9, #f9a825)",
+        animation: "story-ring-spin 4s linear infinite",
+      }
+    : undefined;
+
   const ringClass = hasStories
     ? allViewed
       ? "bg-gray-300 dark:bg-slate-600"
-      : "bg-gradient-to-tr from-[#f9a825] via-[#e91e8c] to-[#398AB9]"
+      : ""
     : "bg-transparent";
 
   return (
-    <button
-      onClick={onClick}
-      disabled={!onClick}
-      className={`${s.outer} rounded-full flex items-center justify-center p-[2.5px] ${ringClass} ${className}`}
-    >
-      <div className={`${s.avatar} rounded-full overflow-hidden border-2 border-white dark:border-slate-900 flex-shrink-0`}>
-        {avatarUrl ? (
-          <img
-            src={avatarUrl}
-            alt={name}
-            className="w-full h-full object-cover"
-            referrerPolicy="no-referrer"
-            onError={(e) => {
-              (e.currentTarget as HTMLImageElement).style.display = "none";
-              (e.currentTarget.nextSibling as HTMLElement)?.removeAttribute("style");
-            }}
-          />
-        ) : null}
-        <div
-          className={`w-full h-full flex items-center justify-center bg-[#398AB9] text-white font-bold ${s.text}`}
-          style={avatarUrl ? { display: "none" } : {}}
-        >
-          {initials}
+    <>
+      <style>{`
+        @keyframes story-ring-spin {
+          from { filter: hue-rotate(0deg); }
+          to { filter: hue-rotate(360deg); }
+        }
+      `}</style>
+      <button
+        onClick={onClick}
+        disabled={!onClick}
+        className={`${s.outer} rounded-full flex items-center justify-center p-[2.5px] ${ringClass} ${className}`}
+        style={outerStyle}
+      >
+        <div className={`${s.avatar} rounded-full overflow-hidden border-2 border-white dark:border-slate-900 flex-shrink-0`}>
+          {avatarUrl ? (
+            <img
+              src={avatarUrl}
+              alt={name}
+              className="w-full h-full object-cover"
+              referrerPolicy="no-referrer"
+              onError={(e) => {
+                (e.currentTarget as HTMLImageElement).style.display = "none";
+                (e.currentTarget.nextSibling as HTMLElement)?.removeAttribute("style");
+              }}
+            />
+          ) : null}
+          <div
+            className={`w-full h-full flex items-center justify-center bg-[#398AB9] text-white font-bold ${s.text}`}
+            style={avatarUrl ? { display: "none" } : {}}
+          >
+            {initials}
+          </div>
         </div>
-      </div>
-    </button>
+      </button>
+    </>
   );
 }

@@ -13,6 +13,7 @@ import { getUnreadCount } from "@/server/actions/notifications";
 import { getTotalUnreadMessages } from "@/server/actions/messages";
 import { PWAInstallPrompt } from "@/components/PWAInstallPrompt";
 import { useToast } from "@/components/shared/Toast";
+import { OfflineBanner } from "@/components/shared/OfflineBanner";
 
 // Desktop sidebar nav (all items)
 const sidebarItems = [
@@ -326,6 +327,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
   const { unread, setUnread, msgUnread, setMsgUnread } = useNotificationBadge();
   return (
     <div className="min-h-screen bg-[#F8FAFC] dark:bg-slate-900">
+      <OfflineBanner />
       <Sidebar unread={unread} setUnread={setUnread} msgUnread={msgUnread} setMsgUnread={setMsgUnread} />
       <main className="md:ml-64 pb-20 md:pb-0 min-h-screen">
         {children}

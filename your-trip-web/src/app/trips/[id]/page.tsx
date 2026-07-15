@@ -2,10 +2,10 @@
 
 import { use, useState, useEffect, useCallback, useRef } from "react";
 import { upload as blobUpload } from "@vercel/blob/client";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import QRCode from "qrcode";
 import AppShell from "@/components/AppShell";
-import { getTripById, addItineraryItem, deleteTripItem, updateTripItem, toggleTripPublic, reorderItinerary, cloneTripToUser, updateTripStatus, updateTripCover, updateTripDayNote } from "@/server/actions/trips";
+import { getTripById, addItineraryItem, deleteTripItem, updateTripItem, toggleTripPublic, reorderItinerary, cloneTripToUser, updateTripStatus, updateTripCover, updateTripDayNote, joinTrip } from "@/server/actions/trips";
 import {
   ChevronLeft, Plus, MapPin, Clock, Wallet,
   Trash2, GripVertical, Calendar, Share2,
@@ -18,6 +18,12 @@ import dynamic from "next/dynamic";
 import { getDrivingRoute, getGoogleRoute, haversineKm } from "@/lib/osrm";
 import type { MapPoint } from "@/components/features/TripDayMap";
 import { searchPlacesForTrip, type PlacePickerItem } from "@/server/actions/places";
+import TripExpenseTab from "@/components/features/TripExpenseTab";
+import PackingListPanel from "@/components/features/PackingListPanel";
+import TripBudgetPanel from "@/components/features/TripBudgetPanel";
+import TripGroupChatPanel from "@/components/features/TripGroupChatPanel";
+import TripCollaboratorsPanel from "@/components/features/TripCollaboratorsPanel";
+import { WeatherWidget } from "@/components/features/WeatherWidget";
 
 const TripDayMap = dynamic(() => import("@/components/features/TripDayMap"), { ssr: false });
 
@@ -614,6 +620,7 @@ function ItemCard({
 export default function TripDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [trip, setTrip] = useState(EMPTY_TRIP);
   const [isOwner, setIsOwner] = useState(true); // assumed owner until DB confirms otherwise
   const [activeDay, setActiveDay] = useState(1);
@@ -633,6 +640,7 @@ export default function TripDetailPage({ params }: { params: Promise<{ id: strin
   const [tripStatus, setTripStatus] = useState<"PLANNING" | "CONFIRMED" | "ONGOING" | "COMPLETED">("PLANNING");
   const [coverUploading, setCoverUploading] = useState(false);
   const coverInputRef = useRef<HTMLInputElement>(null);
+  const [featureTab, setFeatureTab] = useState<"expense" | "packing" | "budget" | "chat" | "members">("expense");
   const [newItem, setNewItem] = useState({
     name: "", time: "", cost: "", note: "",
     duration: "", travelTimeTo: "",
@@ -687,6 +695,18 @@ export default function TripDetailPage({ params }: { params: Promise<{ id: strin
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id]);
+
+  // Handle ?join=1 query param — auto-add current user as viewer collaborator
+  useEffect(() => {
+    if (searchParams?.get("join") !== "1" || !id) return;
+    joinTrip(id).then(() => {
+      setIsOwner(false);
+      // Remove the query param cleanly without re-fetching
+      const url = new URL(window.location.href);
+      url.searchParams.delete("join");
+      router.replace(url.pathname);
+    });
+  }, [id, searchParams, router]);
 
   const currentDay = trip.days.find((d) => d.day === activeDay);
 
@@ -950,6 +970,20 @@ export default function TripDetailPage({ params }: { params: Promise<{ id: strin
                 >
                   <QrCode className="w-4 h-4" />
                 </button>
+                {isOwner && (
+                  <button
+                    onClick={async () => {
+                      const inviteUrl = `${window.location.origin}/trips/${trip.id}?join=1`;
+                      await navigator.clipboard.writeText(inviteUrl).catch(() => {});
+                      setShareCopied(true);
+                      setTimeout(() => setShareCopied(false), 2000);
+                    }}
+                    className="w-8 h-8 bg-emerald-500/70 backdrop-blur-sm rounded-full flex items-center justify-center text-white hover:bg-emerald-600/80 transition"
+                    title="คัดลอกลิงก์เชิญสมาชิก"
+                  >
+                    <Navigation className="w-4 h-4" />
+                  </button>
+                )}
               </>
             )}
             {isOwner && (
@@ -1058,6 +1092,13 @@ export default function TripDetailPage({ params }: { params: Promise<{ id: strin
             );
           })()}
         </div>
+
+        {/* Weather Widget */}
+        {trip.destination && (
+          <div className="px-4 pt-3">
+            <WeatherWidget destination={trip.destination} />
+          </div>
+        )}
 
         {/* Status tracker */}
         <TripStatusTracker
@@ -1270,6 +1311,58 @@ export default function TripDetailPage({ params }: { params: Promise<{ id: strin
                 <Plus className="w-4 h-4" />เพิ่มสถานที่ / กิจกรรม
               </button>
             )}
+          </div>
+        )}
+
+        {/* ─── Feature Panels ──────────────────────────────────────────────── */}
+        {trip.id && (
+          <div className="mt-2 mb-4">
+            {/* Feature tab bar */}
+            <div className="bg-white dark:bg-slate-800 border-b border-gray-100 dark:border-slate-700 px-4">
+              <div className="flex gap-0 overflow-x-auto scrollbar-none">
+                {[
+                  { key: "expense" as const, label: "หารค่าใช้จ่าย", emoji: "💰" },
+                  { key: "budget"  as const, label: "งบประมาณ",     emoji: "📊" },
+                  { key: "packing" as const, label: "สิ่งของ",       emoji: "🎒" },
+                  { key: "chat"    as const, label: "แชท",           emoji: "💬" },
+                  { key: "members" as const, label: "สมาชิก",        emoji: "👥" },
+                ].map((tab) => (
+                  <button
+                    key={tab.key}
+                    onClick={() => setFeatureTab(tab.key)}
+                    className={`flex items-center gap-1.5 px-4 py-3 text-sm font-medium border-b-2 transition-all whitespace-nowrap ${
+                      featureTab === tab.key
+                        ? "border-[#398AB9] text-[#398AB9]"
+                        : "border-transparent text-gray-400 dark:text-slate-500 hover:text-gray-600 dark:hover:text-slate-300"
+                    }`}
+                  >
+                    <span>{tab.emoji}</span>
+                    <span>{tab.label}</span>
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Feature tab content */}
+            <div className="bg-white dark:bg-slate-800 border-b border-gray-100 dark:border-slate-700">
+              {featureTab === "expense" && (
+                <TripExpenseTab tripId={trip.id} tripTitle={trip.title} />
+              )}
+              {featureTab === "budget" && (
+                <TripBudgetPanel tripId={trip.id} />
+              )}
+              {featureTab === "packing" && (
+                <PackingListPanel tripId={trip.id} />
+              )}
+              {featureTab === "chat" && (
+                <TripGroupChatPanel tripId={trip.id} tripTitle={trip.title} />
+              )}
+              {featureTab === "members" && (
+                <div className="px-4 py-4">
+                  <TripCollaboratorsPanel tripId={trip.id} isOwner={isOwner} />
+                </div>
+              )}
+            </div>
           </div>
         )}
 

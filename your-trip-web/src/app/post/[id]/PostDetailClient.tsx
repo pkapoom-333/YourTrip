@@ -12,6 +12,7 @@ import {
   getComments, createComment, toggleLike, toggleSave,
   type PostDetail, type CommentItem,
 } from "@/server/actions/posts";
+import { createClient } from "@/lib/supabase/client";
 import { useRouter } from "next/navigation";
 
 function fmtDate(d: Date | string) {
@@ -89,6 +90,37 @@ export function PostDetailClient({ post: initial }: { post: PostDetail }) {
       setComments(data);
       setLoadingComments(false);
     });
+  }, [post.id]);
+
+  // Realtime: new comments from other users appear instantly
+  useEffect(() => {
+    const supabase = createClient();
+    if (!("channel" in supabase)) return;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const ch = (supabase as any)
+      .channel(`post-comments-${post.id}`)
+      .on(
+        "postgres_changes",
+        { event: "INSERT", schema: "public", table: "comments", filter: `postId=eq.${post.id}` },
+        (payload: { new: Record<string, unknown> }) => {
+          const row = payload.new;
+          const newComment: CommentItem = {
+            id: row.id as string,
+            content: row.content as string,
+            createdAt: row.createdAt as string,
+            user: { id: row.userId as string, name: null, avatarUrl: null, username: null },
+            replies: [],
+          };
+          setComments((prev) => {
+            if (prev.some((c) => c.id === newComment.id)) return prev;
+            return [...prev, newComment];
+          });
+          setPost((p) => ({ ...p, commentsCount: p.commentsCount + 1 }));
+        }
+      )
+      .subscribe();
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    return () => { (supabase as any).removeChannel(ch); };
   }, [post.id]);
 
   async function handleLike() {

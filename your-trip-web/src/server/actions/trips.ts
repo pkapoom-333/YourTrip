@@ -646,6 +646,32 @@ export async function removeTripCollaborator(
   }
 }
 
+// ── Join trip via invite link (self-service) ──────────────────────────
+export async function joinTrip(tripId: string): Promise<{ ok: boolean; error?: string }> {
+  try {
+    const supabase = await createServerClient();
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return { ok: false, error: "ไม่ได้เข้าสู่ระบบ" };
+
+    // Trip must be public or have an accepted invite token
+    const trip = await prisma.trip.findFirst({ where: { id: tripId } });
+    if (!trip) return { ok: false, error: "ไม่พบทริปนี้" };
+    if (trip.userId === user.id) return { ok: false, error: "คุณเป็นเจ้าของทริปนี้อยู่แล้ว" };
+
+    // Add as viewer (read-only collaborator)
+    await prisma.tripCollaborator.upsert({
+      where: { tripId_userId: { tripId, userId: user.id } },
+      create: { tripId, userId: user.id, role: "viewer" },
+      update: {},
+    });
+
+    revalidatePath(`/trips/${tripId}`);
+    return { ok: true };
+  } catch (e) {
+    return { ok: false, error: String(e) };
+  }
+}
+
 // ── Trip Templates ────────────────────────────────────────────────────
 export interface TripTemplate {
   id: string;

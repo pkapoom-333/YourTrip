@@ -3,6 +3,7 @@
 import { prisma } from "@/lib/prisma";
 import { NotificationType } from "@prisma/client";
 import { createClient as createServerClient } from "@/lib/supabase/server";
+import { sendPushToUser } from "./push";
 
 export interface NotificationItem {
   id: string;
@@ -42,6 +43,13 @@ export async function createNotification(input: {
         actorId: input.actorId ?? null,
       },
     });
+
+    // Fire web-push (non-blocking — fails silently if VAPID not configured or no subscription)
+    sendPushToUser(input.userId, {
+      title: input.title,
+      body: input.body ?? "",
+      url: input.actionUrl ?? "/notifications",
+    }).catch(() => {});
   } catch {
     // Silently ignore — notifications are non-critical
   }

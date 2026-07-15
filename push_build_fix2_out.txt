@@ -1,0 +1,8 @@
+warning: in the working copy of 'your-trip-web/src/app/admin/ai-places/page.tsx', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'your-trip-web/src/app/trips/templates/page.tsx', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'your-trip-web/src/server/actions/profile.ts', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'your-trip-web/src/server/actions/trips.ts', LF will be replaced by CRLF the next time Git touches it
+[main 111696d] fix: Turbopack 4 build errors (metadata in client, non-async actions, profile.ts parse error)
+ 4 files changed, 6 insertions(+), 14 deletions(-)
+To https://github.com/pkapoom-333/YourTrip.git
+   9376af7..111696d  main -> main

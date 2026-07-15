@@ -50,8 +50,14 @@ export function usePushNotifications() {
       });
       setSubscription(sub);
 
-      // TODO: send sub to server for storage
-      // await fetch("/api/push/subscribe", { method: "POST", body: JSON.stringify(sub) })
+      // Persist subscription to server so we can push later
+      try {
+        await fetch("/api/push/subscribe", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(sub.toJSON()),
+        });
+      } catch { /* non-fatal — subscription still works for this session */ }
       return true;
     } catch {
       return false;
@@ -65,6 +71,8 @@ export function usePushNotifications() {
     try {
       await subscription.unsubscribe();
       setSubscription(null);
+      // Remove from server
+      fetch("/api/push/subscribe", { method: "DELETE" }).catch(() => {});
       return true;
     } catch { return false; }
   }, [subscription]);

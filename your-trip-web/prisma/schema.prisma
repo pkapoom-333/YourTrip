@@ -29,9 +29,10 @@ model User {
   isVerified      Boolean  @default(false)
   isGuide         Boolean  @default(false)
   isVerifiedGuide Boolean  @default(false)
-  isOnboarded     Boolean  @default(false)
-  interests       String[] @default([])
-  isSystemAccount Boolean  @default(false)
+  isOnboarded       Boolean  @default(false)
+  interests         String[] @default([])
+  isSystemAccount   Boolean  @default(false)
+  pushSubscription  String?  // JSON: { endpoint, keys: { p256dh, auth } }
   // TODO: run add_travel_fields SQL in Supabase SQL Editor to add these columns to DB
 
   // Relations
@@ -52,7 +53,8 @@ model User {
   blockedBy     Block[]          @relation("BlockedUser")
   blocking      Block[]          @relation("BlockerUser")
   stories       Story[]
-  storyViews    StoryView[]      @relation("StoryViewer")
+  storyViews      StoryView[]       @relation("StoryViewer")
+  storyReactions  StoryReaction[]   @relation("StoryReaction")
   conversations ConversationParticipant[]
   sentMessages  Message[]        @relation("MessageSender")
   expenseGroupsCreated ExpenseGroup[]       @relation("ExpenseGroupCreator")
@@ -333,6 +335,7 @@ model Trip {
   expenseGroup  ExpenseGroup?
   tripExpenses  TripExpense[]
   packingItems  PackingItem[]
+  groupChat     Conversation?
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -397,8 +400,9 @@ model Story {
   duration   Int      @default(5000)     // ms to show (image only)
   expiresAt  DateTime            // createdAt + 24h
 
-  user  User        @relation(fields: [userId], references: [id], onDelete: Cascade)
-  views StoryView[]
+  user      User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  views     StoryView[]
+  reactions StoryReaction[]
 
   createdAt DateTime @default(now())
 
@@ -417,6 +421,20 @@ model StoryView {
 
   @@unique([storyId, viewerId])
   @@map("story_views")
+}
+
+model StoryReaction {
+  id        String   @id @default(uuid())
+  storyId   String
+  userId    String
+  emoji     String
+  createdAt DateTime @default(now())
+
+  story Story @relation(fields: [storyId], references: [id], onDelete: Cascade)
+  user  User  @relation("StoryReaction", fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([storyId, userId])
+  @@map("story_reactions")
 }
 
 // ─────────────────────────────────────────
@@ -522,10 +540,14 @@ model CollectionPlace {
 
 model Conversation {
   id           String   @id @default(uuid())
-  type         String   @default("direct")
+  type         String   @default("direct")  // "direct" | "group"
+  name         String?    // group name (= trip title for trip chats)
+  avatarUrl    String?    // group avatar
+  tripId       String?  @unique              // 1 trip = 1 group conversation
   createdAt    DateTime @default(now())
   participants ConversationParticipant[]
   messages     Message[]
+  trip         Trip?    @relation(fields: [tripId], references: [id], onDelete: SetNull)
 
   @@map("conversations")
 }

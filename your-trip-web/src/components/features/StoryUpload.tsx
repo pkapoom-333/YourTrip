@@ -1,8 +1,9 @@
 "use client";
 
 import { useRef, useState } from "react";
-import { Camera, X, Check, Loader2 } from "lucide-react";
+import { Camera, X, Check, Loader2, Sparkles } from "lucide-react";
 import { createStory } from "@/server/actions/stories";
+import StoryTextEditor from "./StoryTextEditor";
 
 interface StoryUploadProps {
   onClose: () => void;
@@ -10,8 +11,13 @@ interface StoryUploadProps {
 }
 
 export default function StoryUpload({ onClose, onCreated }: StoryUploadProps) {
+  const [rawFile, setRawFile] = useState<File | null>(null);
   const [preview, setPreview] = useState<string | null>(null);
   const [mediaType, setMediaType] = useState<"image" | "video">("image");
+  // After text-editor, holds the composited blob (image stories only)
+  const [compositedBlob, setCompositedBlob] = useState<Blob | null>(null);
+  const [compositedUrl, setCompositedUrl] = useState<string | null>(null);
+  const [showEditor, setShowEditor] = useState(false);
   const [caption, setCaption] = useState("");
   const [uploading, setUploading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -24,19 +30,31 @@ export default function StoryUpload({ onClose, onCreated }: StoryUploadProps) {
     setMediaType(isVideo ? "video" : "image");
     const url = URL.createObjectURL(f);
     setPreview(url);
+    setRawFile(f);
+    setCompositedBlob(null);
+    setCompositedUrl(null);
   };
 
+  function handleEditorDone(blob: Blob) {
+    const url = URL.createObjectURL(blob);
+    setCompositedBlob(blob);
+    setCompositedUrl(url);
+    setShowEditor(false);
+  }
+
   const handleSubmit = async () => {
-    const f = fileRef.current?.files?.[0];
-    if (!f || !preview) return;
+    if (!preview) return;
 
     setUploading(true);
     setError(null);
 
     try {
-      // Upload via /api/upload
+      // Decide what to upload: composited blob (with text overlays) or raw file
+      const uploadTarget: File | Blob = compositedBlob ?? rawFile!;
+      const filename = compositedBlob ? "story.jpg" : (rawFile?.name ?? "story");
+
       const form = new FormData();
-      form.append("file", f);
+      form.append("file", uploadTarget, filename);
       const res = await fetch("/api/upload", { method: "POST", body: form });
       const json = await res.json() as { url?: string; error?: string };
       if (!json.url) throw new Error(json.error ?? "Upload failed");
@@ -55,6 +73,19 @@ export default function StoryUpload({ onClose, onCreated }: StoryUploadProps) {
       setUploading(false);
     }
   };
+
+  // Show text editor overlay (images only)
+  if (showEditor && preview && mediaType === "image") {
+    return (
+      <StoryTextEditor
+        imageDataUrl={preview}
+        onDone={handleEditorDone}
+        onCancel={() => setShowEditor(false)}
+      />
+    );
+  }
+
+  const displayUrl = compositedUrl ?? preview;
 
   return (
     <div className="fixed inset-0 z-[90] bg-black/80 backdrop-blur-sm flex items-end md:items-center justify-center">
@@ -79,16 +110,39 @@ export default function StoryUpload({ onClose, onCreated }: StoryUploadProps) {
         ) : (
           <div className="relative w-full h-64 bg-black">
             {mediaType === "video" ? (
-              <video src={preview} className="w-full h-full object-contain" controls />
+              <video src={displayUrl ?? undefined} className="w-full h-full object-contain" controls />
             ) : (
-              <img src={preview} alt="preview" className="w-full h-full object-contain" />
+              <img src={displayUrl ?? undefined} alt="preview" className="w-full h-full object-contain" />
             )}
+            {/* Remove button */}
             <button
-              onClick={() => { setPreview(null); if (fileRef.current) fileRef.current.value = ""; }}
+              onClick={() => {
+                setPreview(null);
+                setRawFile(null);
+                setCompositedBlob(null);
+                setCompositedUrl(null);
+                if (fileRef.current) fileRef.current.value = "";
+              }}
               className="absolute top-2 right-2 w-7 h-7 bg-black/60 rounded-full flex items-center justify-center text-white"
             >
               <X className="w-4 h-4" />
             </button>
+            {/* Text overlay button (images only) */}
+            {mediaType === "image" && (
+              <button
+                onClick={() => setShowEditor(true)}
+                className="absolute top-2 left-2 flex items-center gap-1 bg-black/50 hover:bg-black/70 text-white px-2.5 py-1 rounded-lg text-xs"
+              >
+                <Sparkles className="w-3.5 h-3.5" />
+                {compositedBlob ? "แก้ไขข้อความ" : "เพิ่มข้อความ"}
+              </button>
+            )}
+            {/* Composited indicator */}
+            {compositedBlob && (
+              <div className="absolute bottom-2 left-2 bg-[#398AB9]/80 text-white text-[10px] px-2 py-0.5 rounded-full">
+                มีข้อความ
+              </div>
+            )}
           </div>
         )}
 
@@ -112,7 +166,7 @@ export default function StoryUpload({ onClose, onCreated }: StoryUploadProps) {
             เลือกไฟล์
           </button>
           <button
-            onClick={handleSubmit}
+            onClick={() => void handleSubmit()}
             disabled={!preview || uploading}
             className="flex-1 py-2.5 rounded-xl bg-[#398AB9] text-white text-sm font-semibold flex items-center justify-center gap-2 disabled:opacity-50"
           >

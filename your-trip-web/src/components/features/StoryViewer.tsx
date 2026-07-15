@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState, useCallback } from "react";
 import { X, ChevronLeft, ChevronRight, Trash2, Eye } from "lucide-react";
-import { markStoryViewed, deleteStory, getStoryViewers } from "@/server/actions/stories";
+import { markStoryViewed, deleteStory, getStoryViewers, reactToStory, getStoryReactions, STORY_REACTION_EMOJIS } from "@/server/actions/stories";
 import type { StoryGroup, StoryItem } from "@/server/actions/stories";
 
 interface StoryViewerProps {
@@ -19,6 +19,9 @@ export default function StoryViewer({ groups, initialGroupIndex, myUserId, onClo
   const [paused, setPaused] = useState(false);
   const [showViewers, setShowViewers] = useState(false);
   const [viewers, setViewers] = useState<Array<{ userId: string; name: string; avatarUrl: string | null; viewedAt: Date }>>([]);
+
+  const [reactions, setReactions] = useState<Array<{ emoji: string; count: number; reactedByMe: boolean }>>([]);
+  const [showReactionPicker, setShowReactionPicker] = useState(false);
 
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const touchStartX = useRef(0);
@@ -51,6 +54,10 @@ export default function StoryViewer({ groups, initialGroupIndex, myUserId, onClo
 
     // Mark as viewed
     markStoryViewed(story.id).catch(() => {});
+
+    // Load reactions for this story
+    setReactions([]);
+    getStoryReactions(story.id).then(({ data }) => setReactions(data)).catch(() => {});
 
     return () => { if (timerRef.current) clearInterval(timerRef.current); };
   // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -129,6 +136,30 @@ export default function StoryViewer({ groups, initialGroupIndex, myUserId, onClo
     setViewers(data);
     setShowViewers(true);
     setPaused(true);
+  };
+
+  const handleReact = async (emoji: string) => {
+    if (!story) return;
+    setShowReactionPicker(false);
+    // Optimistic update
+    setReactions((prev) => {
+      const existing = prev.find((r) => r.emoji === emoji);
+      if (existing) {
+        // Toggle off
+        if (existing.reactedByMe) {
+          return prev.map((r) => r.emoji === emoji ? { ...r, count: r.count - 1, reactedByMe: false } : r).filter((r) => r.count > 0);
+        }
+        // Switch to this emoji
+        return prev
+          .map((r) => r.reactedByMe ? { ...r, count: r.count - 1, reactedByMe: false } : r)
+          .filter((r) => r.count > 0 || r.emoji === emoji)
+          .map((r) => r.emoji === emoji ? { ...r, count: r.count + 1, reactedByMe: true } : r);
+      }
+      // New reaction — remove old one first
+      const updated = prev.map((r) => r.reactedByMe ? { ...r, count: r.count - 1, reactedByMe: false } : r).filter((r) => r.count > 0);
+      return [...updated, { emoji, count: 1, reactedByMe: true }];
+    });
+    await reactToStory(story.id, emoji);
   };
 
   if (!group || !story) return null;
@@ -233,16 +264,59 @@ export default function StoryViewer({ groups, initialGroupIndex, myUserId, onClo
         <ChevronRight className="w-5 h-5" />
       </button>
 
-      {/* Viewer count (owner) */}
-      {isOwn && (
-        <button
-          onClick={handleShowViewers}
-          className="absolute bottom-4 left-1/2 -translate-x-1/2 flex items-center gap-1.5 text-white/80 text-sm z-20 hover:text-white"
-        >
-          <Eye className="w-4 h-4" />
-          <span>ผู้ชม {group.stories[storyIdx] ? story.viewedByMe ? "" : "" : ""}</span>
-        </button>
-      )}
+      {/* Bottom bar */}
+      <div className="absolute bottom-0 left-0 right-0 z-20 flex items-center justify-between px-4 pb-5 pt-3">
+        {/* Emoji reactions display */}
+        <div className="flex items-center gap-1.5 flex-wrap">
+          {reactions.map((r) => (
+            <button
+              key={r.emoji}
+              onClick={() => handleReact(r.emoji)}
+              className={`flex items-center gap-1 px-2.5 py-1 rounded-full text-sm transition ${
+                r.reactedByMe
+                  ? "bg-white/30 ring-1 ring-white/60"
+                  : "bg-black/30 hover:bg-black/50"
+              }`}
+            >
+              <span>{r.emoji}</span>
+              <span className="text-white text-xs font-medium">{r.count}</span>
+            </button>
+          ))}
+        </div>
+
+        {/* Right: owner shows viewer count; others show react button */}
+        {isOwn ? (
+          <button
+            onClick={handleShowViewers}
+            className="flex items-center gap-1.5 text-white/80 text-sm hover:text-white ml-auto"
+          >
+            <Eye className="w-4 h-4" />
+            <span>{story.viewCount} คน</span>
+          </button>
+        ) : (
+          <div className="ml-auto relative">
+            <button
+              onClick={() => { setShowReactionPicker((v) => !v); setPaused(true); }}
+              className="w-9 h-9 rounded-full bg-black/30 hover:bg-black/50 flex items-center justify-center text-lg"
+            >
+              😊
+            </button>
+            {showReactionPicker && (
+              <div className="absolute bottom-11 right-0 flex gap-2 bg-black/70 backdrop-blur-sm rounded-2xl px-3 py-2">
+                {STORY_REACTION_EMOJIS.map((emoji) => (
+                  <button
+                    key={emoji}
+                    onClick={() => handleReact(emoji)}
+                    className="text-xl hover:scale-125 transition-transform"
+                  >
+                    {emoji}
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
+      </div>
 
       {/* Viewers panel */}
       {showViewers && (

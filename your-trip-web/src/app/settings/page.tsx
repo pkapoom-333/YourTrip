@@ -11,6 +11,7 @@ import {
 import { useLocalStorage } from "@/hooks/useLocalStorage";
 import { useUser } from "@/hooks/useUser";
 import { createClient } from "@/lib/supabase/client";
+import { usePWAInstall } from "@/hooks/usePWAInstall";
 
 interface ToggleProps {
   enabled: boolean;
@@ -116,6 +117,7 @@ function RowToggle({
 export default function SettingsPage() {
   const router = useRouter();
   const { user } = useUser();
+  const pwa = usePWAInstall();
   // Notification prefs moved to /settings/notifications
   // const [notifLike] = useLocalStorage("settings_notif_like", true);
   // const [notifComment] = useLocalStorage("settings_notif_comment", true);
@@ -138,6 +140,8 @@ export default function SettingsPage() {
 
   const displayName = user?.user_metadata?.full_name ?? user?.email?.split("@")[0] ?? "Your Trip User";
   const username = user?.email?.split("@")[0] ?? "yourtrip_user";
+  const avatarUrl = user?.user_metadata?.avatar_url as string | undefined;
+  const initials = displayName.split(" ").map((w: string) => w[0]).join("").slice(0, 2).toUpperCase() || "YT";
 
   return (
     <AppShell>
@@ -148,12 +152,24 @@ export default function SettingsPage() {
         {/* Profile preview */}
         <div className="bg-white dark:bg-slate-800 rounded-2xl border border-gray-100 dark:border-slate-700 p-4 mb-6 flex items-center gap-4">
           <div className="relative">
-            <div className="w-16 h-16 bg-[#398AB9] rounded-full flex items-center justify-center text-white text-xl font-bold">
-              YT
-            </div>
-            <button className="absolute -bottom-1 -right-1 w-6 h-6 bg-white dark:bg-slate-700 border border-gray-200 dark:border-slate-600 rounded-full flex items-center justify-center shadow-sm">
+            {avatarUrl ? (
+              <img
+                src={avatarUrl}
+                alt={displayName}
+                referrerPolicy="no-referrer"
+                className="w-16 h-16 rounded-full object-cover"
+              />
+            ) : (
+              <div className="w-16 h-16 bg-[#398AB9] rounded-full flex items-center justify-center text-white text-xl font-bold">
+                {initials}
+              </div>
+            )}
+            <Link
+              href="/profile/edit"
+              className="absolute -bottom-1 -right-1 w-6 h-6 bg-white dark:bg-slate-700 border border-gray-200 dark:border-slate-600 rounded-full flex items-center justify-center shadow-sm"
+            >
               <Camera className="w-3 h-3 text-gray-500 dark:text-slate-400" />
-            </button>
+            </Link>
           </div>
           <div className="flex-1">
             <p className="font-semibold text-gray-900 dark:text-slate-100">{displayName}</p>
@@ -211,7 +227,29 @@ export default function SettingsPage() {
             value={darkMode}
             onChange={handleDarkMode}
           />
-          <RowLink icon={Smartphone} iconBg="bg-[#398AB9]" label="ติดตั้งแอป (PWA)" description="บันทึกลงหน้าจอหลัก" />
+          {pwa.isInstalled ? (
+            <RowLink
+              icon={Smartphone}
+              iconBg="bg-emerald-500"
+              label="แอปติดตั้งแล้ว"
+              description="Your Trip ถูกบันทึกในหน้าจอหลักแล้ว"
+            />
+          ) : pwa.isIOS ? (
+            <RowLink
+              icon={Smartphone}
+              iconBg="bg-[#398AB9]"
+              label="ติดตั้งแอป (PWA)"
+              description="แตะปุ่มแชร์ → Add to Home Screen"
+            />
+          ) : (
+            <RowLink
+              icon={Smartphone}
+              iconBg="bg-[#398AB9]"
+              label="ติดตั้งแอป (PWA)"
+              description={pwa.canInstall ? "บันทึกลงหน้าจอหลักเพื่อเข้าถึงได้ทุกเมื่อ" : "บันทึกลงหน้าจอหลัก"}
+              onClick={pwa.canInstall ? () => void pwa.triggerInstall() : undefined}
+            />
+          )}
         </Section>
 
         {/* Support */}

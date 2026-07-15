@@ -5,8 +5,10 @@ import AppShell from "@/components/AppShell";
 import Link from "next/link";
 import { Settings, MapPin, Grid3X3, Bookmark, Heart, Star, Map, Camera, Activity, MessageCircle } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { getProfile, getUserPosts, getUserSavedPosts, getRecentActivity, getUserActivityDates, type PostGridItem, type ActivityItem } from "@/server/actions/profile";
+import { getProfile, getUserPosts, getUserSavedPosts, getRecentActivity, getUserActivityDates, getDeepStats, type PostGridItem, type ActivityItem } from "@/server/actions/profile";
 import { ActivityHeatmap } from "@/components/features/ActivityHeatmap";
+import ThailandProvinceMap from "@/components/features/ThailandProvinceMap";
+import ProfileCompletionCard from "@/components/features/ProfileCompletionCard";
 import { getSavedPlaces, type SavedPlaceItem } from "@/server/actions/savedPlaces";
 import { getUserTrips } from "@/server/actions/trips";
 import { Star as StarIcon } from "lucide-react";
@@ -59,7 +61,8 @@ function TravelStatsCard({ totalTripDays, placesVisited, tripsCount }: {
 export default function ProfilePage() {
   const router = useRouter();
   const { user } = useUser();
-  const [tab, setTab] = useState<"posts" | "trips" | "saved" | "reviews" | "activity">("posts");
+  const [tab, setTab] = useState<"posts" | "trips" | "saved" | "reviews" | "activity" | "map">("posts");
+  const [visitedProvinces, setVisitedProvinces] = useState<string[]>([]);
   const [profile, setProfile] = useState({
     id: "" as string,
     name: "",
@@ -127,6 +130,11 @@ export default function ProfilePage() {
     });
     getRecentActivity().then(({ data }) => setActivityItems(data));
     getUserActivityDates().then(({ data }) => setActivityDates(data));
+    getDeepStats().then(({ data }) => {
+      if (data?.placesByProvince) {
+        setVisitedProvinces(data.placesByProvince.map((p) => p.province));
+      }
+    });
   }, []);
 
   return (
@@ -222,17 +230,28 @@ export default function ProfilePage() {
           {/* achievements — real counts */}
           <div className="flex gap-3 mt-3 overflow-x-auto scrollbar-none">
             {[
-              { icon: "📸", label: "Photographer", count: `${profile.postsCount} โพสต์` },
-              { icon: "🗺️", label: "Explorer", count: `${savedPlaces.length} สถานที่บันทึก` },
-              { icon: "👥", label: "Social", count: `${profile.followersCount} ผู้ติดตาม` },
+              { icon: "📸", label: "Photographer", count: `${profile.postsCount} โพสต์`, href: null },
+              { icon: "🗺️", label: "Explorer", count: `${savedPlaces.length} สถานที่บันทึก`, href: null },
+              { icon: "👥", label: "Social", count: `${profile.followersCount} ผู้ติดตาม`, href: null },
+              { icon: "🏅", label: "ความสำเร็จ", count: "ดูทั้งหมด", href: "/profile/achievements" },
             ].map((b) => (
-              <div key={b.label} className="flex items-center gap-2 bg-gray-50 dark:bg-slate-700/50 px-3 py-2 rounded-xl flex-shrink-0">
-                <span className="text-base">{b.icon}</span>
-                <div>
-                  <p className="text-[10px] font-semibold text-gray-700 dark:text-slate-300">{b.label}</p>
-                  <p className="text-[9px] text-gray-400 dark:text-slate-500">{b.count}</p>
+              b.href ? (
+                <Link key={b.label} href={b.href} className="flex items-center gap-2 bg-[#398AB9]/8 dark:bg-[#398AB9]/15 px-3 py-2 rounded-xl flex-shrink-0 border border-[#398AB9]/20">
+                  <span className="text-base">{b.icon}</span>
+                  <div>
+                    <p className="text-[10px] font-semibold text-[#398AB9]">{b.label}</p>
+                    <p className="text-[9px] text-[#398AB9]/70">{b.count}</p>
+                  </div>
+                </Link>
+              ) : (
+                <div key={b.label} className="flex items-center gap-2 bg-gray-50 dark:bg-slate-700/50 px-3 py-2 rounded-xl flex-shrink-0">
+                  <span className="text-base">{b.icon}</span>
+                  <div>
+                    <p className="text-[10px] font-semibold text-gray-700 dark:text-slate-300">{b.label}</p>
+                    <p className="text-[9px] text-gray-400 dark:text-slate-500">{b.count}</p>
+                  </div>
                 </div>
-              </div>
+              )
             ))}
           </div>
 
@@ -242,6 +261,18 @@ export default function ProfilePage() {
             placesVisited={profile.placesVisited}
             tripsCount={profile.tripsCount}
           />
+
+          {/* ── Profile Completion Nudge ── */}
+          <div className="mt-4">
+            <ProfileCompletionCard
+              hasAvatar={!!profile.avatarUrl}
+              hasBio={!!profile.bio && profile.bio.length > 5}
+              hasPost={profile.postsCount > 0}
+              hasTrip={myTrips.length > 0}
+              hasFollow={profile.followingCount > 0}
+              hasCheckIn={visitedProvinces.length > 0}
+            />
+          </div>
 
           <div className="flex gap-2 mt-4">
             <button
@@ -254,6 +285,12 @@ export default function ProfilePage() {
               className="flex-1 py-2 border border-gray-200 dark:border-slate-600 text-gray-600 dark:text-slate-300 text-sm font-semibold rounded-xl hover:bg-gray-50 dark:hover:bg-slate-700 transition">
               แชร์โปรไฟล์
             </button>
+            <button
+              onClick={() => router.push("/profile/passport")}
+              title="Travel Passport"
+              className="w-10 h-10 flex items-center justify-center border border-gray-200 dark:border-slate-600 rounded-xl hover:bg-gray-50 dark:hover:bg-slate-700 transition text-lg flex-shrink-0">
+              🛂
+            </button>
           </div>
         </div>
 
@@ -264,6 +301,7 @@ export default function ProfilePage() {
             { key: "trips",    icon: Map,      label: `ทริป${myTrips.length > 0 ? ` (${myTrips.length})` : ""}` },
             { key: "saved",    icon: Bookmark, label: "บันทึก" },
             { key: "reviews",  icon: Star,     label: "รีวิว" },
+            { key: "map",      icon: MapPin,   label: "แผนที่" },
             { key: "activity", icon: Activity, label: "กิจกรรม" },
           ].map(({ key, icon: Icon, label }) => (
             <button key={key} onClick={() => setTab(key as typeof tab)}
@@ -598,6 +636,13 @@ export default function ProfilePage() {
                 </div>
               </div>
             )}
+          </div>
+        )}
+
+        {/* ── Province Map tab ── */}
+        {tab === "map" && (
+          <div className="p-4 bg-white dark:bg-slate-800">
+            <ThailandProvinceMap visited={visitedProvinces} />
           </div>
         )}
       </div>

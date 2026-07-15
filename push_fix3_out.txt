@@ -1,0 +1,7 @@
+warning: in the working copy of 'your-trip-web/src/app/popular/page.tsx', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'your-trip-web/src/app/post/[id]/page.tsx', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'your-trip-web/src/app/trending/page.tsx', LF will be replaced by CRLF the next time Git touches it
+[main 7c450ca] fix: remove incorrect 'use server' from page files (causes object export error)
+ 3 files changed, 3 deletions(-)
+To https://github.com/pkapoom-333/YourTrip.git
+   111696d..7c450ca  main -> main

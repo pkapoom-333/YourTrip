@@ -1,3 +1,208 @@
+## 🔥 QUEST BOARD — Sprint S27 "QUICK REPLY + STORY RING + EXPENSE CHART" (2026-07-13)
+**เป้า:** Inline reply from notifications + animated story ring + expense category breakdown
+
+```
+PROGRESS ████████████████████████ 100%  CODE COMPLETE
+```
+
+| # | Quest | XP | Status |
+|---|-------|----|--------|
+| S27-1 | **Quick-reply from comment notification** — inline textarea + send in notifications page | 350 | ✅ |
+| S27-2 | **Story ring animation** — conic-gradient + hue-rotate CSS animation for unviewed stories | 150 | ✅ |
+| S27-3 | **Expense category chart** — horizontal bar chart in expense summary tab | 200 | ✅ |
+
+---
+
+## 🔥 QUEST BOARD — Sprint S26 "PLACE PACKING + HASHTAGS + REVIEW PHOTOS" (2026-07-14)
+**เป้า:** Place-aware packing list + hashtag navigation + review photo upload
+
+```
+PROGRESS ████████████████████████ 100%  CODE COMPLETE
+```
+
+| # | Quest | XP | Status |
+|---|-------|----|--------|
+| S26-1 | **Packing List Quick-Add** — FAB + smart suggestions + custom input on place detail | 300 | ✅ |
+| S26-2 | **Hashtag links in captions** — `#tag` → `/tags/{tag}` in PostCard renderCaption | 100 | ✅ |
+| S26-3 | **Review photo upload** — pick/preview/upload up to 3 photos in review form | 250 | ✅ |
+| S26-4 | **`fix_git_lock.vbs`** — unlock stale git index for user | 50 | ✅ |
+
+---
+
+## 🔥 QUEST BOARD — Sprint S25 "STORY TEXT EDITOR" (2026-07-14)
+**เป้า:** Canvas-based text sticker overlay for stories before upload
+
+```
+PROGRESS ████████████████████████ 100%  CODE COMPLETE
+```
+
+| # | Quest | XP | Status |
+|---|-------|----|--------|
+| S25-1 | **`StoryTextEditor.tsx`** — canvas sticker editor (drag, colors, delete) | 500 | ✅ |
+| S25-2 | **`StoryUpload.tsx` wired** — composited JPEG replaces raw upload | 200 | ✅ |
+
+---
+
+## 🔥 QUEST BOARD — Sprint S24 "REALTIME UX + PWA WIRE + CRON" (2026-07-14)
+**เป้า:** Notifications Realtime + PWA install from settings + trip reminders cron
+
+```
+PROGRESS ████████████████████████ 100%  CODE COMPLETE
+```
+
+| # | Quest | XP | Status |
+|---|-------|----|--------|
+| S24-1 | **Notifications page Realtime** — INSERT listener, new notifs appear without refresh | 200 | ✅ |
+| S24-2 | **`usePWAInstall` hook** — captures beforeinstallprompt, iOS vs Android | 100 | ✅ |
+| S24-3 | **Settings PWA row wired** — installed/iOS/installable states | 100 | ✅ |
+| S24-4 | **Trip reminder cron** — `/api/cron/trip-reminders` + vercel.json schedule | 300 | ✅ |
+
+---
+
+## 🔥 QUEST BOARD — Sprint S23 "PUSH + REACTIONS" (2026-07-14)
+**เป้า:** Web Push infrastructure + Story emoji reactions + Story viewer count fix
+
+```
+PROGRESS ████████████████████████ 100%  CODE COMPLETE
+```
+
+| # | Quest | XP | Status |
+|---|-------|----|--------|
+| S23-1 | **VAPID key gen script** — `node scripts/generate-vapid-keys.js` | 100 | ✅ |
+| S23-2 | **Push subscription API** — GET/POST/DELETE `/api/push/subscribe` | 200 | ✅ |
+| S23-3 | **`sendWebPush` helper** — `lib/push.ts` with web-push TODO | 150 | ✅ |
+| S23-4 | **`sendPushToUser/s` actions** — `server/actions/push.ts` | 150 | ✅ |
+| S23-5 | **Push in `createNotification`** — every notif fires web push | 200 | ✅ |
+| S23-6 | **Push in admin broadcast** — `broadcastNotification` fires push | 100 | ✅ |
+| S23-7 | **Story viewer count fix** — `viewCount` field + `_count` Prisma query | 150 | ✅ |
+| S23-8 | **Story emoji reactions** — `StoryReaction` model, server actions, StoryViewer UI | 400 | ✅ |
+
+---
+
+## 🔥 QUEST BOARD — Sprint S22 "SOCIAL + COLLAB" (2026-07-14)
+**เป้า:** Social interactions แบบ real-time + Trip collaboration ครบจบ
+
+```
+PROGRESS ████████████████████████ 100%  CODE COMPLETE
+```
+
+| # | Quest | XP | Status |
+|---|-------|----|--------|
+| S22-1 | **Onboarding saves interests to DB** — `completeOnboarding()` + name/username input | 300 | ✅ |
+| S22-2 | **Register → /onboarding redirect** — new users go through onboarding instead of /feed | 50 | ✅ |
+| S22-3 | **Trip Members tab** — `TripCollaboratorsPanel` wired as 5th tab in feature panel | 150 | ✅ |
+| S22-4 | **Real-time comments** — Supabase Realtime on PostDetailClient INSERT listener | 200 | ✅ |
+| S22-5 | **Trip invite link** — `joinTrip()` action + ?join=1 param + copy invite button | 250 | ✅ |
+| S22-6 | **joinTrip server action** — adds user as viewer collaborator on public trips | 100 | ✅ |
+
+---
+
+## 🔥 QUEST BOARD — Sprint S21 "UX POLISH + ONBOARDING" (2026-07-14)
+**เป้า:** ทำให้ user แรกที่เข้ามาเข้าใจแอปและ engage ได้ทันที
+
+```
+PROGRESS ░░░░░░░░░░░░░░░░░░░░░░░░  0%  IN PROGRESS
+```
+
+| # | Quest | XP | Status |
+|---|-------|----|--------|
+| S21-1 | **Empty-state illustrations** — ทุก empty state มี icon + CTA แล้ว | 200 | ✅ |
+| S21-2 | **Quick Actions bar on feed** — pill shortcuts สร้างทริป/เขียนรีวิว/ค้นหา/ค้นพบคน/ใกล้ฉัน | 150 | ✅ |
+| S21-3 | **Trip day weather widget** — show forecast per day (Open-Meteo API) | 250 | ✅ |
+| S21-4 | **Place Open/Closed real-time** — checkOpen() based on hours already in place/[slug] | 150 | ✅ |
+| S21-5 | **Search suggestions** — recent searches already in ExploreClient localStorage | 200 | ✅ |
+| S21-6 | **ProfileCompletionCard** — % bar + 6-step checklist, dismissable, in profile page | 200 | ✅ |
+| S21-7 | **Share trip as image** — canvas trip card (skip, complex + needs canvas API) | 300 | ⬜ SKIP |
+
+---
+
+## 🔥 QUEST BOARD — Sprint S20 "DISCOVERY + CONTENT QUALITY" (2026-07-14)
+**เป้า:** ทำให้แอปน่าใช้สำหรับผู้ใช้ใหม่ — better discovery, richer content
+
+```
+PROGRESS ░░░░░░░░░░░░░░░░░░░░░░░░  0%  IN PROGRESS
+```
+
+| # | Quest | XP | Status |
+|---|-------|----|--------|
+| S20-1 | **Discover page** — already wired to real DB with interest matching | 250 | ✅ |
+| S20-2 | **Place review sort** — helpful/newest/highest/lowest already in PlaceDetailClient | 200 | ✅ |
+| S20-3 | **Feed tabs** — สำหรับคุณ / ติดตาม already in FeedPostsClient | 200 | ✅ |
+| S20-4 | **Trip templates** — /trips/templates page exists with createTripFromTemplate | 250 | ✅ |
+| S20-5 | **Collection share** — /collections/[id] page fully implemented | 200 | ✅ |
+| S20-6 | **Nearby places** — "nearby" sort key in ExploreClient with haversine distance | 200 | ✅ |
+| S20-7 | **Homepage real stats** — getPlatformStats() wired in landing page | 150 | ✅ |
+| S20-8 | **Trip Group Chat** — TripGroupChatPanel with Supabase Realtime subscription | 300 | ✅ |
+| S20-9 | **Achievement link in profile** — 🏅 badge chip → /profile/achievements | 100 | ✅ |
+
+---
+
+## 🔥 QUEST BOARD — Sprint S19 "SOCIAL LAYER + PWA" (2026-07-14)
+**ช่วง:** 14 ก.ค.+ | **เป้า:** Social interactions + PWA polish
+
+```
+PROGRESS ░░░░░░░░░░░░░░░░░░░░░░░░  0%  IN PROGRESS
+```
+
+### ⚔️ TIER S — This Sprint
+
+| # | Quest | XP | Status |
+|---|-------|----|--------|
+| S19-1 | **Follow/Unfollow wire** — already wired in discover/people/explore/profile | 200 | ✅ |
+| S19-2 | **Like wire** — PostCard has toggleLike with optimistic update (real DB) | 200 | ✅ |
+| S19-3 | **Comment system** — CommentSection wired, createComment server action exists | 250 | ✅ |
+| S19-4 | **Save place** — toggleSavePlace wired in PlaceDetailClient, Explore, Trending | 150 | ✅ |
+| S19-5 | **PWA install prompt** — PWAInstallPrompt.tsx + AppShell integration exists | 200 | ✅ |
+| S19-6 | **Offline page** — sw.js + public/offline.html already set up | 150 | ✅ |
+| S19-7 | **Explore search** — ILIKE search in places.ts (searchPlaces), wired in ExploreClient | 300 | ✅ |
+| S19-8 | **Edit profile modal** — /profile/edit page fully implemented | 200 | ✅ |
+| S19-9 | **Trip Group Chat** — TripGroupChatPanel.tsx → wired into trip chat tab | 300 | ✅ |
+| S19-10 | **Check-in FAB on place detail** — wired checkInToPlace + getUserCheckInStatus | 150 | ✅ |
+
+---
+
+## 🔥 QUEST BOARD — Sprint S18 "PROFILE MAP + PASSPORT" (2026-07-14)
+**ช่วง:** 14 ก.ค. | **เป้า:** Profile travel visualization features
+
+```
+PROGRESS ████████████████████████ 100%  CODE COMPLETE
+```
+
+### ⚔️ TIER S — This Sprint
+
+| # | Quest | XP | Status |
+|---|-------|----|--------|
+| S18-1 | **ThailandProvinceMap.tsx** — tile-grid 77 จังหวัด / 7 ภาค | 300 | ✅ |
+| S18-2 | **Profile "แผนที่" tab** — เพิ่ม tab + wire getDeepStats → visitedProvinces | 200 | ✅ |
+| S18-3 | **PassportPage** — `/profile/passport` shareable travel card | 300 | ✅ |
+| S18-4 | **Passport button in profile** — 🛂 button → /profile/passport | 50 | ✅ |
+| S18-5 | **Git commit S18** — รัน `git_s18_commit.vbs` | 100 | ⬜ USER ACTION |
+
+---
+
+## 🔥 QUEST BOARD — Sprint S17 "EXPENSE-TRIP INTEGRATION + GROUP CHAT FOUNDATION" (2026-07-12)
+**ช่วง:** 12 ก.ค. | **MVP deadline:** 14 ก.ค. 2026
+
+```
+PROGRESS ████████████████████████ 100%  CODE COMPLETE — รอ git commit + SQL migration
+```
+
+### ⚔️ TIER S — This Sprint
+
+| # | Quest | XP | Status |
+|---|-------|----|--------|
+| S17-1 | **TripExpenseTab.tsx** — empty state + link to existing group | 200 | ✅ |
+| S17-2 | **Feature panel in trips/[id]** — 4-tab section (Expense/Budget/Packing/Chat) | 250 | ✅ |
+| S17-3 | **ExpenseGroupClient back-link** — "← กลับทริป" when linked to trip | 100 | ✅ |
+| S17-4 | **Group chat schema** — Conversation.name/avatarUrl/tripId + Trip.groupChat | 200 | ✅ |
+| S17-5 | **createTripGroupChat / getTripGroupChat** — messages.ts additions | 200 | ✅ |
+| S17-6 | **SQL migration block** — all_migrations.sql group_chat_schema | 100 | ✅ |
+| S17-7 | **Git commit + push to github** — run `git_s17_commit.vbs` | 100 | ⬜ USER ACTION |
+| S17-8 | **Supabase SQL migration** — paste all_migrations.sql (now includes S17) | 300 | ⬜ USER ACTION |
+| S17-9 | **Run seed-system-user.ts** — after S17-8 | 50 | ⬜ USER ACTION |
+
+---
+
 ## 🔥 QUEST BOARD — Sprint S16 "SYSTEM POSTS + INTEREST RANKING" (2026-07-10)
 **ช่วง:** 10 ก.ค.+ | **MVP deadline:** 14 ก.ค. 2026
 
@@ -587,88 +792,4 @@ URL: https://vercel.com → YourTrip → Settings → Environment Variables
 
 
 ### 🌐 AI Content Pipeline — ดึงสถานที่ใหม่อัตโนมัติ
-> บันทึก: 2026-06-09 | ลำดับความสำคัญ: Phase 4 (หลัง launch)
-
-**ความต้องการ:** AI agent คอย monitor และดึงข้อมูลสถานที่ท่องเที่ยวใหม่/trending มาเพิ่มใน DB อัตโนมัติ
-
-**Sources หลัก:**
-- Google Maps / Google Places API (New) — สถานที่ใหม่, rating, รูป, เวลาทำการ
-- Google Trends — trend การท่องเที่ยวในไทย
-- Social signals (Instagram hashtag, TikTok location) — Phase 5
-
-**Flow:**
-```
-Scheduled Job (daily/weekly)
-  → ค้นหา trending places ในไทยจาก Google Places API
-  → กรอง: rating > 4.0, review > 50, ไม่มีใน DB
-  → AI (Claude) summarize + แปล description เป็นภาษาไทย
-  → สร้าง Place draft → admin review → publish
-```
-
-| # | Feature | รายละเอียด | Status |
-|---|---------|------------|--------|
-| CP-1 | **Google Places crawler** | scheduled job ดึง places ใหม่จาก Places API (New) ตาม category + province | ⬜ |
-| CP-2 | **AI content writer** | Claude summarize + แปล + เติม description ภาษาไทย/อังกฤษ | ⬜ |
-| CP-3 | **Trend detector** | Google Trends API → ดึง keyword ท่องเที่ยว → ค้นหา places ที่ match | ⬜ |
-| CP-4 | **Admin review queue** | หน้า /admin/places สำหรับ approve/edit/reject draft places ก่อน publish | ⬜ |
-| CP-5 | **Auto image import** | ดึงรูปจาก Google Places Photos → อัปโหลด Cloudinary → link กับ Place | ⬜ |
-
-**Env ที่ต้องเพิ่ม:**
-- `GOOGLE_PLACES_API_KEY` (server-side, ไม่ต้อง NEXT_PUBLIC_)
-- `ANTHROPIC_API_KEY` (ใช้ร่วมกับ AI Trip Planner)
-
-**Architecture:** BullMQ job queue + Redis (Phase 4 backend scale) หรือ Vercel Cron Jobs (ง่ายกว่าสำหรับ MVP)
-
-
-### 🎯 AI Personalized Feed — ดึงข้อมูลตรงกับ interest ของ user
-> บันทึก: 2026-06-09 | ลำดับความสำคัญ: Phase 4
-
-**ความต้องการ:** Feed ไม่แสดงแบบ chronological อีกต่อไป — AI วิเคราะห์ว่า user สนใจอะไรแล้ว curate content ให้ตรง
-
-**Signals ที่ใช้วิเคราะห์ interest:**
-- สถานที่ที่ save / wishlist
-- posts ที่ like / comment / share
-- categories ที่เปิดดูบ่อย (cafe / outdoor / cultural)
-- จังหวัดที่สนใจ
-- ทริปที่เคยสร้าง (destination pattern)
-- เวลาที่ใช้บน post แต่ละประเภท
-
-**Flow:**
-```
-User เปิด /feed
-  → ดึง interest profile จาก DB (หรือ cache Redis)
-  → Ranking model: score แต่ละ post/place ตาม interest match
-  → แสดง feed ที่ personalized + mix "discover" content (สิ่งใหม่ที่อาจชอบ)
-  → บันทึก engagement กลับมาปรับ model
-```
-
-| # | Feature | รายละเอียด | Status |
-|---|---------|------------|--------|
-| PF-1 | **Interest profile** | track user behavior → บันทึก category/province/style preference ใน DB | ⬜ |
-| PF-2 | **Feed ranking** | scoring function: interest match + recency + engagement rate | ⬜ |
-| PF-3 | **AI rerank** | ส่ง interest profile + candidate posts ให้ Claude → rerank ตาม context | ⬜ |
-| PF-4 | **Discover mix** | 20% content นอก comfort zone — ของใหม่ที่ AI คิดว่าอาจชอบ | ⬜ |
-| PF-5 | **"ทำไมถึงแนะนำ"** | แสดง reason ใต้ post "เพราะคุณสนใจ cafe ในเชียงใหม่" | ⬜ |
-
-**Architecture:** user_interests table + Postgres vector (pgvector) หรือ simple scoring ก่อน → upgrade ทีหลัง
-
-
-### 📍 Real Place Data Seed — ก่อน Phase 3
-> บันทึก: 2026-06-09 | ลำดับความสำคัญ: ทำก่อน Phase 3
-
-**ความต้องการ:** เพิ่มข้อมูลสถานที่จริงใน Thailand ให้ครบ seed script ก่อน launch
-
-**จังหวัดที่ต้องมีก่อน (popular):**
-เชียงใหม่, กรุงเทพฯ, ภูเก็ต, เกาะสมุย, กระบี่, เชียงราย, อยุธยา, พัทยา, หัวหิน, ขอนแก่น
-
-**ประเภทสถานที่ต่อจังหวัด:**
-- สถานที่เที่ยว (attractions) — วัด, อุทยาน, จุดชมวิว
-- ร้านอาหาร / คาเฟ่ที่โด่งดัง
-- ตลาด / ถนนคนเดิน
-
-| # | Task | Status |
-|---|------|--------|
-| SD-1 | หาข้อมูลสถานที่จริงจาก web research (ไม่ต้อง API key) → สร้าง seed script ครบ 10 จังหวัด | ✅ |
-| SD-2 | เพิ่ม lat/lng ครบทุกสถานที่ (ใช้กับ map + geolocation sort) | ✅ |
-| SD-3 | รัน seed script บน Supabase จริง | ✅ Done — 60 places in production (Day 16 sess 5) |
-
+> บัน�

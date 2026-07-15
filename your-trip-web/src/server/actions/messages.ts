@@ -319,3 +319,86 @@ export async function getTotalUnreadMessages(): Promise<number> {
     return 0;
   }
 }
+
+// ─── Trip Group Chat ──────────────────────────────────────────────────────────
+// These functions use `db` (prisma as any) because the Prisma client was
+// generated before the group-chat schema migration added name/avatarUrl/tripId
+// to the Conversation model. Will become typed after next `prisma generate`.
+
+export async function createTripGroupChat(
+  tripId: string
+): Promise<{ data: { conversationId: string } | null; error?: string }> {
+  try {
+    const supabase = await createServerClient();
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return { data: null, error: "Not authenticated" };
+
+    // Return existing group chat if already created
+    const existing = await db.conversation.findUnique({
+      where: { tripId },
+      select: { id: true },
+    });
+    if (existing) return { data: { conversationId: existing.id } };
+
+    // Fetch trip to get title + collaborators
+    const trip = await prisma.trip.findUnique({
+      where: { id: tripId },
+      include: {
+        collaborators: {
+          include: { user: { select: { id: true } } },
+        },
+      },
+    });
+    if (!trip) return { data: null, error: "ไม่พบทริป" };
+
+    // Gather all participant user IDs (owner + collaborators)
+    const userIds = Array.from(new Set([
+      trip.userId,
+      ...trip.collaborators.map((c) => c.userId),
+    ]));
+
+    // Create group conversation with tripId link
+    const conversation = await db.conversation.create({
+      data: {
+        type: "group",
+        name: trip.title,
+        tripId,
+        participants: {
+          create: userIds.map((uid) => ({ userId: uid })),
+        },
+      },
+      select: { id: true },
+    });
+
+    return { data: { conversationId: conversation.id } };
+  } catch (e) {
+    return { data: null, error: String(e) };
+  }
+}
+
+export async function getTripGroupChat(
+  tripId: string
+): Promise<{ data: { id: string; name: string | null; participantCount: number } | null }> {
+  try {
+    const supabase = await createServerClient();
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return { data: null };
+
+    const conversation = await db.conversation.findUnique({
+      where: { tripId },
+      include: { participants: true },
+    });
+
+    if (!conversation) return { data: null };
+
+    return {
+      data: {
+        id: conversation.id,
+        name: conversation.name ?? null,
+        participantCount: conversation.participants.length,
+      },
+    };
+  } catch {
+    return { data: null };
+  }
+}

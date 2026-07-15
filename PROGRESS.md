@@ -1,5 +1,200 @@
+## Status: Phase 3 | Sprint S27 | 2026-07-13 — Quick Reply + Story Ring Animation + Expense Chart
+
+### Session Log — 2026-07-13 (Sprint S27)
+
+#### ✅ Completed
+1. **Quick-reply from comment notifications** — `src/app/notifications/page.tsx`: Comment-type notifications now show a "ตอบกลับ" (Reply) link below the timestamp. Clicking opens an inline `textarea` + Send button. Enter key submits, Escape closes. Calls `createComment(postId, text)` — postId extracted from the notification's `actionUrl` (`/post/{id}`). Success shows "✓ ตอบกลับแล้ว" badge for 3 seconds. (S27-1)
+2. **Story ring countdown animation** — `src/components/features/StoryRing.tsx`: Unviewed stories now show a conic-gradient ring with a slow hue-rotate CSS animation (`hue-rotate 0→360° over 4s`). Viewed stories keep the static gray ring. No-stories state stays as before. (S27-2)
+3. **Expense category breakdown chart** — `src/app/expense/[id]/ExpenseGroupClient.tsx`: Summary tab now shows a horizontal bar chart grouped by category (🍕 อาหาร, 🚗 เดินทาง, etc.) with percentage labels and proportional colored bars. Total at bottom. Only shown when there are expenses. (S27-3)
+
+#### ⚠️ PENDING (user action required — cumulative)
+1. **Run `fix_git_lock.vbs`** → then run `git_s27_commit.vbs` to commit S17–S27 and push
+2. **Paste `all_migrations.sql`** into Supabase SQL Editor (includes S22 pushSubscription + S23 story_reactions)
+3. **Run seed script**: `npx ts-node --compiler-options '{"module":"CommonJS"}' prisma/seed-system-user.ts`
+4. **Generate VAPID keys**: `node scripts/generate-vapid-keys.js` → paste into `.env.local` + Vercel
+5. **Install web-push**: `npm install web-push --save` → uncomment import in `src/lib/push.ts`
+6. **Add `CRON_SECRET`** to Vercel env vars to secure `/api/cron/trip-reminders`
+
+#### ▶️ Next (S28 candidates)
+- Profile edit (bio, username, avatar upload)
+- Explore map improvements (cluster pins by category)
+- AI trip planner improvements (save generated plan directly to trip)
+
+---
+
+## Status: Phase 3 | Sprint S26 | 2026-07-14 — Place Packing + Hashtag Links + Review Photos
+
+### Session Log — 2026-07-14 (Sprint S26)
+
+#### ✅ Completed
+1. **Packing List Quick-Add on Place Detail** — `src/app/place/[slug]/PlaceDetailClient.tsx`: New "เพิ่ม Packing List" FAB button in place detail action cluster. Opens bottom sheet to select trip + shows category-smart suggestions (beach/temple/park/cafe/restaurant) + custom input. Calls `addPackingItem()` directly. (S26-1)
+2. **Hashtag links in post captions** — `src/components/features/PostCard.tsx`: Updated `renderCaption()` to parse `#hashtags` (including Thai) and render them as clickable links to `/tags/{tag}`. Works alongside existing `@mention` links. (S26-2)
+3. **Review photo upload** — `src/server/actions/places.ts` + `PlaceDetailClient.tsx`: `createReview` now accepts `images?: string[]` (max 3). Review form has photo picker with add/remove thumbnails; photos upload to `/api/upload` before submission. (S26-3)
+4. **`fix_git_lock.vbs`** — script in `your-trip/` to delete stale `.git/index.lock` so git add can proceed. (S26-4)
+
+#### ⚠️ PENDING (user action required — cumulative)
+1. **Run `fix_git_lock.vbs`** → then run `git_s26_commit.vbs` to commit S17–S26 and push
+2. **Paste `all_migrations.sql`** into Supabase SQL Editor (includes S22 pushSubscription + S23 story_reactions)
+3. **Run seed script**: `npx ts-node --compiler-options '{"module":"CommonJS"}' prisma/seed-system-user.ts`
+4. **Generate VAPID keys**: `node scripts/generate-vapid-keys.js` → paste into `.env.local` + Vercel
+5. **Install web-push**: `npm install web-push --save` → uncomment import in `src/lib/push.ts`
+6. **Add `CRON_SECRET`** to Vercel env vars to secure `/api/cron/trip-reminders`
+
+#### ▶️ Next (S27 candidates)
+- Trip expense split by person (UI enhancements)
+- Post detail quick-reply from notification
+- Story countdown ring animation
+
+---
+
+## Status: Phase 3 | Sprint S25 | 2026-07-14 — Story Text Editor
+
+### Session Log — 2026-07-14 (Sprint S25)
+
+#### ✅ Completed
+1. **`StoryTextEditor.tsx`** — `src/components/features/StoryTextEditor.tsx`: canvas-based text sticker editor. Users can add draggable text stickers (7 colors, adjustable opacity backdrop). Canvas composites image + text into a single JPEG blob before upload. Supports: multi-sticker, drag to reposition, delete, color picker. (S25-1)
+2. **`StoryUpload.tsx` wired with text editor** — Rewritten with new flow: pick file → preview → optional "เพิ่มข้อความ" button opens `StoryTextEditor` → composited blob replaces raw file for upload. Video stories bypass editor. Shows "มีข้อความ" badge when composited. (S25-2)
+
+#### ⚠️ PENDING (user action required — cumulative)
+1. **Run `git_s18_commit.vbs`** — commits S17+S18, pushes to github remote
+2. **Paste `all_migrations.sql`** into Supabase SQL Editor (includes S22 + S23 story_reactions)
+3. **Run seed script**: `npx ts-node --compiler-options '{"module":"CommonJS"}' prisma/seed-system-user.ts`
+4. **Generate VAPID keys**: `node scripts/generate-vapid-keys.js` → paste into `.env.local` + Vercel
+5. **Install web-push**: `npm install web-push --save` → uncomment import block in `src/lib/push.ts`
+6. **Add `CRON_SECRET`** to Vercel env vars to secure `/api/cron/trip-reminders`
+
+#### ▶️ Next (S26 candidates)
+- Packing list quick-add from place detail page
+- Place bookmark collections widget
+- Trip search + filter on trips page
+
+---
+
+## Status: Phase 3 | Sprint S24 | 2026-07-14 — Notifications Realtime + PWA Install + Trip Reminders
+
+### Session Log — 2026-07-14 (Sprint S24)
+
+#### ✅ Completed
+1. **Notifications page Realtime** — `src/app/notifications/page.tsx`: added Supabase Realtime `INSERT` listener on `notifications` table filtered by userId. New notifications now appear instantly without page refresh. (S24-1)
+2. **`usePWAInstall` hook** — `src/hooks/usePWAInstall.ts`: captures `beforeinstallprompt`, detects iOS Safari vs Android Chrome, exposes `triggerInstall()`. (S24-2)
+3. **Settings PWA install row wired** — `src/app/settings/page.tsx`: the "ติดตั้งแอป (PWA)" row now shows: installed state (emerald badge) / iOS Safari instructions / Android trigger button when installable. (S24-3)
+4. **Trip reminder cron** — `src/app/api/cron/trip-reminders/route.ts`: sends push notifications to trip owner + collaborators when their trip starts in 3 days. Added `vercel.json` cron schedule `"0 1 * * *"` (08:00 ICT daily). (S24-4)
+
+#### ⚠️ PENDING (user action required — cumulative)
+1. **Run `git_s18_commit.vbs`** — commits S17+S18, pushes to github remote
+2. **Paste `all_migrations.sql`** into Supabase SQL Editor (now includes S22 + S23 story_reactions)
+3. **Run seed script**: `npx ts-node --compiler-options '{"module":"CommonJS"}' prisma/seed-system-user.ts`
+4. **Generate VAPID keys**: `node scripts/generate-vapid-keys.js` → paste into `.env.local` + Vercel
+5. **Install web-push**: `npm install web-push --save` → uncomment import in `src/lib/push.ts`
+6. **Add `CRON_SECRET`** to Vercel env vars (any random string) to secure the cron route
+
+#### ▶️ Next (S25 candidates)
+- Story text overlay editor (canvas-based text/emoji stickers before upload)
+- Trip packing list quick-add from place page
+- `npm install web-push` + uncomment push sending code
+
+---
+
 # PROGRESS.md
 # Travel Community App — Dev Log
+
+
+### Session Log — 2026-07-14 (Sprint S23)
+
+#### ✅ Completed
+1. **VAPID key generation script** — `scripts/generate-vapid-keys.js` (Node.js crypto, no dependencies). Run `node scripts/generate-vapid-keys.js` to generate keys and paste into `.env.local`. (S23-1)
+2. **Push subscription API** — `src/app/api/push/subscribe/route.ts`: GET returns VAPID public key, POST saves subscription JSON to `user.pushSubscription`, DELETE clears it. (S23-2)
+3. **Push send helper** — `src/lib/push.ts`: `sendWebPush()` with full TODO-commented `web-push` implementation. Ready to activate with `npm install web-push`. (S23-3)
+4. **`sendPushToUser` / `sendPushToUsers` server actions** — `src/server/actions/push.ts`: reads user's pushSubscription from DB, fires web push, auto-clears stale subscriptions. (S23-4)
+5. **Push wired into `createNotification`** — `notifications.ts`: after every in-app notification (like/follow/comment/mention), `sendPushToUser` fires non-blocking. (S23-5)
+6. **Push wired into admin broadcast** — `admin.ts`: `broadcastNotification` now also calls `sendPushToUsers` to deliver web push to all target users. (S23-6)
+7. **Story viewer count fix** — Added `viewCount` field to `StoryItem` interface + Prisma `_count: { views: true }` query. StoryViewer now shows real viewer count (fixed broken empty-string display). (S23-7)
+8. **Story emoji reactions** — Added `StoryReaction` model to `schema.prisma`, `story_reactions` table to `all_migrations.sql`, `reactToStory()` + `getStoryReactions()` server actions. StoryViewer shows reaction bubbles + emoji picker for viewers (🔥❤️😍😂✈️👏). (S23-8)
+9. **`usePushNotifications` hook** — Already wired in `/settings/notifications` — toggle subscribes/unsubscribes and stores in DB. (S23-9, pre-existing)
+
+#### ⚠️ PENDING (user action required)
+1. **Run `git_s18_commit.vbs`** — commits S17+S18, pushes to github remote
+2. **Paste `all_migrations.sql`** into Supabase SQL Editor (now includes S22 + S23 story_reactions table)
+3. **Run seed script**: `npx ts-node --compiler-options '{"module":"CommonJS"}' prisma/seed-system-user.ts`
+4. **Generate VAPID keys**: `node scripts/generate-vapid-keys.js` → paste output into `.env.local` + Vercel env vars
+5. **Install web-push**: `npm install web-push --save` then uncomment the import block in `src/lib/push.ts`
+
+#### ▶️ Next (S24 candidates)
+- Live trip chat (TripGroupChatPanel Realtime subscription polish)
+- Story text/sticker overlay UX improvement
+- Notification bell badge Realtime (Supabase subscribe to notification INSERT)
+- Add PWA install CTA on settings page "ติดตั้งแอป (PWA)" row
+
+---
+
+
+### Session Log — 2026-07-14 (Sprint S21→S22)
+
+#### ✅ Completed
+1. **WeatherWidget in trips/[id]** — injected `<WeatherWidget destination={trip.destination} />` after budget strip; conditionally rendered. (S21-3)
+2. **Onboarding fixes** — rewrote `src/app/onboarding/page.tsx`: added name/username input fields (step 1), pre-fills from Google auth metadata, calls `completeOnboarding({ username, name, interests, followUserIds })` on finish so interests are actually saved to DB. (S22-1)
+3. **Register → /onboarding** — `src/app/register/page.tsx`: changed redirect from `/feed` to `/onboarding` so email signups go through onboarding flow. (S22-2)
+4. **TripCollaboratorsPanel "สมาชิก" tab** — added 5th feature tab (👥 สมาชิก) to `trips/[id]/page.tsx`; renders `TripCollaboratorsPanel`. (S22-3)
+5. **Real-time comments** — `src/app/post/[id]/PostDetailClient.tsx`: added Supabase Realtime `INSERT` listener on `comments` table filtered by `postId`. New comments from other users appear instantly without refresh. (S22-4)
+6. **Trip invite link** — added `joinTrip(tripId)` server action to `trips.ts`. Added `useSearchParams` + useEffect to `trips/[id]/page.tsx` to auto-join on `?join=1`. Added green invite button in trip header (visible when trip is public + owner) that copies `{url}?join=1` to clipboard. (S22-5/6)
+
+#### ⚠️ PENDING (user action required — same as before)
+1. **Run `git_s18_commit.vbs`** — pushes S17+S18 to github
+2. **Paste `all_migrations.sql`** into Supabase SQL Editor
+3. **Run seed script**: `npx ts-node --compiler-options '{"module":"CommonJS"}' prisma/seed-system-user.ts`
+
+#### ▶️ Next (S23 candidates)
+- Web Push Notifications (VAPID + service worker push listener)
+- Story creation UX improvements
+- Admin broadcast page wiring
+
+---
+
+## Status: Phase 3 | Sprint S18+S19 | 2026-07-14 — Profile Map, Passport, Check-in
+
+### Session Log — 2026-07-14 (Sprint S18 + S19 start)
+
+#### ✅ Completed
+1. **`ThailandProvinceMap.tsx`** — `src/components/features/`. Tile-grid of all 77 Thai provinces grouped into 7 geographic regions with color coding. Visited provinces (from `getDeepStats`) highlight in brand color. Province count + progress bar.
+2. **Profile "แผนที่" tab** — `src/app/profile/page.tsx` updated: new tab (MapPin icon), `visitedProvinces` state + useEffect calling `getDeepStats().placesByProvince`, renders `ThailandProvinceMap` in tab content.
+3. **`PassportPage`** — `src/app/profile/passport/page.tsx`. Shareable travel passport card showing: avatar, travel style badge (New Traveler → World Explorer based on provinces visited), stats (trips/provinces/days), top destination chips, decorative stamp emojis. Share API + clipboard fallback.
+4. **Passport 🛂 button** — Added to profile page action button row → links `/profile/passport`.
+5. **Check-in wired to PlaceDetailClient** — Imported `checkInToPlace` + `getUserCheckInStatus`, added state `checkedIn/checkInCount/checkingIn`, loads check-in status on mount, added FAB button that turns green on success and shows count.
+6. **5-hour loop updated** — `day-code` task: `notifyOnCompletion: true`, prompt rewritten to skip commits when git locked, SendUserMessage summary mandatory at end.
+
+#### ⚠️ PENDING (user action required)
+1. **Run `git_s18_commit.vbs`** — commits S17 + S18, pushes to github
+2. **Paste `all_migrations.sql`** into Supabase SQL Editor
+3. **Run seed script**: `npx ts-node --compiler-options '{"module":"CommonJS"}' prisma/seed-system-user.ts`
+
+#### ▶️ Next session (S19)
+Task: Social Layer wire-up verification + PWA polish
+Files: `src/app/notifications/page.tsx`, `src/components/features/PostCard.tsx`
+
+---
+
+## Status: Phase 3 | Sprint S17 | 2026-07-12 — Expense-Trip Tab + Group Chat Schema
+
+### Session Log — 2026-07-12 (Sprint S17)
+
+#### ✅ Completed
+1. **`TripExpenseTab.tsx`** — new component (`src/components/features/`). Shows empty state with "สร้าง Expense Group" CTA that calls `createExpenseGroupForTrip()` and redirects. When a group exists, shows member chips, expense count, and deep-link button.
+2. **Feature panel section in `trips/[id]/page.tsx`** — added 4-tab panel (💰 หารค่าใช้จ่าย / 📊 งบประมาณ / 🎒 สิ่งของ / 💬 แชท) below the itinerary. Renders `TripExpenseTab`, `TripBudgetPanel`, `PackingListPanel`, or a "Coming Soon" chat placeholder. Added `featureTab` state.
+3. **`ExpenseGroupClient.tsx`** — added `tripId?: string | null` to `Group` type. Header back button now shows "← กลับทริป" link (`router.push /trips/${tripId}`) when group is linked to a trip; falls back to `router.back()` otherwise.
+4. **`messages.ts`** — added `createTripGroupChat(tripId)` and `getTripGroupChat(tripId)` using `db = prisma as any` pattern (Conversation model has new fields `name/avatarUrl/tripId` from schema.prisma but Prisma client not yet regenerated due to sandbox network restriction).
+5. **`prisma/schema.prisma`** — `Conversation` model updated: `name String?`, `avatarUrl String?`, `tripId String? @unique`, FK to Trip with `onDelete: SetNull`. `Trip` model: added `groupChat Conversation?` back-ref.
+6. **`prisma/all_migrations.sql`** — appended `20260710000002_group_chat_schema` block: adds `name/avatar_url/tripId` columns to `conversations` table with unique constraint + FK.
+
+#### ⚠️ PENDING (user action required)
+1. **Run `git_s17_commit.vbs`** in your-trip/ to: delete `.git/index.lock`, stage files, commit "Day 37: feat: S17 expense-trip tab + group chat schema", push to github.
+2. **Paste `all_migrations.sql`** into Supabase SQL Editor (includes the new S17 group chat block) — https://supabase.com/dashboard/project/wujunlagtipvbzappuwx/sql/new
+3. **Run seed script** after migration: `npx ts-node --compiler-options '{"module":"CommonJS"}' prisma/seed-system-user.ts`
+4. **Vercel auto-deploy**: after github push, Vercel will pick up + run `prisma generate` (resolving the Conversation type issue) — check deploy at https://your-trip-nu.vercel.app
+
+#### 🔬 TSC Note
+`npx tsc --noEmit` in the Linux sandbox always shows false "unterminated string literal" errors on lines with Thai string content (FUSE mount UTF-8 encoding artifact). Zero NEW errors from S17 code changes (confirmed by filtering for non-Thai files — 0 results). Vercel build will be the authoritative check.
+
+---
 
 ## Status: Phase 3 | Sprint S16 | 2026-07-10 — Schema hardening + System Posts + Interest Ranking
 
@@ -604,58 +799,4 @@ ALTER TABLE "users"
 | 2026-07-02 | Day 33 (5h loop): Weather widget in Place Detail (province-based); Near Me page (/near-me — list/map toggle, radius filter, category filter, GPS geolocation); Leaderboard page (/leaderboard — posts/reviews/trips/followers tabs, podium top-3, ranked list); Place Submit form (/place/submit — community-submitted places + API route /api/place-submission + migration); Invite Friends page (/invite — copy link, LINE/Facebook/X share, invite code); Check-ins page (/check-ins — list/map/stats views, province + category breakdown, check-in history); Admin Submissions page (/admin/submissions — review/approve/reject user-submitted places); Landing page real stats from getPlatformStats(); AppShell: Navigation, Trophy, CheckSquare, ShareIcon icons added; middleware updated. 0 TS errors. | – | git push → continue loop |
 | 2026-07-02 | Day 34 (5h loop): Place of Week widget (sidebar, ISO-week deterministic pick, PlaceOfWeekWidget); Activity Heatmap (GitHub-style 26-week grid, intensity colors, streak counter, getUserActivityDates action — posts+checkIns+reviews); Notification Settings sub-page (/settings/notifications — real usePushNotifications hook, per-type toggles: follower/like/comment/trip-reminder/new-place/weekly); Settings main → notification link; Profile page: heatmap in Activity tab; Feed sidebar: PlaceOfWeekWidget. 0 TS errors. | – | continue Day 34 loop |
 | 2026-07-02 | Day 34 cont: Trip Share Card (/trips/[id]/share — OG metadata + shareable card: cover, stats, owner, LINE/FB/X share, copy link; ExternalLink button on trip detail); DailyInspirationWidget (feed sidebar — random inspiring place, shuffle button); WeatherWidget on /explore/[province] page. 0 TS errors. | – | push_day34b.vbs → Supabase migrations |
-| 2026-07-02 | Day 34c: /map full-screen Leaflet map page — category filter chips (all/attraction/restaurant/cafe/hotel/activity), color-coded SVG markers, click-to-popup with cover image + rating, mobile bottom card, Map nav in AppShell sidebar + middleware; StarRating breakdown in PlaceDetailClient reviews; province? added to PlaceData; TSC 0 errors. | push_day34c.vbs | continue loop |
-| 2026-07-02 | Day 34c cont: CheckInsMapView component — replaces iframe in check-ins map tab with Leaflet markers; color-coded by category, visit-count badge for repeat visits, popup with cover image + date + link; stats bar (unique places + category emoji counts) + legend. TSC 0 errors. | push_day34c.vbs | continue |
-| 2026-07-02 | Day 34d: Mobile bottom nav redesign — centered + create button (floating elevated blue pill), drops search from mobile nav; CheckInsMapView wired into check-ins map tab (Leaflet, category colors, repeat-visit count badge, popup with photo+date); Feed sidebar: DailyInspirationWidget + PlaceOfWeekWidget now actually rendered (were imported but unused). TSC 0 errors. | push_day34d.vbs | continue |
-### Day 34e — 2026-07-02 (cont.)
-**NearMeMapView wired into near-me page**
-- `NearMeMapView.tsx`: updated `NearbyPlace` interface to include `lat?/lng?`
-- Marker positions now use real coordinates from Prisma (`p.lat ?? fallback`)
-- `NearMeClient.tsx`: `NearbyPlace` interface updated + import added + Leaflet map replacing iframe
-- `push_day34e.vbs` ready
-- TSC: 0 errors ✅
-
-
-
-### Day 35 — 2026-07-03
-**Dynamic OG Image Generator + Social Metadata**
-- `/api/og/route.tsx` — edge-runtime ImageResponse: left panel (logo + category + title + rating), right panel (cover photo)
-- `place/[slug]/page.tsx` — branded OG image with name + province + category emoji + star rating + cover photo
-- `post/[id]/page.tsx` — OG image with author name + content snippet + first image
-- `landing page.tsx` — full openGraph + twitter card metadata
-- Commit `aee14606` (parent `01a87b53`)
-- fix_and_push.vbs updated to SHA aee14606
-- TSC: 0 errors ✅
-
-
-### Day 35 (cont.) — 2026-07-03
-**Bug fixes + schema hardening**
-- `prisma/schema.prisma` — added `isPinned Boolean @default(false)` to Post model (was added via SQL migration but missing from schema)
-- `server/actions/posts.ts` — removed top-level `const dbPin = prisma as any`; replaced with scoped casts + proper Prisma types where possible
-- `posts.ts` null-byte FUSE truncation fixed (getPopularThisWeek function was cut mid-query)
-- `package.json` FUSE truncation restored from git HEAD (was missing tailwindcss/typescript closing)
-- All lock files cleared from .git/ (FUSE rename trick)
-- `fix_and_push.vbs` — updated commit message to reflect full Day 26-35 scope
-- TSC: **0 errors** ✅ (341 files)
-
-**Next user actions (in order):**
-1. Double-click `fix_and_push.vbs` → check `push_output.txt` for "main -> main"
-2. Vercel → Add Project → Root: `your-trip-web` → env vars → Deploy
-3. Supabase Dashboard → Auth → URL Configuration → add Vercel URL + `/auth/callback`
-4. Supabase SQL Editor → paste `prisma/all_migrations.sql` (197 lines)
-5. On Windows: `cd your-trip-web && npx prisma generate` (picks up `isPinned` field)
-
-### Day 35 (cont. 2) — 2026-07-03
-**Schema completions + deploy fixes**
-- `prisma/schema.prisma` — full schema hardening:
-  - `isOnboarded Boolean`, `interests String[]` added to User model
-  - `checkIns CheckIn[]` back-reference added to User + Place models
-  - `tripCollaborations TripCollaborator[]` back-reference added to User
-  - `isPinned Boolean @default(false)` added to Post model
-  - `@@index` directives on Place + Post preserved
-- `auth/callback/route.ts` — new users redirect to `/onboarding` automatically
-- `register/page.tsx` — OAuth redirectTo fixed (was `/api/auth/callback`)
-- `middleware.ts` — 5 new protected routes added
-- `package.json` / `vercel.json` — `prisma generate` in build step (Vercel deploy fix)
-- `.env.example` — completed with all required vars
-- TSC: **0 errors** ✅ (341 files)
+| 2026-07-02 | Day 34c: /map full-screen Leaflet map page — category filter chips (all/attraction/restaurant/cafe/hotel/activity), color-coded SVG markers, click-to-popup with cover image + rating, mobile bottom card, Map nav in AppShell sidebar + middlewa

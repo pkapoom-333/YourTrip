@@ -1,10 +1,15 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { ChevronRight, Check, Users } from "lucide-react";
-import { followUser, getSuggestedUsers, type UserCard } from "@/server/actions/profile";
-import { Avatar } from "@/components/shared/Avatar";
+import { ChevronRight, Check, Users, Loader2 } from "lucide-react";
+import {
+  followUser,
+  getSuggestedUsers,
+  completeOnboarding,
+  type UserCard,
+} from "@/server/actions/profile";
+import { useUser } from "@/hooks/useUser";
 
 const INTERESTS = [
   { id: "attraction", emoji: "🏔️", label: "สถานที่เที่ยว" },
@@ -21,19 +26,42 @@ const INTERESTS = [
   { id: "budget",     emoji: "💰", label: "เที่ยวประหยัด" },
 ];
 
+/** Auto-generate a username slug from full name or email */
+function makeUsername(name: string, email: string): string {
+  const base = name
+    ? name.toLowerCase().replace(/[^a-z0-9]/g, "")
+    : email.split("@")[0].toLowerCase().replace(/[^a-z0-9]/g, "");
+  const suffix = Math.floor(1000 + Math.random() * 9000);
+  return (base.slice(0, 12) || "traveler") + suffix;
+}
+
 export default function OnboardingPage() {
   const router = useRouter();
+  const { user } = useUser();
+
   const [step, setStep] = useState<1 | 2 | 3>(1);
+  const [displayName, setDisplayName] = useState("");
+  const [username, setUsername] = useState("");
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [suggested, setSuggested] = useState<UserCard[]>([]);
   const [followed, setFollowed] = useState<Set<string>>(new Set());
   const [loadingSuggested, setLoadingSuggested] = useState(false);
+  const [finishing, setFinishing] = useState(false);
+  const [finishError, setFinishError] = useState("");
+
+  // Pre-fill name/username from Google auth metadata
+  useEffect(() => {
+    if (!user) return;
+    const googleName: string = (user.user_metadata?.full_name as string | undefined) ?? "";
+    const email: string = user.email ?? "";
+    if (!displayName) setDisplayName(googleName);
+    if (!username) setUsername(makeUsername(googleName, email));
+  }, [user]);
 
   function toggleInterest(id: string) {
     setSelected((prev) => {
       const next = new Set(prev);
-      if (next.has(id)) next.delete(id);
-      else next.add(id);
+      if (next.has(id)) next.delete(id); else next.add(id);
       return next;
     });
   }
@@ -52,8 +80,34 @@ export default function OnboardingPage() {
     await followUser(userId);
   }
 
-  function finish() {
-    // Mark onboarding done in localStorage to not show again
+  async function finish() {
+    setFinishing(true);
+    setFinishError("");
+    try {
+      const result = await completeOnboarding({
+        username: username.trim() || makeUsername(displayName, user?.email ?? ""),
+        name: displayName.trim() || "นักเดินทาง",
+        interests: Array.from(selected),
+        followUserIds: Array.from(followed),
+      });
+      if (!result.ok) {
+        // Username conflict — regenerate and retry once
+        const retryUsername = makeUsername(displayName, user?.email ?? "");
+        const retry = await completeOnboarding({
+          username: retryUsername,
+          name: displayName.trim() || "นักเดินทาง",
+          interests: Array.from(selected),
+          followUserIds: Array.from(followed),
+        });
+        if (!retry.ok) {
+          setFinishError(retry.error ?? "เกิดข้อผิดพลาด ลองใหม่อีกครั้ง");
+          setFinishing(false);
+          return;
+        }
+      }
+    } catch {
+      // Non-fatal — send to feed anyway so they're not stuck
+    }
     if (typeof window !== "undefined") {
       localStorage.setItem("yt_onboarded", "1");
     }
@@ -82,17 +136,49 @@ export default function OnboardingPage() {
       </div>
 
       <div className="flex-1 px-6 pb-8 flex flex-col max-w-lg mx-auto w-full">
-        {/* Step 1: Interests */}
+
+        {/* ─── Step 1: Name + Interests ─── */}
         {step === 1 && (
           <>
-            <div className="mb-6">
-              <h1 className="text-2xl font-bold text-gray-900 dark:text-slate-100 mb-2">
-                คุณชอบเที่ยวแบบไหน?
+            <div className="mb-4">
+              <h1 className="text-2xl font-bold text-gray-900 dark:text-slate-100 mb-1">
+                ยินดีต้อนรับ! 👋
               </h1>
               <p className="text-sm text-gray-500 dark:text-slate-400">
-                เลือกอย่างน้อย 3 หัวข้อที่ตรงกับสไตล์ของคุณ
+                บอกเราว่าคุณชอบเที่ยวแบบไหน
               </p>
             </div>
+
+            {/* Name + username quick edit */}
+            <div className="flex gap-2 mb-4">
+              <div className="flex-1">
+                <label className="block text-[10px] font-semibold text-gray-400 dark:text-slate-500 mb-1 uppercase tracking-wide">ชื่อที่แสดง</label>
+                <input
+                  type="text"
+                  value={displayName}
+                  onChange={(e) => setDisplayName(e.target.value)}
+                  placeholder="ชื่อของคุณ"
+                  maxLength={50}
+                  className="w-full px-3 py-2 text-sm border border-gray-200 dark:border-slate-600 rounded-xl bg-white dark:bg-slate-800 text-gray-800 dark:text-slate-200 placeholder:text-gray-400 focus:outline-none focus:border-[#398AB9]"
+                />
+              </div>
+              <div className="flex-1">
+                <label className="block text-[10px] font-semibold text-gray-400 dark:text-slate-500 mb-1 uppercase tracking-wide">ชื่อผู้ใช้</label>
+                <div className="relative">
+                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-sm">@</span>
+                  <input
+                    type="text"
+                    value={username}
+                    onChange={(e) => setUsername(e.target.value.toLowerCase().replace(/[^a-z0-9_]/g, ""))}
+                    placeholder="username"
+                    maxLength={30}
+                    className="w-full pl-6 pr-3 py-2 text-sm border border-gray-200 dark:border-slate-600 rounded-xl bg-white dark:bg-slate-800 text-gray-800 dark:text-slate-200 placeholder:text-gray-400 focus:outline-none focus:border-[#398AB9]"
+                  />
+                </div>
+              </div>
+            </div>
+
+            <p className="text-xs text-gray-500 dark:text-slate-400 mb-3">เลือกความสนใจอย่างน้อย 3 หัวข้อ</p>
 
             <div className="grid grid-cols-3 gap-3 flex-1">
               {INTERESTS.map((item) => {
@@ -123,7 +209,7 @@ export default function OnboardingPage() {
 
             <button
               onClick={goToStep2}
-              disabled={selected.size < 3}
+              disabled={selected.size < 3 || !username.trim() || !displayName.trim()}
               className="mt-6 w-full py-4 rounded-2xl bg-[#398AB9] text-white font-bold text-sm flex items-center justify-center gap-2 hover:bg-[#1C658C] disabled:opacity-40 disabled:cursor-not-allowed transition"
             >
               ถัดไป
@@ -137,7 +223,7 @@ export default function OnboardingPage() {
           </>
         )}
 
-        {/* Step 2: Follow suggested users */}
+        {/* ─── Step 2: Follow suggested users ─── */}
         {step === 2 && (
           <>
             <div className="mb-6">
@@ -169,25 +255,25 @@ export default function OnboardingPage() {
               </div>
             ) : (
               <div className="flex flex-col gap-3 flex-1">
-                {suggested.map((user) => {
-                  const isFollowed = followed.has(user.id);
-                  const initials = (user.name ?? user.username ?? "U").charAt(0).toUpperCase();
+                {suggested.map((u) => {
+                  const isFollowed = followed.has(u.id);
+                  const initials = (u.name ?? u.username ?? "U").charAt(0).toUpperCase();
                   return (
-                    <div key={user.id} className="flex items-center gap-3 bg-white dark:bg-slate-800 rounded-2xl border border-gray-100 dark:border-slate-700 px-4 py-3">
-                      {user.avatarUrl ? (
-                        <img src={user.avatarUrl} alt={user.name ?? ""} className="w-12 h-12 rounded-full object-cover flex-shrink-0" />
+                    <div key={u.id} className="flex items-center gap-3 bg-white dark:bg-slate-800 rounded-2xl border border-gray-100 dark:border-slate-700 px-4 py-3">
+                      {u.avatarUrl ? (
+                        <img src={u.avatarUrl} alt={u.name ?? ""} className="w-12 h-12 rounded-full object-cover flex-shrink-0" referrerPolicy="no-referrer" />
                       ) : (
                         <div className="w-12 h-12 bg-[#398AB9] rounded-full flex items-center justify-center text-white font-bold flex-shrink-0">
                           {initials}
                         </div>
                       )}
                       <div className="flex-1 min-w-0">
-                        <p className="text-sm font-semibold text-gray-900 dark:text-slate-100 truncate">{user.name ?? "นักเดินทาง"}</p>
-                        {user.username && <p className="text-[11px] text-gray-400 dark:text-slate-500 truncate">@{user.username}</p>}
-                        {user.bio && <p className="text-xs text-gray-500 dark:text-slate-400 truncate mt-0.5">{user.bio}</p>}
+                        <p className="text-sm font-semibold text-gray-900 dark:text-slate-100 truncate">{u.name ?? "นักเดินทาง"}</p>
+                        {u.username && <p className="text-[11px] text-gray-400 dark:text-slate-500 truncate">@{u.username}</p>}
+                        {u.bio && <p className="text-xs text-gray-500 dark:text-slate-400 truncate mt-0.5">{u.bio}</p>}
                       </div>
                       <button
-                        onClick={() => handleFollow(user.id)}
+                        onClick={() => handleFollow(u.id)}
                         className={`flex-shrink-0 px-3 py-1.5 rounded-xl text-xs font-semibold transition ${
                           isFollowed
                             ? "border border-gray-200 dark:border-slate-600 text-gray-500 dark:text-slate-400"
@@ -220,7 +306,7 @@ export default function OnboardingPage() {
           </>
         )}
 
-        {/* Step 3: Done */}
+        {/* ─── Step 3: Done ─── */}
         {step === 3 && (
           <div className="flex-1 flex flex-col items-center justify-center text-center py-12">
             <div className="w-24 h-24 bg-[#398AB9]/10 rounded-full flex items-center justify-center mb-6">
@@ -232,21 +318,37 @@ export default function OnboardingPage() {
             <p className="text-sm text-gray-500 dark:text-slate-400 max-w-xs mb-2">
               โปรไฟล์ของคุณพร้อมแล้ว ค้นพบสถานที่ที่คุณชอบ แชร์ประสบการณ์ และวางแผนทริปในฝัน
             </p>
+
             <div className="flex flex-col gap-3 mt-6 w-full max-w-xs">
-              <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-slate-400 bg-green-50 dark:bg-green-900/20 rounded-xl px-4 py-3">
-                <Check className="w-4 h-4 text-green-500" />
-                เลือก {selected.size} ความสนใจแล้ว
+              <div className="flex items-center gap-2 text-sm text-gray-700 dark:text-slate-300 bg-green-50 dark:bg-green-900/20 rounded-xl px-4 py-3">
+                <Check className="w-4 h-4 text-green-500 flex-shrink-0" />
+                <span>@{username} · เลือก {selected.size} ความสนใจ</span>
               </div>
-              <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-slate-400 bg-green-50 dark:bg-green-900/20 rounded-xl px-4 py-3">
-                <Check className="w-4 h-4 text-green-500" />
-                ติดตาม {followed.size} นักเดินทาง
-              </div>
+              {followed.size > 0 && (
+                <div className="flex items-center gap-2 text-sm text-gray-700 dark:text-slate-300 bg-blue-50 dark:bg-blue-900/20 rounded-xl px-4 py-3">
+                  <Check className="w-4 h-4 text-blue-500 flex-shrink-0" />
+                  <span>ติดตาม {followed.size} นักเดินทาง</span>
+                </div>
+              )}
             </div>
+
+            {finishError && (
+              <p className="mt-4 text-xs text-red-500">{finishError}</p>
+            )}
+
             <button
               onClick={finish}
-              className="mt-8 w-full max-w-xs py-4 rounded-2xl bg-[#398AB9] text-white font-bold text-base hover:bg-[#1C658C] transition"
+              disabled={finishing}
+              className="mt-8 w-full max-w-xs py-4 rounded-2xl bg-[#398AB9] text-white font-bold text-base hover:bg-[#1C658C] disabled:opacity-60 transition flex items-center justify-center gap-2"
             >
-              เริ่มใช้งาน YourTrip →
+              {finishing ? (
+                <>
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                  กำลังตั้งค่า...
+                </>
+              ) : (
+                "เริ่มใช้งาน YourTrip →"
+              )}
             </button>
           </div>
         )}

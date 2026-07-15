@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import AppShell from "@/components/AppShell";
 import Link from "next/link";
-import { Search, Bell, TrendingUp } from "lucide-react";
+import { Search, Bell, TrendingUp, Plus, Star, MapPin, Users } from "lucide-react";
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? "https://your-trip-nu.vercel.app";
 
@@ -141,6 +141,26 @@ export default async function FeedPage() {
                 myAvatarUrl={myProfile?.avatarUrl}
                 myName={myProfile?.name ?? myProfile?.username ?? undefined}
               />
+            </div>
+
+            {/* Quick Actions — pill shortcuts */}
+            <div className="flex gap-2 overflow-x-auto scrollbar-none px-1 mb-3 pb-0.5">
+              {[
+                { href: "/trips/new", icon: Plus, label: "สร้างทริป", color: "bg-[#398AB9] text-white" },
+                { href: "/create", icon: Star, label: "เขียนรีวิว", color: "bg-white dark:bg-slate-800 text-gray-700 dark:text-slate-200 border border-gray-200 dark:border-slate-700" },
+                { href: "/explore?tab=places", icon: MapPin, label: "ค้นหาสถานที่", color: "bg-white dark:bg-slate-800 text-gray-700 dark:text-slate-200 border border-gray-200 dark:border-slate-700" },
+                { href: "/discover", icon: Users, label: "ค้นพบคน", color: "bg-white dark:bg-slate-800 text-gray-700 dark:text-slate-200 border border-gray-200 dark:border-slate-700" },
+                { href: "/near-me", icon: MapPin, label: "ใกล้ฉัน", color: "bg-white dark:bg-slate-800 text-gray-700 dark:text-slate-200 border border-gray-200 dark:border-slate-700" },
+              ].map(({ href, icon: Icon, label, color }) => (
+                <Link
+                  key={label}
+                  href={href}
+                  className={`flex items-center gap-1.5 px-3 py-2 rounded-full text-xs font-semibold whitespace-nowrap flex-shrink-0 shadow-sm transition-all active:scale-95 ${color}`}
+                >
+                  <Icon className="w-3.5 h-3.5" />
+                  {label}
+                </Link>
+              ))}
             </div>
 
             {/* Posts — client component with infinite scroll */}

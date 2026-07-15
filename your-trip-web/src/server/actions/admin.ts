@@ -3,6 +3,7 @@
 import { prisma } from "@/lib/prisma";
 import { createClient as createServerClient } from "@/lib/supabase/server";
 import { revalidatePath } from "next/cache";
+import { sendPushToUsers } from "./push";
 
 const ADMIN_EMAILS = (process.env.ADMIN_EMAILS ?? "pakpoomtee24@gmail.com").split(",").map((e) => e.trim());
 
@@ -790,6 +791,13 @@ export async function broadcastNotification(opts: {
     });
     sent += batch.length;
   }
+
+  // Also fire web-push to all target users (non-blocking)
+  sendPushToUsers(userIds, {
+    title: opts.title,
+    body: opts.body,
+    url: opts.actionUrl ?? "/feed",
+  }).catch(() => {});
 
   revalidatePath("/admin/broadcast");
   return { sent };

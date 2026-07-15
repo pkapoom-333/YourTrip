@@ -1,0 +1,5 @@
+warning: in the working copy of 'your-trip-web/prisma/schema.prisma', LF will be replaced by CRLF the next time Git touches it
+[main 9376af7] fix: complete truncated PaymentRecord model in schema.prisma (line 630 FUSE truncation)
+ 1 file changed, 5 insertions(+), 1 deletion(-)
+To https://github.com/pkapoom-333/YourTrip.git
+   3451080..9376af7  main -> main

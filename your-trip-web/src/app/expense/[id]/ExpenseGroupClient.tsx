@@ -11,6 +11,7 @@ type Group = {
   name: string;
   emoji: string;
   description: string | null;
+  tripId?: string | null;
   inviteCode?: string | null;
   members: Array<{
     id: string; name: string; color: string; avatarUrl: string | null;
@@ -122,9 +123,19 @@ export default function ExpenseGroupClient({
       {/* Header */}
       <div className="sticky top-0 bg-white/90 dark:bg-slate-900/90 backdrop-blur-md border-b border-gray-100 dark:border-slate-800 px-4 py-3">
         <div className="flex items-center gap-3 mb-3">
-          <button onClick={() => router.back()} className="p-1.5 rounded-xl hover:bg-gray-100 dark:hover:bg-slate-800">
-            <ChevronLeft className="w-5 h-5 text-gray-600 dark:text-slate-400" />
-          </button>
+          {group.tripId ? (
+            <button
+              onClick={() => router.push(`/trips/${group.tripId}`)}
+              className="flex items-center gap-1 text-sm text-[#398AB9] hover:text-[#1C658C] font-medium px-2 py-1.5 rounded-xl hover:bg-[#398AB9]/8 transition"
+            >
+              <ChevronLeft className="w-4 h-4" />
+              กลับทริป
+            </button>
+          ) : (
+            <button onClick={() => router.back()} className="p-1.5 rounded-xl hover:bg-gray-100 dark:hover:bg-slate-800">
+              <ChevronLeft className="w-5 h-5 text-gray-600 dark:text-slate-400" />
+            </button>
+          )}
           <div className="flex items-center gap-2 flex-1 min-w-0">
             <span className="text-2xl">{group.emoji}</span>
             <div className="min-w-0">
@@ -299,6 +310,53 @@ export default function ExpenseGroupClient({
 
         {tab === "summary" && (
           <div className="space-y-3">
+            {/* Category breakdown chart */}
+            {group.expenses.length > 0 && (() => {
+              const catTotals: Record<string, { emoji: string; label: string; total: number }> = {};
+              for (const exp of group.expenses) {
+                const cat = CATEGORIES.find((c) => c.value === exp.category) ?? CATEGORIES[0];
+                if (!catTotals[exp.category]) catTotals[exp.category] = { emoji: cat.emoji, label: cat.label, total: 0 };
+                catTotals[exp.category].total += exp.amount;
+              }
+              const sorted = Object.entries(catTotals).sort((a, b) => b[1].total - a[1].total);
+              const maxTotal = sorted[0]?.[1].total ?? 1;
+              return (
+                <div className="bg-white dark:bg-slate-800 rounded-2xl border border-gray-100 dark:border-slate-700 p-4">
+                  <h3 className="text-sm font-semibold text-gray-700 dark:text-slate-300 mb-4 flex items-center gap-1.5">
+                    📊 แยกตามหมวดหมู่
+                  </h3>
+                  <div className="space-y-3">
+                    {sorted.map(([key, { emoji, label, total }]) => {
+                      const pct = Math.round((total / totalExpenses) * 100);
+                      const barW = Math.round((total / maxTotal) * 100);
+                      return (
+                        <div key={key}>
+                          <div className="flex items-center justify-between mb-1">
+                            <span className="text-sm text-gray-700 dark:text-slate-300 flex items-center gap-1.5">
+                              <span>{emoji}</span>
+                              <span>{label}</span>
+                              <span className="text-xs text-gray-400 dark:text-slate-500">({pct}%)</span>
+                            </span>
+                            <span className="text-sm font-semibold text-[#398AB9]">{formatBaht(total)}</span>
+                          </div>
+                          <div className="h-2 bg-gray-100 dark:bg-slate-700 rounded-full overflow-hidden">
+                            <div
+                              className="h-full bg-[#398AB9] rounded-full transition-all duration-500"
+                              style={{ width: `${barW}%` }}
+                            />
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                  <div className="mt-4 pt-3 border-t border-gray-50 dark:border-slate-700 flex items-center justify-between">
+                    <span className="text-xs text-gray-400 dark:text-slate-500">รวมทั้งหมด</span>
+                    <span className="text-base font-bold text-gray-900 dark:text-white">{formatBaht(totalExpenses)}</span>
+                  </div>
+                </div>
+              );
+            })()}
+
             {/* Balance cards */}
             <div className="bg-white dark:bg-slate-800 rounded-2xl border border-gray-100 dark:border-slate-700 p-4">
               <h3 className="text-sm font-semibold text-gray-700 dark:text-slate-300 mb-3 flex items-center gap-1.5">

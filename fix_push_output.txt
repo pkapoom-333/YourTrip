@@ -1,0 +1,6 @@
+warning: in the working copy of 'your-trip-web/package-lock.json', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'your-trip-web/package.json', LF will be replaced by CRLF the next time Git touches it
+[main 3451080] fix: upgrade @prisma/client to 7.8.0 to match prisma CLI
+ 2 files changed, 9 insertions(+), 9 deletions(-)
+To https://github.com/pkapoom-333/YourTrip.git
+   d19ef4b..3451080  main -> main

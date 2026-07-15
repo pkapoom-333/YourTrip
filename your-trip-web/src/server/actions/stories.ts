@@ -12,6 +12,16 @@ export interface StoryItem {
   expiresAt: Date;
   createdAt: Date;
   viewedByMe: boolean;
+  viewCount: number;
+}
+
+export interface StoryReaction {
+  id: string;
+  emoji: string;
+  userId: string;
+  userName: string;
+  userAvatarUrl: string | null;
+  createdAt: Date;
 }
 
 export interface StoryGroup {
@@ -38,6 +48,7 @@ export async function getStories(): Promise<{ data: StoryGroup[]; myUserId: stri
       include: {
         user: { select: { id: true, name: true, username: true, avatarUrl: true } },
         views: myId ? { where: { viewerId: myId }, select: { id: true } } : false,
+        _count: { select: { views: true } },
       },
       orderBy: { createdAt: "desc" },
     });
@@ -66,6 +77,7 @@ export async function getStories(): Promise<{ data: StoryGroup[]; myUserId: stri
         expiresAt: s.expiresAt,
         createdAt: s.createdAt,
         viewedByMe,
+        viewCount: (s._count as { views: number }).views,
       });
     }
 
@@ -117,6 +129,7 @@ export async function getMyStories(): Promise<{ data: StoryItem[] }> {
         expiresAt: s.expiresAt,
         createdAt: s.createdAt,
         viewedByMe: true,
+        viewCount: 0, // TODO: include _count when needed
       })),
     };
   } catch {
@@ -212,6 +225,76 @@ export async function getStoryViewers(storyId: string): Promise<{
         avatarUrl: v.viewer.avatarUrl,
         viewedAt: v.viewedAt,
       })),
+    };
+  } catch {
+    return { data: [] };
+  }
+}
+
+// ─── Story Reactions ─────────────────────────────────────────────────────────
+
+export const STORY_REACTION_EMOJIS = ["❤️", "🔥", "😍", "😂", "✈️", "👏"] as const;
+
+// Toggle a reaction emoji on a story (upsert / delete)
+export async function reactToStory(storyId: string, emoji: string): Promise<{ ok: boolean; error?: string }> {
+  try {
+    const supabase = await createClient();
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return { ok: false, error: "กรุณาเข้าสู่ระบบ" };
+
+    // Check if already reacted with same emoji
+    const existing = await (prisma as any).storyReaction.findFirst({
+      where: { storyId, userId: user.id, emoji },
+    });
+
+    if (existing) {
+      // Toggle off
+      await (prisma as any).storyReaction.deleteMany({
+        where: { storyId, userId: user.id, emoji },
+      });
+    } else {
+      // Replace any previous emoji reaction with new one
+      await (prisma as any).storyReaction.deleteMany({
+        where: { storyId, userId: user.id },
+      });
+      await (prisma as any).storyReaction.create({
+        data: { storyId, userId: user.id, emoji },
+      });
+    }
+
+    return { ok: true };
+  } catch (e) {
+    return { ok: false, error: String(e) };
+  }
+}
+
+// Get reactions for a story (grouped by emoji with counts)
+export async function getStoryReactions(storyId: string): Promise<{
+  data: Array<{ emoji: string; count: number; reactedByMe: boolean }>;
+}> {
+  try {
+    const supabase = await createClient();
+    const { data: { user } } = await supabase.auth.getUser();
+
+    const reactions = await (prisma as any).storyReaction.findMany({
+      where: { storyId },
+      select: { emoji: true, userId: true },
+    });
+
+    const myId = user?.id ?? null;
+    const grouped = new Map<string, { count: number; reactedByMe: boolean }>();
+
+    for (const r of reactions as Array<{ emoji: string; userId: string }>) {
+      const entry = grouped.get(r.emoji) ?? { count: 0, reactedByMe: false };
+      entry.count++;
+      if (r.userId === myId) entry.reactedByMe = true;
+      grouped.set(r.emoji, entry);
+    }
+
+    return {
+      data: Array.from(grouped.entries())
+        .map(([emoji, { count, reactedByMe }]) => ({ emoji, count, reactedByMe }))
+        .sort((a, b) => b.count - a.count),
     };
   } catch {
     return { data: [] };

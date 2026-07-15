@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import AppShell from "@/components/AppShell";
 import Link from "next/link";
 import Image from "next/image";
@@ -10,12 +10,12 @@ import {
   Car, Bike, Bus, Navigation, AlertTriangle,
   ParkingSquare, Wifi, Wind, Leaf, Accessibility,
   MessageCircle, MoreHorizontal, ThumbsUp, ChevronDown, PenLine,
-  Plus, X, CalendarDays, BookMarked, Maximize2,
+  Plus, X, CalendarDays, BookMarked, Maximize2, CheckSquare, Backpack,
 } from "lucide-react";
-import { createReview } from "@/server/actions/places";
+import { createReview, checkInToPlace, getUserCheckInStatus } from "@/server/actions/places";
 import { getPostsByPlace } from "@/server/actions/posts";
 import { toggleSavePlace } from "@/server/actions/savedPlaces";
-import { getUserTrips, addItineraryItem } from "@/server/actions/trips";
+import { getUserTrips, addItineraryItem, addPackingItem } from "@/server/actions/trips";
 import { getUserCollections, addToCollection, type CollectionListItem } from "@/server/actions/collections";
 import { Avatar } from "@/components/shared/Avatar";
 import { useToast } from "@/components/shared/Toast";
@@ -103,6 +103,9 @@ export default function PlaceDetailClient({ place, slug, initialSaved = false }:
   const [reviewText, setReviewText] = useState("");
   const [reviewSubmitting, setReviewSubmitting] = useState(false);
   const [reviewDone, setReviewDone] = useState(false);
+  const [reviewPhotoFiles, setReviewPhotoFiles] = useState<File[]>([]);
+  const [reviewPhotoPreviews, setReviewPhotoPreviews] = useState<string[]>([]);
+  const reviewPhotoRef = useRef<HTMLInputElement>(null);
   const [shareCopied, setShareCopied] = useState(false);
   const [addTripOpen, setAddTripOpen] = useState(false);
   const [tripsList, setTripsList] = useState<Array<{ id: string; title: string; destination: string; days: number }>>([]);
@@ -118,14 +121,100 @@ export default function PlaceDetailClient({ place, slug, initialSaved = false }:
   const [lightboxOpen, setLightboxOpen] = useState(false);
   const [lightboxIndex, setLightboxIndex] = useState(0);
   const [communityPosts, setCommunityPosts] = useState<{ id: string; images: string[]; likesCount: number; user: { name: string | null; avatarUrl: string | null } }[]>([]);
+  const [checkedIn, setCheckedIn] = useState(false);
+  const [checkInCount, setCheckInCount] = useState(0);
+  const [checkingIn, setCheckingIn] = useState(false);
+  // Packing list quick-add
+  const [packingOpen, setPackingOpen] = useState(false);
+  const [packingCustom, setPackingCustom] = useState("");
+  const [addingPacking, setAddingPacking] = useState(false);
 
   useEffect(() => {
     if (place.id && !place.id.startsWith("mock")) {
       getPostsByPlace(place.id).then(({ data }) => setCommunityPosts(data));
+      getUserCheckInStatus(place.id).then(({ hasCheckedIn, totalCheckIns }) => {
+        setCheckedIn(hasCheckedIn);
+        setCheckInCount(totalCheckIns);
+      }).catch(() => {});
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [place.id]);
+
+  async function handleCheckIn() {
+    if (!place.id || place.id.startsWith("mock") || checkingIn) return;
+    setCheckingIn(true);
+    try {
+      const res = await checkInToPlace(place.id, "");
+      if (res.ok) {
+        setCheckedIn(true);
+        setCheckInCount(res.checkInCount ?? checkInCount + 1);
+        success("เช็คอินสำเร็จ! 📍");
+      } else {
+        toastError(res.error ?? "เกิดข้อผิดพลาด");
+      }
+    } catch {
+      toastError("ไม่สามารถเช็คอินได้");
+    } finally {
+      setCheckingIn(false);
+    }
+  }
   const [reviewSort, setReviewSort] = useState<"newest" | "highest" | "lowest" | "helpful">("helpful");
+
+  // Packing list: suggested items by place category
+  function getPackingSuggestions(): string[] {
+    const cat = (place.category + " " + place.categoryEn).toLowerCase();
+    const name = place.name;
+    if (cat.includes("beach") || cat.includes("ชายหาด") || cat.includes("ทะเล"))
+      return [`ตั๋ว ${name}`, "ครีมกันแดด SPF50+", "ชุดว่ายน้ำ", "ผ้าเช็ดตัว", "แว่นตากันแดด"];
+    if (cat.includes("temple") || cat.includes("วัด") || cat.includes("เจดีย์"))
+      return [`ตั๋ว ${name}`, "ผ้าคลุมไหล่/ผ้าซิ่น", "เงินทำบุญ", "รองเท้าถอดง่าย"];
+    if (cat.includes("park") || cat.includes("อุทยาน") || cat.includes("ป่า") || cat.includes("เขา"))
+      return [`ตั๋วเข้า ${name}`, "ครีมกันแดด", "ยากันแมลง", "น้ำดื่ม", "รองเท้าเดินป่า"];
+    if (cat.includes("cafe") || cat.includes("คาเฟ่"))
+      return [`จอง ${name}`, "ที่ชาร์จโทรศัพท์", "บัตรเครดิต"];
+    if (cat.includes("restaurant") || cat.includes("ร้านอาหาร") || cat.includes("food"))
+      return [`จอง ${name}`, "เงินสำรอง", "บัตรเครดิต", "กล้องถ่ายอาหาร"];
+    if (cat.includes("museum") || cat.includes("พิพิธภัณฑ์"))
+      return [`ตั๋ว ${name}`, "สมุดบันทึก", "แบตเตอรี่กล้อง"];
+    if (cat.includes("market") || cat.includes("ตลาด") || cat.includes("ช้อปปิ้ง"))
+      return [`ตั๋ว / ค่าเข้า ${name}`, "เงินสด", "ถุงผ้า", "สบู่เช็ดมือ"];
+    return [`ตั๋ว ${name}`, "เงินสำรอง", "กล้องถ่ายรูป", "แผนที่"];
+  }
+
+  async function openPackingModal() {
+    if (!user) {
+      window.location.href = `/login?next=${encodeURIComponent(window.location.pathname)}`;
+      return;
+    }
+    setPackingOpen(true);
+    setPackingCustom(`ตั๋ว ${place.name}`);
+    // Load trips if not already loaded
+    if (tripsList.length > 0) return;
+    setTripsLoading(true);
+    const { data } = await getUserTrips();
+    const mapped = data.map((t) => ({
+      id: t.id,
+      title: t.title,
+      destination: t.destination,
+      days: t.days.length,
+    }));
+    setTripsList(mapped);
+    if (mapped.length > 0) setSelectedTripId(mapped[0].id);
+    setTripsLoading(false);
+  }
+
+  async function handleAddPacking(itemName: string) {
+    if (!selectedTripId || !itemName.trim()) return;
+    setAddingPacking(true);
+    const result = await addPackingItem(selectedTripId, itemName.trim());
+    setAddingPacking(false);
+    if (result.data) {
+      success(`เพิ่ม "${itemName.trim()}" ใน Packing List แล้ว ✓`);
+      setPackingCustom("");
+    } else {
+      toastError("ไม่สามารถเพิ่มได้ กรุณาลองใหม่");
+    }
+  }
 
   async function openAddToCollection() {
     setAddColOpen(true);
@@ -201,12 +290,51 @@ export default function PlaceDetailClient({ place, slug, initialSaved = false }:
     }
   }
 
+  function handleReviewPhotoAdd(e: React.ChangeEvent<HTMLInputElement>) {
+    const files = Array.from(e.target.files ?? []).slice(0, 3 - reviewPhotoFiles.length);
+    if (!files.length) return;
+    const newFiles = [...reviewPhotoFiles, ...files].slice(0, 3);
+    setReviewPhotoFiles(newFiles);
+    newFiles.forEach((f, i) => {
+      if (reviewPhotoPreviews[i]) return;
+      const url = URL.createObjectURL(f);
+      setReviewPhotoPreviews((prev) => { const next = [...prev]; next[i] = url; return next; });
+    });
+    // Re-generate all previews to stay in sync
+    setReviewPhotoPreviews(newFiles.map((f) => URL.createObjectURL(f)));
+    if (e.target) e.target.value = "";
+  }
+
+  function removeReviewPhoto(idx: number) {
+    const newFiles = reviewPhotoFiles.filter((_, i) => i !== idx);
+    setReviewPhotoFiles(newFiles);
+    setReviewPhotoPreviews(newFiles.map((f) => URL.createObjectURL(f)));
+  }
+
   async function handleSubmitReview(e: React.FormEvent) {
     e.preventDefault();
     if (!place.id) return;
     setReviewSubmitting(true);
+
+    // Upload photos first (max 3)
+    let uploadedUrls: string[] = [];
+    for (const file of reviewPhotoFiles) {
+      try {
+        const fd = new FormData();
+        fd.append("file", file);
+        const res = await fetch("/api/upload", { method: "POST", body: fd });
+        const json = await res.json() as { url?: string };
+        if (json.url) uploadedUrls = [...uploadedUrls, json.url];
+      } catch { /* skip failed photo */ }
+    }
+
     if (!place.id.startsWith("mock")) {
-      const result = await createReview({ placeId: place.id, rating: reviewRating, content: reviewText });
+      const result = await createReview({
+        placeId: place.id,
+        rating: reviewRating,
+        content: reviewText,
+        images: uploadedUrls,
+      });
       if (result.error === "กรุณาเข้าสู่ระบบ") {
         setReviewSubmitting(false);
         window.location.href = `/login?next=${encodeURIComponent(window.location.pathname)}`;
@@ -217,6 +345,8 @@ export default function PlaceDetailClient({ place, slug, initialSaved = false }:
     setReviewDone(true);
     setShowReviewForm(false);
     setReviewText("");
+    setReviewPhotoFiles([]);
+    setReviewPhotoPreviews([]);
   }
 
   const safeImages = place.images.length > 0 ? place.images : [
@@ -733,10 +863,50 @@ export default function PlaceDetailClient({ place, slug, initialSaved = false }:
                   rows={3}
                   className="w-full text-sm text-gray-700 dark:text-slate-200 bg-white dark:bg-slate-700/50 border border-gray-200 dark:border-slate-600 rounded-xl px-3 py-2.5 outline-none focus:border-[#398AB9] resize-none"
                 />
+
+                {/* Photo picker */}
+                <div>
+                  <div className="flex items-center gap-2 flex-wrap">
+                    {reviewPhotoPreviews.map((src, i) => (
+                      <div key={i} className="relative w-16 h-16 rounded-xl overflow-hidden border border-gray-200 dark:border-slate-600 flex-shrink-0">
+                        <img src={src} alt="" className="w-full h-full object-cover" />
+                        <button
+                          type="button"
+                          onClick={() => removeReviewPhoto(i)}
+                          className="absolute top-0.5 right-0.5 w-4 h-4 bg-black/60 rounded-full flex items-center justify-center"
+                        >
+                          <X className="w-2.5 h-2.5 text-white" />
+                        </button>
+                      </div>
+                    ))}
+                    {reviewPhotoFiles.length < 3 && (
+                      <button
+                        type="button"
+                        onClick={() => reviewPhotoRef.current?.click()}
+                        className="w-16 h-16 rounded-xl border-2 border-dashed border-gray-200 dark:border-slate-600 flex flex-col items-center justify-center text-gray-400 dark:text-slate-500 hover:border-[#398AB9] hover:text-[#398AB9] transition flex-shrink-0"
+                      >
+                        <Camera className="w-4 h-4 mb-0.5" />
+                        <span className="text-[9px]">รูปภาพ</span>
+                      </button>
+                    )}
+                  </div>
+                  {reviewPhotoFiles.length > 0 && (
+                    <p className="text-[10px] text-gray-400 dark:text-slate-500 mt-1">{reviewPhotoFiles.length}/3 รูป</p>
+                  )}
+                  <input
+                    ref={reviewPhotoRef}
+                    type="file"
+                    accept="image/*"
+                    multiple
+                    className="hidden"
+                    onChange={handleReviewPhotoAdd}
+                  />
+                </div>
+
                 <div className="flex gap-2">
                   <button
                     type="button"
-                    onClick={() => setShowReviewForm(false)}
+                    onClick={() => { setShowReviewForm(false); setReviewPhotoFiles([]); setReviewPhotoPreviews([]); }}
                     className="flex-1 py-2 border border-gray-200 dark:border-slate-600 rounded-xl text-sm text-gray-500 dark:text-slate-400 hover:bg-gray-50 dark:hover:bg-slate-700 transition"
                   >
                     ยกเลิก
@@ -843,7 +1013,7 @@ export default function PlaceDetailClient({ place, slug, initialSaved = false }:
         </div>
       </div>
 
-      {/* ── FABs (Add to Trip + Add to Collection) ── */}
+      {/* ── FABs (Add to Trip + Add to Collection + Packing) ── */}
       <div className="fixed bottom-20 md:bottom-6 right-4 z-30 flex flex-col items-end gap-2">
         <button
           onClick={openAddToCollection}
@@ -853,11 +1023,30 @@ export default function PlaceDetailClient({ place, slug, initialSaved = false }:
           บันทึกในคอลเลกชัน
         </button>
         <button
+          onClick={() => void openPackingModal()}
+          className="flex items-center gap-2 bg-white dark:bg-slate-800 hover:bg-gray-50 dark:hover:bg-slate-700 text-gray-700 dark:text-slate-300 text-sm font-semibold px-4 py-2.5 rounded-2xl shadow-md border border-gray-200 dark:border-slate-700 transition-all active:scale-95"
+        >
+          <Backpack className="w-4 h-4 text-emerald-500" />
+          เพิ่ม Packing List
+        </button>
+        <button
           onClick={openAddToTrip}
           className="flex items-center gap-2 bg-[#398AB9] hover:bg-[#1C658C] text-white text-sm font-bold px-4 py-3 rounded-2xl shadow-lg shadow-[#398AB9]/40 transition-all active:scale-95"
         >
           <Plus className="w-4 h-4" />
           เพิ่มในทริป
+        </button>
+        <button
+          onClick={handleCheckIn}
+          disabled={checkedIn || checkingIn}
+          className={`flex items-center gap-2 text-sm font-bold px-4 py-3 rounded-2xl shadow-lg transition-all active:scale-95 ${
+            checkedIn
+              ? "bg-emerald-500 text-white shadow-emerald-400/40 cursor-default"
+              : "bg-white dark:bg-slate-800 text-gray-700 dark:text-slate-300 border border-gray-200 dark:border-slate-700 hover:bg-gray-50 dark:hover:bg-slate-700"
+          }`}
+        >
+          <CheckSquare className="w-4 h-4" />
+          {checkedIn ? `เช็คอินแล้ว (${checkInCount})` : checkingIn ? "กำลังเช็คอิน..." : "เช็คอิน"}
         </button>
       </div>
 
@@ -936,6 +1125,102 @@ export default function PlaceDetailClient({ place, slug, initialSaved = false }:
                 >
                   {addingItem ? "กำลังเพิ่ม..." : "เพิ่มในทริป ✓"}
                 </button>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* ── Packing List Quick-Add Modal ── */}
+      {packingOpen && (
+        <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center">
+          <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={() => setPackingOpen(false)} />
+          <div className="relative bg-white dark:bg-slate-800 rounded-t-3xl sm:rounded-3xl w-full sm:max-w-sm mx-0 sm:mx-4 p-6 shadow-2xl">
+            <div className="flex items-center justify-between mb-5">
+              <div>
+                <h3 className="text-base font-bold text-gray-900 dark:text-slate-100">เพิ่มใน Packing List</h3>
+                <p className="text-xs text-gray-400 dark:text-slate-500 mt-0.5 truncate">📍 {place.name}</p>
+              </div>
+              <button onClick={() => setPackingOpen(false)} className="text-gray-400 dark:text-slate-500 hover:text-gray-600 dark:hover:text-slate-300">
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            {tripsLoading ? (
+              <div className="flex items-center justify-center py-8">
+                <div className="w-8 h-8 border-2 border-emerald-500 border-t-transparent rounded-full animate-spin" />
+              </div>
+            ) : tripsList.length === 0 ? (
+              <div className="text-center py-8">
+                <Backpack className="w-10 h-10 text-gray-300 dark:text-slate-600 mx-auto mb-3" />
+                <p className="text-sm text-gray-400 dark:text-slate-500 mb-4">ยังไม่มีทริป</p>
+                <Link href="/trips/new" className="text-sm text-emerald-500 font-medium hover:underline">
+                  สร้างทริปใหม่ →
+                </Link>
+              </div>
+            ) : (
+              <div className="space-y-4">
+                {/* Trip selector */}
+                <div>
+                  <label className="block text-xs font-semibold text-gray-500 dark:text-slate-400 mb-1.5">เลือกทริป</label>
+                  <select
+                    value={selectedTripId}
+                    onChange={(e) => setSelectedTripId(e.target.value)}
+                    className="w-full px-3 py-2.5 rounded-xl border border-gray-200 dark:border-slate-600 bg-white dark:bg-slate-700 text-sm text-gray-900 dark:text-slate-100 focus:outline-none focus:border-emerald-500"
+                  >
+                    {tripsList.map((t) => (
+                      <option key={t.id} value={t.id}>{t.title} — {t.destination}</option>
+                    ))}
+                  </select>
+                </div>
+
+                {/* Suggested chips */}
+                <div>
+                  <label className="block text-xs font-semibold text-gray-500 dark:text-slate-400 mb-2">เพิ่มด่วน</label>
+                  <div className="flex flex-wrap gap-2">
+                    {getPackingSuggestions().map((item) => (
+                      <button
+                        key={item}
+                        onClick={() => void handleAddPacking(item)}
+                        disabled={addingPacking}
+                        className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium bg-emerald-50 dark:bg-emerald-900/20 text-emerald-700 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-700 hover:bg-emerald-100 dark:hover:bg-emerald-900/40 transition disabled:opacity-50"
+                      >
+                        <Plus className="w-3 h-3" />
+                        {item}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Custom item input */}
+                <div>
+                  <label className="block text-xs font-semibold text-gray-500 dark:text-slate-400 mb-1.5">หรือเพิ่มรายการเอง</label>
+                  <div className="flex gap-2">
+                    <input
+                      type="text"
+                      value={packingCustom}
+                      onChange={(e) => setPackingCustom(e.target.value)}
+                      onKeyDown={(e) => { if (e.key === "Enter") void handleAddPacking(packingCustom); }}
+                      placeholder="เช่น ตั๋ว, ครีมกันแดด..."
+                      className="flex-1 px-3 py-2.5 rounded-xl border border-gray-200 dark:border-slate-600 bg-white dark:bg-slate-700 text-sm text-gray-900 dark:text-slate-100 placeholder-gray-400 dark:placeholder-slate-500 focus:outline-none focus:border-emerald-500"
+                    />
+                    <button
+                      onClick={() => void handleAddPacking(packingCustom)}
+                      disabled={addingPacking || !packingCustom.trim()}
+                      className="px-4 py-2.5 rounded-xl bg-emerald-500 hover:bg-emerald-600 text-white text-sm font-semibold transition disabled:opacity-50"
+                    >
+                      {addingPacking ? "..." : "เพิ่ม"}
+                    </button>
+                  </div>
+                </div>
+
+                <Link
+                  href={selectedTripId ? `/trips/${selectedTripId}` : "/trips"}
+                  onClick={() => setPackingOpen(false)}
+                  className="block text-center text-xs text-gray-400 dark:text-slate-500 hover:text-emerald-500 transition mt-1"
+                >
+                  ดู Packing List ทั้งหมดในทริป →
+                </Link>
               </div>
             )}
           </div>

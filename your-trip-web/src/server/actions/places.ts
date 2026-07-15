@@ -220,6 +220,7 @@ export interface CreateReviewInput {
   placeId: string;
   rating: number; // 1-5
   content?: string;
+  images?: string[]; // uploaded image URLs (max 3)
 }
 
 export async function createReview(
@@ -233,6 +234,7 @@ export async function createReview(
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return { data: null, error: "กรุณาเข้าสู่ระบบ" };
 
+    const safeImages = (input.images ?? []).slice(0, 3); // max 3 photos
     const review = await prisma.review.upsert({
       where: { placeId_userId: { placeId: input.placeId, userId: user.id } },
       create: {
@@ -240,11 +242,12 @@ export async function createReview(
         userId: user.id,
         rating: input.rating,
         content: input.content ?? null,
-        images: [],
+        images: safeImages,
       },
       update: {
         rating: input.rating,
         content: input.content ?? null,
+        images: safeImages,
       },
     });
 
