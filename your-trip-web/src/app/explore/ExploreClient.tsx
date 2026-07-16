@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback, useRef } from "react";
 import Link from "next/link";
-import { Search, Star, MapPin, SlidersHorizontal, X, LayoutGrid, List, ArrowUpDown, Users, UserPlus, UserCheck, Bookmark, Map, ArrowRight, TrendingUp, Loader2 } from "lucide-react";
+import { Search, Star, MapPin, SlidersHorizontal, X, LayoutGrid, List, ArrowUpDown, Users, UserPlus, UserCheck, Bookmark, Map, ArrowRight, TrendingUp, Loader2, Navigation } from "lucide-react";
 import { toggleSavePlace } from "@/server/actions/savedPlaces";
 import { searchPlaces } from "@/server/actions/places";
 import type { PlaceListItem } from "@/server/actions/places";
@@ -753,6 +753,25 @@ export default function ExploreClient({ initialPlaces, initialSaved = [] }: { in
           </div>
           <svg className="ml-auto w-4 h-4 text-[#398AB9] group-hover:translate-x-0.5 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" /></svg>
         </Link>
+      )}
+
+      {/* Near Me GPS button — prominent shortcut */}
+      {searchMode === "places" && (
+        <button
+          onClick={() => { if (sortKey === "nearby" && userLat) { setSortKey("rating"); setUserLat(null); setUserLng(null); } else requestGeolocation(); }}
+          className={`w-full flex items-center justify-center gap-2 py-2.5 rounded-2xl mb-4 text-sm font-medium transition-all border ${
+            sortKey === "nearby" && userLat
+              ? "bg-[#398AB9] text-white border-[#398AB9] shadow-md shadow-[#398AB9]/30"
+              : "bg-white dark:bg-slate-800 text-gray-600 dark:text-slate-300 border-gray-200 dark:border-slate-600 hover:border-[#398AB9] hover:text-[#398AB9]"
+          }`}
+        >
+          {geoLoading
+            ? <><Loader2 className="w-4 h-4 animate-spin" /> กำลังระบุตำแหน่ง...</>
+            : sortKey === "nearby" && userLat
+            ? <><Navigation className="w-4 h-4" /> ใกล้ฉัน (เปิดอยู่ — แตะเพื่อปิด)</>
+            : <><Navigation className="w-4 h-4" /> สถานที่ใกล้ฉัน</>
+          }
+        </button>
       )}
 
       {/* Category tabs */}

@@ -1,3 +1,27 @@
+## Status: Phase 3 | Sprint S33 | 2026-07-17 — Notifications Type Filter + Place Submit Photo Upload + TS Fixes
+
+### Session Log — 2026-07-17 (Sprint S33)
+
+#### ✅ Completed
+1. **S33-1: Notifications type filter** — `src/app/notifications/page.tsx`: Added filter tab bar (all / likes / comments / follows / mentions). Each tab filters the notification list client-side by `type` field. Tabs show count badges. "อ่านทั้งหมด" bulk mark-read button already existed — confirmed working. (S33-1)
+2. **S33-3: Place submission photo upload** — `src/app/place/submit/page.tsx` + `src/app/api/place-submission/route.ts`: Added multi-photo picker (up to 5 images) with preview grid before submit. Photos upload to `/api/upload` (Cloudinary), URLs stored in `place_submissions` table. API gracefully handles missing table (42P01) and returns success. (S33-3)
+3. **S33-extra: TypeScript + component fixes** — Fixed `src/app/collections/discover/page.tsx` (type errors), `src/app/post/[id]/PostDetailClient.tsx` (TS strict fixes), `src/components/features/TripGroupChatPanel.tsx` (subscription type), `src/server/actions/collections.ts` + `profile.ts` (strict types), `next.config.ts` (config cleanup). TSC EXIT: 0 confirmed. (S33-TS)
+
+#### ⚠️ PENDING (user action required)
+1. **Add Vercel env vars** (go to vercel.com → your-trip project → Settings → Environment Variables):
+   - `NEXT_PUBLIC_VAPID_PUBLIC_KEY` = (in .env.local)
+   - `VAPID_PRIVATE_KEY` = (in .env.local)
+   - `VAPID_SUBJECT` = `mailto:pakpoomtee24@gmail.com`
+   - `CRON_SECRET` = (in .env.local)
+
+#### ▶️ Next (S34 candidates)
+- Explore "Near Me" powered by real geolocation + `getPlacesNearCoords` (deferred from S33)
+- DM read receipts (mark message read + show ✓✓ in ChatWindow)
+- Trip progress tracker (% complete based on checked-off itinerary items)
+- Admin place submissions review queue (/admin/place-submissions)
+
+---
+
 ## Status: Phase 3 | Sprint S32 | 2026-07-17 — Follow Suggestions + Collections Discovery + Profile Cover
 
 ### Session Log — 2026-07-17 (Sprint S32)

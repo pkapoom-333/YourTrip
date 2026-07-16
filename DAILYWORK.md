@@ -1,5 +1,5 @@
-## 🔥 QUEST BOARD — Sprint S33 "NOTIFICATIONS POLISH + NEAR ME + PLACE SUBMIT UX" (2026-07-17)
-**เป้า:** Notifications filter+bulk-read · Explore Near Me geolocation · Place submission improvements
+## 🔥 QUEST BOARD — Sprint S34 "NEAR ME + DM READ RECEIPTS + TRIP PROGRESS" (2026-07-17)
+**เป้า:** Explore Near Me geolocation · DM read receipts · Trip progress tracker · Admin place queue
 
 ```
 PROGRESS ░░░░░░░░░░░░░░░░░░░░░░░░ 0%
@@ -7,9 +7,24 @@ PROGRESS ░░░░░░░░░░░░░░░░░░░░░░░�
 
 | # | Quest | XP | Status |
 |---|-------|----|--------|
-| S33-1 | **Notifications filter + bulk mark-read** — filter tabs (all/likes/comments/follows/mentions) + "อ่านทั้งหมด" button | 300 | ⬜ |
-| S33-2 | **Explore "Near Me"** — GPS toggle button, `getPlacesNearCoords` action (haversine distance), sort by distance | 400 | ⬜ |
-| S33-3 | **Place submission form UX** — photo upload (Cloudinary) + preview grid before submit + form validation polish | 350 | ⬜ |
+| S34-1 | **Explore "Near Me"** — GPS toggle button, `getPlacesNearCoords` action (haversine distance), sort by distance | 400 | ⬜ |
+| S34-2 | **DM read receipts** — mark message read on view, show ✓✓ in ChatWindow per message | 300 | ⬜ |
+| S34-3 | **Trip progress tracker** — checklist toggle on itinerary items, % progress bar in trip header | 350 | ⬜ |
+
+---
+
+## 🔥 QUEST BOARD — Sprint S33 "NOTIFICATIONS POLISH + NEAR ME + PLACE SUBMIT UX" (2026-07-17)
+**เป้า:** Notifications filter+bulk-read · Explore Near Me geolocation · Place submission improvements
+
+```
+PROGRESS ████████████████████████ 100%  CODE COMPLETE
+```
+
+| # | Quest | XP | Status |
+|---|-------|----|--------|
+| S33-1 | **Notifications filter + bulk mark-read** — filter tabs (all/likes/comments/follows/mentions) + "อ่านทั้งหมด" button | 300 | ✅ |
+| S33-2 | **Explore "Near Me"** — GPS toggle button, `getPlacesNearCoords` action (haversine distance), sort by distance | 400 | ➡️ S34 |
+| S33-3 | **Place submission form UX** — photo upload (Cloudinary) + preview grid before submit + form validation polish | 350 | ✅ |
 
 ---
 

@@ -426,12 +426,16 @@ function TravelConnector({
 function ItemCard({
   item,
   isOwner,
+  isCompleted,
+  onToggleComplete,
   onDelete,
   onUpdateDuration,
   onUpdatePhoto,
 }: {
   item: TripItem;
   isOwner: boolean;
+  isCompleted: boolean;
+  onToggleComplete: (id: string) => void;
   onDelete: (id: string) => void;
   onUpdateDuration: (id: string, min: number) => void;
   onUpdatePhoto: (id: string, url: string | null) => void;
@@ -515,7 +519,19 @@ function ItemCard({
       <div className="p-3.5">
         <div className="flex items-start gap-3">
           {isOwner && <GripVertical className="w-4 h-4 text-gray-300 dark:text-slate-600 mt-0.5 flex-shrink-0 cursor-grab" />}
-          <div className="flex-1 min-w-0">
+          {/* Complete toggle */}
+          <button
+            onClick={(e) => { e.stopPropagation(); onToggleComplete(item.id); }}
+            className={`flex-shrink-0 mt-0.5 w-5 h-5 rounded-full border-2 flex items-center justify-center transition-all ${
+              isCompleted
+                ? "bg-emerald-500 border-emerald-500 text-white"
+                : "border-gray-300 dark:border-slate-600 hover:border-emerald-400"
+            }`}
+            title={isCompleted ? "ยกเลิกเสร็จสิ้น" : "ทำเครื่องหมายว่าเสร็จแล้ว"}
+          >
+            {isCompleted && <span className="text-[9px] font-bold">✓</span>}
+          </button>
+          <div className={`flex-1 min-w-0 transition-opacity ${isCompleted ? "opacity-50" : ""}`}>
             <div className="flex items-center gap-2 flex-wrap">
               <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-full ${typeColors[item.type]}`}>
                 {typeLabels[item.type]}
@@ -639,6 +655,8 @@ export default function TripDetailPage({ params }: { params: Promise<{ id: strin
   const [routeSource, setRouteSource] = useState<"google" | "osrm" | "haversine" | null>(null);
   const [tripStatus, setTripStatus] = useState<"PLANNING" | "CONFIRMED" | "ONGOING" | "COMPLETED">("PLANNING");
   const [coverUploading, setCoverUploading] = useState(false);
+  // ── Progress tracking (localStorage — no DB migration needed)
+  const [completedItems, setCompletedItems] = useState<Set<string>>(new Set());
   const coverInputRef = useRef<HTMLInputElement>(null);
   const [featureTab, setFeatureTab] = useState<"expense" | "packing" | "budget" | "chat" | "members">("expense");
   const [newItem, setNewItem] = useState({
@@ -651,6 +669,24 @@ export default function TripDetailPage({ params }: { params: Promise<{ id: strin
     placeLng: undefined as number | undefined,
     photoUrl: undefined as string | undefined,
   });
+
+  // Load completed items from localStorage once we have the trip id
+  useEffect(() => {
+    if (!id) return;
+    try {
+      const raw = localStorage.getItem(`yt_trip_progress_${id}`);
+      if (raw) setCompletedItems(new Set(JSON.parse(raw) as string[]));
+    } catch { /* ignore */ }
+  }, [id]);
+
+  function toggleItemComplete(itemId: string) {
+    setCompletedItems((prev) => {
+      const next = new Set(prev);
+      if (next.has(itemId)) next.delete(itemId); else next.add(itemId);
+      try { localStorage.setItem(`yt_trip_progress_${id}`, JSON.stringify([...next])); } catch { /* ignore */ }
+      return next;
+    });
+  }
 
   useEffect(() => {
     if (id) {
@@ -1093,6 +1129,34 @@ export default function TripDetailPage({ params }: { params: Promise<{ id: strin
           })()}
         </div>
 
+        {/* Trip Progress Bar */}
+        {(() => {
+          const allItems = trip.days.flatMap((d) => d.items);
+          const total = allItems.length;
+          const done = allItems.filter((it) => completedItems.has(it.id)).length;
+          if (total === 0) return null;
+          const pct = Math.round((done / total) * 100);
+          return (
+            <div className="bg-white dark:bg-slate-800 border-b border-gray-100 dark:border-slate-700 px-4 py-3">
+              <div className="flex items-center justify-between mb-1.5">
+                <p className="text-xs font-semibold text-gray-500 dark:text-slate-400 flex items-center gap-1.5">
+                  ✅ ความคืบหน้าทริป
+                </p>
+                <p className="text-xs font-bold text-gray-700 dark:text-slate-300">{done}/{total} กิจกรรม</p>
+              </div>
+              <div className="w-full h-2 bg-gray-100 dark:bg-slate-700 rounded-full overflow-hidden">
+                <div
+                  className={`h-full rounded-full transition-all duration-500 ${done === total && total > 0 ? "bg-emerald-500" : "bg-[#398AB9]"}`}
+                  style={{ width: `${pct}%` }}
+                />
+              </div>
+              {done === total && total > 0 && (
+                <p className="text-xs text-emerald-600 dark:text-emerald-400 font-medium mt-1 text-center">🎉 เสร็จสิ้นทุกกิจกรรมแล้ว!</p>
+              )}
+            </div>
+          );
+        })()}
+
         {/* Weather Widget */}
         {trip.destination && (
           <div className="px-4 pt-3">
@@ -1285,6 +1349,8 @@ export default function TripDetailPage({ params }: { params: Promise<{ id: strin
                     <ItemCard
                       item={item}
                       isOwner={isOwner}
+                      isCompleted={completedItems.has(item.id)}
+                      onToggleComplete={toggleItemComplete}
                       onDelete={(itemId) => deleteItem(currentDay.day, itemId)}
                       onUpdateDuration={(itemId, min) => updateItem(currentDay.day, itemId, { duration: min })}
                       onUpdatePhoto={(itemId, url) => updateItem(currentDay.day, itemId, { photo: url ?? undefined })}
