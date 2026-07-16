@@ -5,10 +5,14 @@ import Link from "next/link";
 import {
   Copy, Check, Share2, MapPin, Calendar,
   CalendarDays, Layers, ChevronRight, Users,
+  Send, Loader2, CheckCircle2,
 } from "lucide-react";
 import { useToast } from "@/components/shared/Toast";
+import { createPost } from "@/server/actions/posts";
 
-const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? "https://your-trip-nu.vercel.app";
+const SITE_URL_CONST = process.env.NEXT_PUBLIC_SITE_URL ?? "https://your-trip-nu.vercel.app";
+
+const SITE_URL = SITE_URL_CONST;
 
 interface TripShareProps {
   trip: {
@@ -39,7 +43,12 @@ function daysBetween(start: Date | null, end: Date | null): number {
 
 export default function TripShareClient({ trip }: TripShareProps) {
   const [copied, setCopied] = useState(false);
-  const { success } = useToast();
+  const [showPostComposer, setShowPostComposer] = useState(false);
+  const [postCaption, setPostCaption] = useState("");
+  const [posting, setPosting] = useState(false);
+  const [posted, setPosted] = useState(false);
+  const [postedId, setPostedId] = useState<string | null>(null);
+  const { success, error } = useToast();
   const tripUrl = `${SITE_URL}/trips/${trip.id}`;
 
   async function copyLink() {
@@ -71,6 +80,28 @@ export default function TripShareClient({ trip }: TripShareProps) {
   const lineUrl = `https://line.me/R/msg/text/?${lineMsg}`;
 
   const nights = Math.max(0, daysBetween(trip.startDate, trip.endDate) - 1);
+
+  async function handlePostToFeed() {
+    setPosting(true);
+    const content = postCaption.trim()
+      || `🗺️ แผนทริป "${trip.title}" ที่ ${trip.destination} ${trip.dayCount} วัน ${trip.placeCount} สถานที่ — ดูแผนทริปแบบเต็ม: ${tripUrl}`;
+    const images = trip.coverImage ? [trip.coverImage] : [];
+    const result = await createPost({
+      content,
+      images,
+      location: trip.destination || undefined,
+      tags: ["ทริป", trip.destination].filter(Boolean),
+    });
+    setPosting(false);
+    if ("error" in result && result.error) {
+      error((result.error as { message: string }).message ?? "เกิดข้อผิดพลาด");
+      return;
+    }
+    setPosted(true);
+    setPostedId((result as { data?: { id?: string } }).data?.id ?? null);
+    success("โพสต์ลง Feed แล้ว! 🎉");
+    setShowPostComposer(false);
+  }
 
   return (
     <div className="min-h-screen bg-[#F8FAFC] dark:bg-slate-900 flex items-center justify-center p-4">
@@ -213,6 +244,57 @@ export default function TripShareClient({ trip }: TripShareProps) {
               </a>
             </div>
           </div>
+        </div>
+
+        {/* Post to YourTrip Feed */}
+        <div className="bg-white dark:bg-slate-800 rounded-3xl border border-gray-100 dark:border-slate-700 overflow-hidden mt-3">
+          {posted && postedId ? (
+            <div className="flex items-center gap-3 px-4 py-4">
+              <CheckCircle2 className="w-5 h-5 text-green-500 flex-shrink-0" />
+              <div className="flex-1">
+                <p className="text-sm font-semibold text-gray-900 dark:text-slate-100">โพสต์ลง Feed แล้ว!</p>
+                <Link href={`/post/${postedId}`} className="text-xs text-[#398AB9] hover:underline">ดูโพสต์ →</Link>
+              </div>
+            </div>
+          ) : showPostComposer ? (
+            <div className="px-4 py-4 space-y-3">
+              <p className="text-sm font-semibold text-gray-800 dark:text-slate-200">โพสต์ลง YourTrip Feed</p>
+              {trip.coverImage && (
+                <img src={trip.coverImage} alt={trip.title}
+                  className="w-full h-28 object-cover rounded-xl" referrerPolicy="no-referrer" />
+              )}
+              <textarea
+                value={postCaption}
+                onChange={(e) => setPostCaption(e.target.value)}
+                placeholder={`🗺️ แชร์ทริป "${trip.title}" กับชุมชน...`}
+                rows={3}
+                maxLength={500}
+                className="w-full text-sm border border-gray-200 dark:border-slate-600 rounded-xl px-3 py-2.5 resize-none bg-white dark:bg-slate-700 text-gray-800 dark:text-slate-200 placeholder-gray-400 dark:placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-[#398AB9]/30"
+              />
+              <div className="flex gap-2">
+                <button onClick={() => setShowPostComposer(false)}
+                  className="flex-1 py-2.5 text-sm font-medium border border-gray-200 dark:border-slate-600 text-gray-600 dark:text-slate-300 rounded-xl hover:bg-gray-50 dark:hover:bg-slate-700 transition">
+                  ยกเลิก
+                </button>
+                <button onClick={handlePostToFeed} disabled={posting}
+                  className="flex-1 flex items-center justify-center gap-2 py-2.5 text-sm font-semibold bg-[#398AB9] hover:bg-[#1C658C] text-white rounded-xl transition disabled:opacity-60">
+                  {posting ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
+                  {posting ? "กำลังโพสต์..." : "โพสต์เลย"}
+                </button>
+              </div>
+            </div>
+          ) : (
+            <button onClick={() => setShowPostComposer(true)}
+              className="w-full flex items-center gap-3 px-4 py-4 hover:bg-gray-50 dark:hover:bg-slate-700/50 transition text-left">
+              <div className="w-9 h-9 rounded-full bg-[#398AB9]/10 dark:bg-[#398AB9]/20 flex items-center justify-center flex-shrink-0">
+                <Send className="w-4 h-4 text-[#398AB9]" />
+              </div>
+              <div>
+                <p className="text-sm font-semibold text-gray-900 dark:text-slate-100">โพสต์ลง YourTrip Feed</p>
+                <p className="text-xs text-gray-400 dark:text-slate-500">แชร์ทริปนี้กับชุมชนนักเดินทาง</p>
+              </div>
+            </button>
+          )}
         </div>
 
         {/* Footer */}

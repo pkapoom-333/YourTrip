@@ -137,6 +137,14 @@ export default function PlaceDetailClient({ place, slug, initialSaved = false }:
         setCheckInCount(totalCheckIns);
       }).catch(() => {});
     }
+    // Save to recently-viewed list in localStorage
+    try {
+      const RECENT_PLACES_KEY = "yt_recent_places";
+      const entry = { slug, name: place.name, coverImage: place.images?.[0] ?? null, category: place.category };
+      const stored = JSON.parse(localStorage.getItem(RECENT_PLACES_KEY) ?? "[]") as typeof entry[];
+      const deduped = [entry, ...stored.filter((p) => p.slug !== slug)].slice(0, 10);
+      localStorage.setItem(RECENT_PLACES_KEY, JSON.stringify(deduped));
+    } catch {}
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [place.id]);
 

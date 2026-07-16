@@ -2,8 +2,9 @@
 
 import { useState, useEffect, useCallback, useRef } from "react";
 import Link from "next/link";
-import { Search, Star, MapPin, SlidersHorizontal, X, LayoutGrid, List, ArrowUpDown, Users, UserPlus, UserCheck, Bookmark, Map, ArrowRight, TrendingUp } from "lucide-react";
+import { Search, Star, MapPin, SlidersHorizontal, X, LayoutGrid, List, ArrowUpDown, Users, UserPlus, UserCheck, Bookmark, Map, ArrowRight, TrendingUp, Loader2 } from "lucide-react";
 import { toggleSavePlace } from "@/server/actions/savedPlaces";
+import { searchPlaces } from "@/server/actions/places";
 import type { PlaceListItem } from "@/server/actions/places";
 import { searchUsers, followUser, unfollowUser, type UserCard } from "@/server/actions/profile";
 import { Avatar } from "@/components/shared/Avatar";
@@ -257,6 +258,55 @@ function saveRecent(q: string) {
   localStorage.setItem(RECENT_KEY, JSON.stringify([q, ...prev].slice(0, MAX_RECENT)));
 }
 
+// ── Recently Viewed Places ──────────────────────────────────────────
+const RECENT_PLACES_KEY = "yt_recent_places";
+type RecentPlaceEntry = { slug: string; name: string; coverImage: string | null; category: string };
+function loadRecentPlaces(): RecentPlaceEntry[] {
+  if (typeof window === "undefined") return [];
+  try { return JSON.parse(localStorage.getItem(RECENT_PLACES_KEY) ?? "[]") as RecentPlaceEntry[]; } catch { return []; }
+}
+
+type ServerPlaceItem = { id: string; slug: string; name: string; category: string; province: string | null; coverImage: string | null; rating: number };
+
+function ServerPlaceCard({ place }: { place: ServerPlaceItem }) {
+  const img = place.coverImage ??
+    "https://images.unsplash.com/photo-1476514525405-8d4b4c284c1e?auto=format&fit=crop&w=600&q=80";
+  const catEmoji: Record<string, string> = { attraction: "🏔️", restaurant: "🍜", cafe: "☕", hotel: "🏨", activity: "🤿" };
+  return (
+    <Link href={`/place/${place.slug}`}
+      className="group bg-white dark:bg-slate-800 rounded-2xl border border-gray-100 dark:border-slate-700 overflow-hidden hover:shadow-lg hover:shadow-gray-200/80 dark:hover:shadow-slate-900/80 transition-all duration-300">
+      <div className="relative aspect-[4/3] overflow-hidden">
+        <img src={img} alt={place.name}
+          className="w-full h-full object-cover group-hover:scale-[1.04] transition-transform duration-500"
+          referrerPolicy="no-referrer"
+          loading="lazy"
+          onError={(e) => { (e.target as HTMLImageElement).parentElement!.style.display = "none"; }} />
+        <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent" />
+        <div className="absolute top-3 right-3">
+          <span className="bg-black/50 backdrop-blur-sm text-white text-xs px-2 py-0.5 rounded-full">
+            {catEmoji[place.category] ?? "📍"}
+          </span>
+        </div>
+      </div>
+      <div className="p-3">
+        <p className="font-semibold text-sm text-gray-900 dark:text-slate-100 line-clamp-1">{place.name}</p>
+        <div className="flex items-center justify-between mt-1">
+          <div className="flex items-center gap-1">
+            <MapPin className="w-3 h-3 text-[#398AB9]" />
+            <span className="text-xs text-gray-400 dark:text-slate-500 line-clamp-1">{place.province ?? ""}</span>
+          </div>
+          {place.rating > 0 && (
+            <div className="flex items-center gap-0.5">
+              <Star className="w-3 h-3 fill-amber-400 text-amber-400" />
+              <span className="text-xs font-bold text-gray-700 dark:text-slate-300">{place.rating.toFixed(1)}</span>
+            </div>
+          )}
+        </div>
+      </div>
+    </Link>
+  );
+}
+
 export default function ExploreClient({ initialPlaces, initialSaved = [] }: { initialPlaces: PlaceListItem[]; initialSaved?: string[] }) {
   const [query, setQuery] = useState("");
   const [searchMode, setSearchMode] = useState<SearchMode>("places");
@@ -266,8 +316,13 @@ export default function ExploreClient({ initialPlaces, initialSaved = [] }: { in
   const [displayCount, setDisplayCount] = useState(PAGE_SIZE);
   const { success, error: toastError } = useToast();
 
-  // Load recent searches from localStorage on mount
-  useEffect(() => { setRecentSearches(loadRecent()); }, []);
+  const [recentPlaces, setRecentPlaces] = useState<RecentPlaceEntry[]>([]);
+
+  // Load recent searches + recently viewed places from localStorage on mount
+  useEffect(() => {
+    setRecentSearches(loadRecent());
+    setRecentPlaces(loadRecentPlaces());
+  }, []);
 
   async function toggleSave(id: string) {
     const wasSaved = savedIds.has(id);
@@ -311,6 +366,25 @@ export default function ExploreClient({ initialPlaces, initialSaved = [] }: { in
       { timeout: 8000 }
     );
   }
+  // Server-side search (hits all DB places, not just the 50 pre-loaded)
+  const [serverResults, setServerResults] = useState<ServerPlaceItem[]>([]);
+  const [serverLoading, setServerLoading] = useState(false);
+
+  useEffect(() => {
+    const q = query.trim();
+    if (q.length < 2) { setServerResults([]); setServerLoading(false); return; }
+    setServerLoading(true);
+    const timer = setTimeout(async () => {
+      try {
+        const { places } = await searchPlaces(q, 24);
+        setServerResults(places);
+      } catch { /* silent */ } finally {
+        setServerLoading(false);
+      }
+    }, 400);
+    return () => clearTimeout(timer);
+  }, [query]);
+
   const [viewMode, setViewMode] = useState<"grid" | "list" | "map">("grid");
   const mapContainerRef = useRef<HTMLDivElement>(null);
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -440,6 +514,10 @@ export default function ExploreClient({ initialPlaces, initialSaved = [] }: { in
   const displayedPlaces = filtered.slice(0, displayCount);
   const hasMore = filtered.length > displayCount;
   const hasFilter = query || activeCategory !== "all" || activeRegion !== "all" || activeTags.length > 0;
+
+  // Deduplicate server results — only show places NOT already in local filtered list
+  const localIds = new Set(filtered.map((p) => p.id));
+  const serverExtra = serverResults.filter((p) => !localIds.has(p.id));
 
   const sentinelRef = useRef<HTMLDivElement>(null);
   const hasMoreRef = useRef(hasMore);
@@ -640,6 +718,43 @@ export default function ExploreClient({ initialPlaces, initialSaved = [] }: { in
           </button>
         ))}
       </div>
+
+      {/* ── Recently Viewed Places — only shown when not actively searching */}
+      {!query.trim() && recentPlaces.length > 0 && searchMode === "places" && (
+        <div className="mb-5">
+          <div className="flex items-center justify-between mb-2.5">
+            <p className="text-xs font-bold text-gray-500 dark:text-slate-400 uppercase tracking-wider">ดูล่าสุด</p>
+            <button
+              onClick={() => { try { localStorage.removeItem(RECENT_PLACES_KEY); } catch {} setRecentPlaces([]); }}
+              className="text-[10px] text-gray-400 dark:text-slate-500 hover:text-[#398AB9] dark:hover:text-[#398AB9] transition">
+              ล้าง
+            </button>
+          </div>
+          <div className="flex gap-2.5 overflow-x-auto scrollbar-none pb-1 -mx-4 px-4 md:mx-0 md:px-0">
+            {recentPlaces.slice(0, 8).map((p) => {
+              const catEmoji: Record<string, string> = { attraction: "🏔️", restaurant: "🍜", cafe: "☕", hotel: "🏨", activity: "🤿" };
+              const fallback = "https://images.unsplash.com/photo-1476514525405-8d4b4c284c1e?auto=format&fit=crop&w=400&q=80";
+              return (
+                <Link key={p.slug} href={`/place/${p.slug}`}
+                  className="group flex-shrink-0 relative w-20 h-24 rounded-2xl overflow-hidden shadow-sm hover:shadow-md transition-all duration-300 hover:-translate-y-0.5">
+                  <img src={p.coverImage ?? fallback} alt={p.name}
+                    className="absolute inset-0 w-full h-full object-cover group-hover:scale-[1.06] transition-transform duration-500"
+                    loading="lazy"
+                    referrerPolicy="no-referrer"
+                    onError={(e) => { (e.target as HTMLImageElement).src = fallback; }} />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/10 to-transparent" />
+                  <div className="absolute bottom-0 left-0 right-0 p-1.5">
+                    <p className="text-white text-[9px] font-semibold leading-tight line-clamp-2">{p.name}</p>
+                  </div>
+                  <div className="absolute top-1.5 right-1.5 text-[10px] leading-none">
+                    {catEmoji[p.category] ?? "📍"}
+                  </div>
+                </Link>
+              );
+            })}
+          </div>
+        </div>
+      )}
 
       {/* ── Destination Spotlight ── only shown with no active filters */}
       {!query && activeCategory === "all" && activeRegion === "all" && searchMode === "places" && (
@@ -881,6 +996,28 @@ export default function ExploreClient({ initialPlaces, initialSaved = [] }: { in
           </button>
         </div>
       ) : null}
+
+      {/* Server search results — places beyond the pre-loaded 50 */}
+      {searchMode === "places" && query.trim().length >= 2 && viewMode !== "map" && (serverLoading || serverExtra.length > 0) && (
+        <div className="mt-6 border-t border-gray-100 dark:border-slate-700 pt-5">
+          <div className="flex items-center gap-2 mb-3">
+            <Search className="w-3.5 h-3.5 text-[#398AB9]" />
+            <p className="text-xs font-bold text-gray-500 dark:text-slate-400 uppercase tracking-wider">
+              ผลจากฐานข้อมูลทั้งหมด
+            </p>
+            {serverLoading && <Loader2 className="w-3.5 h-3.5 text-[#398AB9] animate-spin ml-1" />}
+          </div>
+          {serverExtra.length > 0 ? (
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 md:gap-4">
+              {serverExtra.map((p) => (
+                <ServerPlaceCard key={p.id} place={p} />
+              ))}
+            </div>
+          ) : !serverLoading && (
+            <p className="text-sm text-gray-400 dark:text-slate-500 text-center py-4">ไม่พบสถานที่เพิ่มเติม</p>
+          )}
+        </div>
+      )}
 
       {/* Infinite scroll sentinel */}
       <div ref={sentinelRef} className="mt-6 flex justify-center py-4" aria-hidden>

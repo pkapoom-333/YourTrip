@@ -3,8 +3,8 @@
 import { useState, useRef } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Heart, MessageCircle, Send, Bookmark, MapPin, MoreHorizontal, Flag, Link2, X, ChevronLeft, ChevronRight, Maximize2, Pin } from "lucide-react";
-import { toggleLike, toggleSave, pinPost, reportPost } from "@/server/actions/posts";
+import { Heart, MessageCircle, Send, Bookmark, MapPin, MoreHorizontal, Flag, Link2, X, ChevronLeft, ChevronRight, Maximize2, Pin, Pencil, Trash2, Loader2 } from "lucide-react";
+import { toggleLike, toggleSave, pinPost, reportPost, editPost, deletePost } from "@/server/actions/posts";
 import { CommentSection } from "./CommentSection";
 import { Avatar } from "@/components/shared/Avatar";
 import { useToast } from "@/components/shared/Toast";
@@ -96,6 +96,11 @@ export function PostCard({ post, onTagClick }: { post: PostCardData; onTagClick?
   const [reported, setReported] = useState(false);
   const [pinned, setPinned] = useState(post.isPinned ?? false);
   const [commentCount, setCommentCount] = useState(post.comments);
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [editContent, setEditContent] = useState(post.caption);
+  const [saving, setSaving] = useState(false);
+  const [deleting, setDeleting] = useState(false);
+  const [caption, setCaption] = useState(post.caption);
   const { success, error, info } = useToast();
   const router = useRouter();
 
@@ -261,18 +266,41 @@ export function PostCard({ post, onTagClick }: { post: PostCardData; onTagClick?
                     คัดลอกลิงก์
                   </button>
                   {post.isOwn && (
-                    <button
-                      onClick={async () => {
-                        const newVal = !pinned;
-                        setPinned(newVal);
-                        setMenuOpen(false);
-                        await pinPost(String(post.id), newVal);
-                      }}
-                      className="flex items-center gap-2.5 w-full px-3.5 py-2 text-sm text-gray-700 dark:text-slate-300 hover:bg-gray-50 dark:hover:bg-slate-700/50 transition text-left"
-                    >
-                      <Pin className="w-4 h-4 text-gray-400 dark:text-slate-500" />
-                      {pinned ? "เลิกปิน" : "ปินโพสต์"}
-                    </button>
+                    <>
+                      <button
+                        onClick={async () => {
+                          const newVal = !pinned;
+                          setPinned(newVal);
+                          setMenuOpen(false);
+                          await pinPost(String(post.id), newVal);
+                        }}
+                        className="flex items-center gap-2.5 w-full px-3.5 py-2 text-sm text-gray-700 dark:text-slate-300 hover:bg-gray-50 dark:hover:bg-slate-700/50 transition text-left"
+                      >
+                        <Pin className="w-4 h-4 text-gray-400 dark:text-slate-500" />
+                        {pinned ? "เลิกปิน" : "ปินโพสต์"}
+                      </button>
+                      <button
+                        onClick={() => { setEditContent(caption); setShowEditModal(true); setMenuOpen(false); }}
+                        className="flex items-center gap-2.5 w-full px-3.5 py-2 text-sm text-gray-700 dark:text-slate-300 hover:bg-gray-50 dark:hover:bg-slate-700/50 transition text-left"
+                      >
+                        <Pencil className="w-4 h-4 text-[#398AB9]" />
+                        แก้ไขโพสต์
+                      </button>
+                      <button
+                        onClick={async () => {
+                          if (!confirm("ลบโพสต์นี้?")) return;
+                          setMenuOpen(false);
+                          setDeleting(true);
+                          await deletePost(String(post.id));
+                          setDeleting(false);
+                        }}
+                        disabled={deleting}
+                        className="flex items-center gap-2.5 w-full px-3.5 py-2 text-sm text-[#FF4F4F] hover:bg-red-50 dark:hover:bg-red-900/20 transition text-left"
+                      >
+                        {deleting ? <Loader2 className="w-4 h-4 animate-spin" /> : <Trash2 className="w-4 h-4" />}
+                        ลบโพสต์
+                      </button>
+                    </>
                   )}
                   {!reported && (
                     <button
@@ -452,7 +480,7 @@ export function PostCard({ post, onTagClick }: { post: PostCardData; onTagClick?
       <div className="px-4 pb-2">
         <p className="text-sm text-gray-800 dark:text-slate-200 leading-relaxed">
           <span className="font-semibold mr-1">{post.user.name}</span>
-          {renderCaption(post.caption)}
+          {renderCaption(caption)}
         </p>
       </div>
 
@@ -550,6 +578,50 @@ export function PostCard({ post, onTagClick }: { post: PostCardData; onTagClick?
           >
             {reportSubmitting ? "กำลังส่ง..." : "ส่งรายงาน"}
           </button>
+        </div>
+      </div>
+    )}
+    {/* Edit post modal */}
+    {showEditModal && (
+      <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/50 backdrop-blur-sm px-4 pb-4 sm:pb-0">
+        <div className="bg-white dark:bg-slate-800 rounded-3xl w-full max-w-md shadow-2xl overflow-hidden">
+          <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100 dark:border-slate-700">
+            <p className="font-bold text-gray-900 dark:text-slate-100">แก้ไขโพสต์</p>
+            <button onClick={() => setShowEditModal(false)} className="p-1.5 rounded-full hover:bg-gray-100 dark:hover:bg-slate-700 text-gray-400 transition">
+              <X className="w-4 h-4" />
+            </button>
+          </div>
+          <div className="p-5">
+            <textarea
+              value={editContent}
+              onChange={(e) => setEditContent(e.target.value)}
+              rows={5}
+              maxLength={500}
+              className="w-full text-sm border border-gray-200 dark:border-slate-600 rounded-xl px-3 py-2.5 resize-none bg-white dark:bg-slate-700 text-gray-800 dark:text-slate-200 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#398AB9]/30"
+            />
+            <p className="text-[10px] text-gray-400 mt-1 text-right">{editContent.length}/500</p>
+          </div>
+          <div className="flex gap-3 px-5 pb-5">
+            <button onClick={() => setShowEditModal(false)}
+              className="flex-1 py-2.5 text-sm font-medium border border-gray-200 dark:border-slate-600 text-gray-600 dark:text-slate-300 rounded-xl hover:bg-gray-50 dark:hover:bg-slate-700 transition">
+              ยกเลิก
+            </button>
+            <button
+              onClick={async () => {
+                if (!editContent.trim() || saving) return;
+                setSaving(true);
+                const res = await editPost(String(post.id), editContent.trim());
+                setSaving(false);
+                if (res.error) return;
+                setCaption(editContent.trim());
+                setShowEditModal(false);
+              }}
+              disabled={saving || !editContent.trim()}
+              className="flex-1 flex items-center justify-center gap-2 py-2.5 text-sm font-semibold bg-[#398AB9] hover:bg-[#1C658C] text-white rounded-xl transition disabled:opacity-60">
+              {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Pencil className="w-4 h-4" />}
+              {saving ? "กำลังบันทึก..." : "บันทึก"}
+            </button>
+          </div>
         </div>
       </div>
     )}

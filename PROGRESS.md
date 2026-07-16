@@ -1,3 +1,50 @@
+## Status: Phase 3 | Sprint S31 | 2026-07-17 — Post Edit/Delete for Owners
+
+### Session Log — 2026-07-17 (Sprint S31)
+
+#### ✅ Completed
+1. **S31-1: Post edit + delete in PostDetailClient** — `src/app/post/[id]/PostDetailClient.tsx`: Gets current user via `supabase.auth.getUser()` on mount. Computes `isOwner = currentUserId === post.user.id`. When owner, MoreHorizontal menu shows ✏️ "แก้ไขโพสต์" + 🗗 "ลบโพสต์" (others only see 🚩 Report). Edit opens an inline bottom-sheet modal with textarea, save calls `editPost()` and updates post content live. Delete calls `deletePost()` with confirm() then redirects to /feed. Imports `Pencil`, `Trash2`, `Loader2` from lucide-react. (S31-1)
+2. **S31-2: Post edit + delete in PostCard** — `src/components/features/PostCard.tsx`: Same pattern for the feed card. Added `editPost`, `deletePost` imports. Added `showEditModal`, `editContent`, `saving`, `deleting`, `caption` states. Added "แก้ไขโพสต์" and "ลบโพสต์" buttons in the owner section of the MoreHorizontal menu (alongside existing pin button). Inline edit modal updates `caption` state live so the feed card text refreshes immediately without page reload. (S31-2)
+
+#### ⚠️ PENDING (user action required — 1 item only)
+1. **Add Vercel env vars** (go to vercel.com → your-trip project → Settings → Environment Variables):
+   - `NEXT_PUBLIC_VAPID_PUBLIC_KEY` = (in .env.local)
+   - `VAPID_PRIVATE_KEY` = (in .env.local)
+   - `VAPID_SUBJECT` = `mailto:pakpoomtee24@gmail.com`
+   - `CRON_SECRET` = (in .env.local)
+
+#### ▶️ Next (S32 candidates)
+- Profile cover photo / banner (requires schema: `User.coverImage String?` migration)
+- Collections public discovery — getPublicCollections + /collections/discover page
+- Place submit form improvements — preview before submit, photo upload
+- Follow suggestions on Explore people tab
+
+---
+
+## Status: Phase 3 | Sprint S30 | 2026-07-16 — Trip Share as Post + Server-Side Search + Recently Viewed
+
+### Session Log — 2026-07-16 (Sprint S30)
+
+#### ✅ Completed
+1. **S30-1: Trip Share as Post** — `src/app/trips/[id]/share/TripShareClient.tsx`: Added inline "โพสต์ลง YourTrip Feed" card below the social share buttons. Collapsed by default → expands to a composer with cover image preview + caption textarea (max 500 chars). Calls `createPost` on submit with trip title/destination/link. Success state shows ✅ + link to the new post. (S30-1)
+2. **S30-2: Explore Server-Side Search** — `src/app/explore/ExploreClient.tsx`: When user types ≥2 chars in the explore search box, a debounced (400ms) effect calls `searchPlaces(query, 24)` server action which queries ALL published places in the DB (not just the 50 pre-loaded). Results that are NOT already in the local filtered list appear in a "ผลจากฐานข้อมูลทั้งหมด" section below, with a spinner while loading. Added `ServerPlaceCard` component for these results. (S30-2)
+3. **S30-3: Recently Viewed Places strip** — `src/components/place/[slug]/PlaceDetailClient.tsx` + `ExploreClient.tsx`: Visiting any place saves `{slug, name, coverImage, category}` to localStorage (`yt_recent_places`, max 10). On the Explore page, a horizontal scrollable "ดูล่าสุด" strip shows up to 8 recently viewed places above the Destination Spotlight — only when not actively searching. Each card is a small 80×96px thumbnail with gradient overlay and category emoji badge. Includes a "ล้าง" clear button. (S30-3)
+
+#### ⚠️ PENDING (user action required — 1 item only)
+1. **Add Vercel env vars** (go to vercel.com → your-trip project → Settings → Environment Variables):
+   - `NEXT_PUBLIC_VAPID_PUBLIC_KEY` = (in .env.local)
+   - `VAPID_PRIVATE_KEY` = (in .env.local)
+   - `VAPID_SUBJECT` = `mailto:pakpoomtee24@gmail.com`
+   - `CRON_SECRET` = (in .env.local)
+
+#### ▶️ Next (S31 candidates)
+- Profile cover photo / banner (requires schema: `User.coverImage String?`)
+- Post "edit" capability for own posts
+- Collections page: browse all collections from other users (public discovery)
+- Explore: "Popular near you" powered by real geolocation + `getPlacesNearCoords`
+
+---
+
 ## Status: Phase 3 | Sprint S29 | 2026-07-16 — Pinned Posts + Profile Passport + Story Swipe
 
 ### Session Log — 2026-07-16 (Sprint S29)

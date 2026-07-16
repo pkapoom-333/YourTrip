@@ -3,13 +3,13 @@
 import { useState, useEffect, useRef } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { Heart, MessageCircle, Bookmark, Share2, ChevronLeft, ChevronRight, Send, MoreHorizontal, MapPin, ArrowLeft, QrCode } from "lucide-react";
+import { Heart, MessageCircle, Bookmark, Share2, ChevronLeft, ChevronRight, Send, MoreHorizontal, MapPin, ArrowLeft, QrCode, Pencil, Trash2, Loader2 } from "lucide-react";
 import { Avatar } from "@/components/shared/Avatar";
 import { useToast } from "@/components/shared/Toast";
 import { QRShareModal } from "@/components/shared/QRShareModal";
 import { ReportModal } from "@/components/shared/ReportModal";
 import {
-  getComments, createComment, toggleLike, toggleSave,
+  getComments, createComment, toggleLike, toggleSave, editPost, deletePost,
   type PostDetail, type CommentItem,
 } from "@/server/actions/posts";
 import { createClient } from "@/lib/supabase/client";
@@ -83,7 +83,13 @@ export function PostDetailClient({ post: initial }: { post: PostDetail }) {
   const [showQR, setShowQR] = useState(false);
   const [showReport, setShowReport] = useState(false);
   const [showMenu, setShowMenu] = useState(false);
+  const [currentUserId, setCurrentUserId] = useState<string | null>(null);
+  const [showEdit, setShowEdit] = useState(false);
+  const [editContent, setEditContent] = useState(initial.content);
+  const [saving, setSaving] = useState(false);
+  const [deleting, setDeleting] = useState(false);
   const textRef = useRef<HTMLTextAreaElement>(null);
+  const isOwner = !!currentUserId && currentUserId === post.user.id;
 
   useEffect(() => {
     getComments(post.id).then(({ data }) => {
@@ -91,6 +97,13 @@ export function PostDetailClient({ post: initial }: { post: PostDetail }) {
       setLoadingComments(false);
     });
   }, [post.id]);
+
+  // Get current user to check post ownership
+  useEffect(() => {
+    createClient().auth.getUser().then(({ data }) => {
+      setCurrentUserId(data.user?.id ?? null);
+    }).catch(() => {});
+  }, []);
 
   // Realtime: new comments from other users appear instantly
   useEffect(() => {
@@ -157,6 +170,27 @@ export function PostDetailClient({ post: initial }: { post: PostDetail }) {
     }
   }
 
+  async function handleEditSave() {
+    if (!editContent.trim() || saving) return;
+    setSaving(true);
+    const res = await editPost(post.id, editContent.trim());
+    setSaving(false);
+    if (res.error) { toast.error(res.error.message ?? "เกิดข้อผิดพลาด"); return; }
+    setPost((p) => ({ ...p, content: editContent.trim() }));
+    setShowEdit(false);
+    toast.success("แก้ไขโพสต์แล้ว ✓");
+  }
+
+  async function handleDelete() {
+    if (!confirm("ลบโพสต์นี้?")) return;
+    setDeleting(true);
+    const res = await deletePost(post.id);
+    setDeleting(false);
+    if (res.error) { toast.error(res.error.message ?? "เกิดข้อผิดพลาด"); return; }
+    toast.success("ลบโพสต์แล้ว");
+    router.replace("/feed");
+  }
+
   const shareUrl = `/post/${post.id}`;
 
   return (
@@ -190,11 +224,28 @@ export function PostDetailClient({ post: initial }: { post: PostDetail }) {
             <MoreHorizontal className="w-5 h-5" />
           </button>
           {showMenu && (
-            <div className="absolute right-0 top-8 bg-white dark:bg-slate-800 rounded-2xl shadow-xl border border-gray-100 dark:border-slate-700 py-1.5 min-w-[140px] z-30">
-              <button onClick={() => { setShowReport(true); setShowMenu(false); }}
-                className="w-full text-left px-4 py-2.5 text-sm text-[#FF4F4F] hover:bg-gray-50 dark:hover:bg-slate-700 transition flex items-center gap-2">
-                <span>🚩</span> รายงาน
-              </button>
+            <div className="absolute right-0 top-8 bg-white dark:bg-slate-800 rounded-2xl shadow-xl border border-gray-100 dark:border-slate-700 py-1.5 min-w-[160px] z-30">
+              {isOwner && (
+                <>
+                  <button onClick={() => { setEditContent(post.content); setShowEdit(true); setShowMenu(false); }}
+                    className="w-full text-left px-4 py-2.5 text-sm text-gray-700 dark:text-slate-300 hover:bg-gray-50 dark:hover:bg-slate-700 transition flex items-center gap-2">
+                    <Pencil className="w-4 h-4 text-[#398AB9]" /> แก้ไขโพสต์
+                  </button>
+                  <button onClick={() => { setShowMenu(false); handleDelete(); }}
+                    disabled={deleting}
+                    className="w-full text-left px-4 py-2.5 text-sm text-[#FF4F4F] hover:bg-gray-50 dark:hover:bg-slate-700 transition flex items-center gap-2">
+                    {deleting ? <Loader2 className="w-4 h-4 animate-spin" /> : <Trash2 className="w-4 h-4" />}
+                    ลบโพสต์
+                  </button>
+                  <div className="border-t border-gray-100 dark:border-slate-700 my-1" />
+                </>
+              )}
+              {!isOwner && (
+                <button onClick={() => { setShowReport(true); setShowMenu(false); }}
+                  className="w-full text-left px-4 py-2.5 text-sm text-[#FF4F4F] hover:bg-gray-50 dark:hover:bg-slate-700 transition flex items-center gap-2">
+                  <span>🚩</span> รายงาน
+                </button>
+              )}
               <button onClick={() => setShowMenu(false)}
                 className="w-full text-left px-4 py-2.5 text-sm text-gray-600 dark:text-slate-400 hover:bg-gray-50 dark:hover:bg-slate-700 transition">
                 ยกเลิก
@@ -362,6 +413,41 @@ export function PostDetailClient({ post: initial }: { post: PostDetail }) {
         title={post.user.name ?? "โพสต์"}
         subtitle="สแกนเพื่อดูโพสต์นี้ใน YourTrip"
       />
+
+      {/* Edit post modal */}
+      {showEdit && (
+        <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-4 bg-black/40 backdrop-blur-sm">
+          <div className="w-full max-w-md bg-white dark:bg-slate-800 rounded-3xl shadow-2xl overflow-hidden">
+            <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100 dark:border-slate-700">
+              <p className="font-bold text-gray-900 dark:text-slate-100">แก้ไขโพสต์</p>
+              <button onClick={() => setShowEdit(false)} className="p-1.5 rounded-full hover:bg-gray-100 dark:hover:bg-slate-700 text-gray-400 transition">
+                ✕
+              </button>
+            </div>
+            <div className="p-5">
+              <textarea
+                value={editContent}
+                onChange={(e) => setEditContent(e.target.value)}
+                rows={5}
+                maxLength={500}
+                className="w-full text-sm border border-gray-200 dark:border-slate-600 rounded-xl px-3 py-2.5 resize-none bg-white dark:bg-slate-700 text-gray-800 dark:text-slate-200 placeholder-gray-400 dark:placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-[#398AB9]/30"
+              />
+              <p className="text-[10px] text-gray-400 dark:text-slate-500 text-right mt-1">{editContent.length}/500</p>
+            </div>
+            <div className="flex gap-3 px-5 pb-5">
+              <button onClick={() => setShowEdit(false)}
+                className="flex-1 py-2.5 text-sm font-medium border border-gray-200 dark:border-slate-600 text-gray-600 dark:text-slate-300 rounded-xl hover:bg-gray-50 dark:hover:bg-slate-700 transition">
+                ยกเลิก
+              </button>
+              <button onClick={handleEditSave} disabled={saving || !editContent.trim()}
+                className="flex-1 flex items-center justify-center gap-2 py-2.5 text-sm font-semibold bg-[#398AB9] hover:bg-[#1C658C] text-white rounded-xl transition disabled:opacity-60">
+                {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Pencil className="w-4 h-4" />}
+                {saving ? "กำลังบันทึก..." : "บันทึก"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
