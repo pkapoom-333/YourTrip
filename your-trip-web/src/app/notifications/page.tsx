@@ -15,6 +15,7 @@ import { createClient } from "@/lib/supabase/client";
 import { useUser } from "@/hooks/useUser";
 
 type NotifType = "like" | "comment" | "follow" | "buddy" | "system";
+type FilterTab = "all" | "unread" | "like" | "comment" | "follow";
 
 interface Notif {
   id: string;
@@ -77,7 +78,7 @@ export default function NotificationsPage() {
   const router = useRouter();
   const { user } = useUser();
   const [notifs, setNotifs] = useState<Notif[]>([]);
-  const [filter, setFilter] = useState<"all" | "unread">("all");
+  const [filter, setFilter] = useState<FilterTab>("all");
   // Quick-reply state
   const [replyOpenId, setReplyOpenId] = useState<string | null>(null);
   const [replyTexts, setReplyTexts] = useState<Record<string, string>>({});
@@ -140,7 +141,11 @@ export default function NotificationsPage() {
   }, [user?.id]);
 
   const unreadCount = notifs.filter((n) => !n.isRead).length;
-  const displayed = filter === "unread" ? notifs.filter((n) => !n.isRead) : notifs;
+  const displayed = filter === "unread"
+    ? notifs.filter((n) => !n.isRead)
+    : filter === "all"
+      ? notifs
+      : notifs.filter((n) => n.type === filter);
 
   function markAllRead() {
     setNotifs((prev) => prev.map((n) => ({ ...n, isRead: true })));
@@ -219,18 +224,24 @@ export default function NotificationsPage() {
           </div>
 
           {/* Filter tabs */}
-          <div className="flex gap-1">
-            {(["all", "unread"] as const).map((f) => (
+          <div className="flex gap-1.5 overflow-x-auto pb-0.5 scrollbar-hide">
+            {([
+              { id: "all", label: "ทั้งหมด" },
+              { id: "unread", label: unreadCount > 0 ? `ยังไม่อ่าน (${unreadCount})` : "ยังไม่อ่าน" },
+              { id: "like", label: "❤️ ถูกใจ" },
+              { id: "comment", label: "💬 คอมเมนต์" },
+              { id: "follow", label: "👤 ติดตาม" },
+            ] as { id: FilterTab; label: string }[]).map((f) => (
               <button
-                key={f}
-                onClick={() => setFilter(f)}
-                className={`px-4 py-1.5 rounded-full text-sm font-medium transition-all ${
-                  filter === f
+                key={f.id}
+                onClick={() => setFilter(f.id)}
+                className={`flex-shrink-0 px-3.5 py-1.5 rounded-full text-sm font-medium transition-all ${
+                  filter === f.id
                     ? "bg-[#398AB9] text-white"
                     : "bg-gray-100 dark:bg-slate-700 text-gray-500 dark:text-slate-400 hover:bg-gray-200 dark:hover:bg-slate-600"
                 }`}
               >
-                {f === "all" ? "ทั้งหมด" : `ยังไม่ได้อ่าน${unreadCount > 0 ? ` (${unreadCount})` : ""}`}
+                {f.label}
               </button>
             ))}
           </div>
@@ -243,14 +254,18 @@ export default function NotificationsPage() {
               <Bell className="w-9 h-9 text-[#398AB9]/40" />
             </div>
             <p className="font-semibold text-gray-700 dark:text-slate-200 mb-1">
-              {filter === "unread" ? "ไม่มีการแจ้งเตือนที่ยังไม่ได้อ่าน" : "ยังไม่มีการแจ้งเตือน"}
+              {filter === "unread" ? "ไม่มีการแจ้งเตือนที่ยังไม่ได้อ่าน"
+                : filter === "like" ? "ยังไม่มีการแจ้งเตือน ถูกใจ"
+                : filter === "comment" ? "ยังไม่มีการแจ้งเตือน คอมเมนต์"
+                : filter === "follow" ? "ยังไม่มีการแจ้งเตือน ติดตาม"
+                : "ยังไม่มีการแจ้งเตือน"}
             </p>
             <p className="text-sm text-gray-400 dark:text-slate-500 max-w-xs">
               {filter === "unread"
                 ? "คุณอ่านทุกอย่างหมดแล้ว 🎉"
-                : "เมื่อมีคนถูกใจโพสต์ คอมเมนต์ หรือติดตามคุณ จะแสดงที่นี่"}
+                : "เมื่อมีคนถูกใจ คอมเมนต์ หรือติดตามคุณ จะแสดงที่นี่"}
             </p>
-            {filter === "unread" && (
+            {filter !== "all" && (
               <button
                 onClick={() => setFilter("all")}
                 className="mt-4 text-sm text-[#398AB9] font-medium hover:underline"

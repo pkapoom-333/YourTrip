@@ -100,9 +100,9 @@ export function PostDetailClient({ post: initial }: { post: PostDetail }) {
 
   // Get current user to check post ownership
   useEffect(() => {
-    createClient().auth.getUser().then(({ data }) => {
-      setCurrentUserId(data.user?.id ?? null);
-    }).catch(() => {});
+    void createClient().auth.getUser().then((result: { data: { user: { id: string } | null } }) => {
+      setCurrentUserId(result.data.user?.id ?? null);
+    });
   }, []);
 
   // Realtime: new comments from other users appear instantly
@@ -120,7 +120,7 @@ export function PostDetailClient({ post: initial }: { post: PostDetail }) {
           const newComment: CommentItem = {
             id: row.id as string,
             content: row.content as string,
-            createdAt: row.createdAt as string,
+            createdAt: new Date(row.createdAt as string),
             user: { id: row.userId as string, name: null, avatarUrl: null, username: null },
             replies: [],
           };

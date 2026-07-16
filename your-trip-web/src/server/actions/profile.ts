@@ -133,6 +133,8 @@ export async function getProfile(userId?: string) {
         placesVisited,
         totalTripDays,
         interests: user.interests ?? [],
+        gender: user.gender ?? null,
+        dateOfBirth: user.dateOfBirth ?? null,
       },
     };
   } catch {

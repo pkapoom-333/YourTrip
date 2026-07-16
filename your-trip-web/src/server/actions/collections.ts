@@ -289,7 +289,7 @@ export async function getPublicCollections(
           take: 4,
           orderBy: { order: "asc" },
           include: {
-            place: { select: { coverImage: true } },
+            place: { select: { images: { select: { url: true }, orderBy: { order: "asc" }, take: 1 } } },
           },
         },
         _count: { select: { places: true } },
@@ -309,7 +309,7 @@ export async function getPublicCollections(
         isPublic: c.isPublic,
         placeCount: c._count.places,
         coverImages: c.places
-          .map((cp) => cp.place.coverImage)
+          .map((cp) => cp.place.images[0]?.url)
           .filter((img): img is string => !!img),
         createdAt: c.createdAt,
         user: c.user,

@@ -7,9 +7,14 @@
 2. **S32-2: Collections public discovery** — Added `getPublicCollections(take, cursor)` to `collections.ts` — queries all public collections, sorted by place count desc, with cursor-based pagination. Created `/collections/discover` page (SSR) + `CollectionsDiscoverClient.tsx` — 2-column grid of collection cards with cover mosaic (1/2/4-photo grid), emoji badge, place count, creator avatar. Infinite load via "โหลดเพิ่มเติม" button. Added "ดูคอลเลกชันชุมชน" gradient banner link on `/collections` page. (S32-2)
 3. **S32-3: Profile cover photo / banner** — `schema.prisma`: Added `coverImage String?` to User model. `validations.ts`: Added `coverImage` to `updateProfileSchema`. `profile.ts (updateProfile)`: Saves coverImage on update/create. `profile.ts (getProfile)`: Returns `coverImage`. `profile/[userId]/page.tsx`: Added cover banner (h-32/h-40) above profile header, overlapping avatar with ring-4 border. `profile/edit/page.tsx`: Added cover photo picker section above avatar — upload via Blob/Cloudinary API, preview, remove button. (S32-3)
 
+#### ✅ S32-4: DB Migration for coverImage
+- Root cause: `prisma db push` hangs on pooler port 6543 (transaction mode blocks DDL). Direct URL (port 5432 on db.supabase.co) unreachable from Windows firewall.
+- Fix: Used Node.js `pg` client directly with SESSION pooler (port 5432 on pooler host). `add_cover.js` ran `ALTER TABLE users ADD COLUMN "coverImage" TEXT` successfully.
+- Also fixed `prisma.config.ts`: added `directUrl: DIRECT_URL` for future migrations.
+- Updated `.env.local`: DIRECT_URL now points to true direct connection.
+
 #### ⚠️ PENDING (user action required)
-1. **Run schema migration for coverImage** — run `migrate_cover.vbs` from `C:\Users\user\Documents\your-trip\` to add `coverImage` column to the DB.
-2. **Add Vercel env vars** (go to vercel.com → your-trip project → Settings → Environment Variables):
+1. **Add Vercel env vars** (go to vercel.com → your-trip project → Settings → Environment Variables):
    - `NEXT_PUBLIC_VAPID_PUBLIC_KEY` = (in .env.local)
    - `VAPID_PRIVATE_KEY` = (in .env.local)
    - `VAPID_SUBJECT` = `mailto:pakpoomtee24@gmail.com`

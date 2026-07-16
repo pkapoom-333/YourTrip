@@ -1,4 +1,4 @@
-import { AppShell } from "@/components/AppShell";
+import AppShell from "@/components/AppShell";
 import { getPublicCollections } from "@/server/actions/collections";
 import CollectionsDiscoverClient from "./CollectionsDiscoverClient";
 

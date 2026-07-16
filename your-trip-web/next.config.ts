@@ -11,11 +11,8 @@ const securityHeaders = [
 const nextConfig: NextConfig = {
   compress: true,
   poweredByHeader: false,
-  // ESLint is run as a separate lint step — skip during Vercel production builds
-  // to avoid blocking deploys due to style/warning-level violations.
-  eslint: {
-    ignoreDuringBuilds: true,
-  },
+  // eslint ignore during Vercel builds — cast needed as Next.js 16 types don't include this yet
+  ...({ eslint: { ignoreDuringBuilds: true } } as Record<string, unknown>),
   typescript: {
     ignoreBuildErrors: true,
   },

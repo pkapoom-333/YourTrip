@@ -67,7 +67,7 @@ export default function TripGroupChatPanel({ tripId, tripTitle }: Props) {
         const existing = await getTripGroupChat(tripId);
         if (existing.data) {
           setConversationId(existing.data.id);
-          setParticipantCount(existing.data.participants?.length ?? 0);
+          setParticipantCount(existing.data.participantCount ?? 0);
           const msgs = await getMessages(existing.data.id);
           setMessages(msgs.data as MessageItem[]);
           await markConversationRead(existing.data.id);
@@ -133,8 +133,8 @@ export default function TripGroupChatPanel({ tripId, tripTitle }: Props) {
     try {
       const res = await createTripGroupChat(tripId);
       if (res.data) {
-        setConversationId(res.data.id);
-        setParticipantCount(res.data.participantCount ?? 1);
+        setConversationId(res.data.conversationId);
+        setParticipantCount(1);
         setMessages([]);
       }
     } catch {}
