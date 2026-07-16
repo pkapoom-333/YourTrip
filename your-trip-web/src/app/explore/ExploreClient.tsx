@@ -6,7 +6,7 @@ import { Search, Star, MapPin, SlidersHorizontal, X, LayoutGrid, List, ArrowUpDo
 import { toggleSavePlace } from "@/server/actions/savedPlaces";
 import { searchPlaces } from "@/server/actions/places";
 import type { PlaceListItem } from "@/server/actions/places";
-import { searchUsers, followUser, unfollowUser, type UserCard } from "@/server/actions/profile";
+import { searchUsers, followUser, unfollowUser, getSuggestedUsers, type UserCard } from "@/server/actions/profile";
 import { Avatar } from "@/components/shared/Avatar";
 import { useToast } from "@/components/shared/Toast";
 import { NearMeWidget } from "@/components/features/NearMeWidget";
@@ -143,8 +143,19 @@ const AVATAR_COLORS = [
 
 function PeopleTab({ query }: { query: string }) {
   const [users, setUsers] = useState<UserCard[]>([]);
+  const [suggested, setSuggested] = useState<UserCard[]>([]);
   const [loading, setLoading] = useState(false);
   const [following, setFollowing] = useState<Record<string, boolean>>({});
+
+  // Load suggested users on mount (shown when no query)
+  useEffect(() => {
+    getSuggestedUsers(10).then(({ data }) => {
+      setSuggested(data);
+      const map: Record<string, boolean> = {};
+      data.forEach((u) => { map[u.id] = u.isFollowing; });
+      setFollowing((prev) => ({ ...map, ...prev }));
+    }).catch(() => {});
+  }, []);
 
   useEffect(() => {
     if (!query.trim()) { setUsers([]); return; }
@@ -153,7 +164,7 @@ function PeopleTab({ query }: { query: string }) {
       setUsers(data);
       const map: Record<string, boolean> = {};
       data.forEach((u) => { map[u.id] = u.isFollowing; });
-      setFollowing(map);
+      setFollowing((prev) => ({ ...prev, ...map }));
       setLoading(false);
     }).catch(() => setLoading(false));
   }, [query]);
@@ -170,10 +181,50 @@ function PeopleTab({ query }: { query: string }) {
 
   if (!query.trim()) {
     return (
-      <div className="flex flex-col items-center justify-center py-16 text-center px-8">
-        <Users className="w-12 h-12 text-gray-200 dark:text-slate-700 mb-4" />
-        <p className="text-gray-500 dark:text-slate-400 font-medium">ค้นหาชื่อหรือ username</p>
-        <p className="text-sm text-gray-400 dark:text-slate-500 mt-1">พิมพ์ชื่อเพื่อหาเพื่อนนักท่องเที่ยว</p>
+      <div className="space-y-4">
+        <div className="flex items-center justify-between">
+          <h3 className="text-sm font-semibold text-gray-700 dark:text-slate-300 flex items-center gap-1.5">
+            <UserPlus className="w-4 h-4 text-[#398AB9]" />
+            แนะนำให้ติดตาม
+          </h3>
+          <span className="text-xs text-gray-400 dark:text-slate-500">นักท่องเที่ยวที่น่าสนใจ</span>
+        </div>
+        {suggested.length === 0 ? (
+          <div className="flex flex-col items-center justify-center py-12 text-center px-8">
+            <Users className="w-10 h-10 text-gray-200 dark:text-slate-700 mb-3" />
+            <p className="text-gray-400 dark:text-slate-500 text-sm">พิมพ์ชื่อเพื่อหาเพื่อนนักท่องเที่ยว</p>
+          </div>
+        ) : (
+          suggested.map((u) => {
+            const isFollowing = following[u.id] ?? false;
+            return (
+              <div key={u.id} className="flex items-center gap-3 bg-white dark:bg-slate-800 rounded-2xl border border-gray-100 dark:border-slate-700 p-4">
+                <Link href={`/profile/${u.id}`}>
+                  <Avatar src={u.avatarUrl} name={u.name ?? "U"} className="w-12 h-12" />
+                </Link>
+                <div className="flex-1 min-w-0">
+                  <Link href={`/profile/${u.id}`}
+                    className="text-sm font-semibold text-gray-900 dark:text-slate-100 hover:text-[#398AB9] transition">
+                    {u.name}
+                  </Link>
+                  {u.username && <p className="text-xs text-gray-400 dark:text-slate-500">@{u.username}</p>}
+                  {u.bio && <p className="text-xs text-gray-500 dark:text-slate-400 mt-0.5 truncate">{u.bio}</p>}
+                </div>
+                <button
+                  onClick={() => toggleFollow(u.id)}
+                  className={`flex-shrink-0 flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold transition ${
+                    isFollowing
+                      ? "border border-gray-200 dark:border-slate-600 text-gray-600 dark:text-slate-300 hover:bg-gray-50 dark:hover:bg-slate-700"
+                      : "bg-[#398AB9] text-white hover:bg-[#1C658C]"
+                  }`}>
+                  {isFollowing
+                    ? <><UserCheck className="w-3.5 h-3.5" /> ติดตามอยู่</>
+                    : <><UserPlus className="w-3.5 h-3.5" /> ติดตาม</>}
+                </button>
+              </div>
+            );
+          })
+        )}
       </div>
     );
   }

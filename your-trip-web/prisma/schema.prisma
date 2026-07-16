@@ -21,6 +21,7 @@ model User {
   username    String?  @unique
   name        String?
   avatarUrl   String?
+  coverImage  String?  // Profile banner / cover photo URL
   bio         String?
   website     String?
   location    String?

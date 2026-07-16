@@ -1,3 +1,18 @@
+## 🔥 QUEST BOARD — Sprint S32 "FOLLOW SUGGESTIONS + COLLECTIONS DISCOVERY + PROFILE COVER" (2026-07-17)
+**เป้า:** Suggested users on Explore · Collections discovery page · Profile cover photo
+
+```
+PROGRESS ░░░░░░░░░░░░░░░░░░░░░░░░ 0%
+```
+
+| # | Quest | XP | Status |
+|---|-------|----|--------|
+| S32-1 | **Follow suggestions on People tab** — `getSuggestedUsers(10)` when no query, "แนะนำให้ติดตาม" section | 250 | ⬜ |
+| S32-2 | **Collections public discovery** — `getPublicCollections` action + `/collections/discover` page | 350 | ⬜ |
+| S32-3 | **Profile cover photo** — schema `User.coverImage String?` + migrate + upload in profile edit + header banner | 400 | ⬜ |
+
+---
+
 ## 🔥 QUEST BOARD — Sprint S29 "PINNED POSTS + PASSPORT + STORY SWIPE" (2026-07-16)
 **เป้า:** Profile pinned posts + travel passport stats + story UX improvements
 

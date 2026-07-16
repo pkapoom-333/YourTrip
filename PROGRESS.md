@@ -1,3 +1,28 @@
+## Status: Phase 3 | Sprint S32 | 2026-07-17 — Follow Suggestions + Collections Discovery + Profile Cover
+
+### Session Log — 2026-07-17 (Sprint S32)
+
+#### ✅ Completed
+1. **S32-1: Follow suggestions on Explore People tab** — `src/app/explore/ExploreClient.tsx`: Imported `getSuggestedUsers`. Added `suggested` state, loaded on mount via `getSuggestedUsers(10)`. When no search query, shows "แนะนำให้ติดตาม" section with full user cards (avatar, name, @username, bio, follow button). Previously showed a blank empty-state prompt. (S32-1)
+2. **S32-2: Collections public discovery** — Added `getPublicCollections(take, cursor)` to `collections.ts` — queries all public collections, sorted by place count desc, with cursor-based pagination. Created `/collections/discover` page (SSR) + `CollectionsDiscoverClient.tsx` — 2-column grid of collection cards with cover mosaic (1/2/4-photo grid), emoji badge, place count, creator avatar. Infinite load via "โหลดเพิ่มเติม" button. Added "ดูคอลเลกชันชุมชน" gradient banner link on `/collections` page. (S32-2)
+3. **S32-3: Profile cover photo / banner** — `schema.prisma`: Added `coverImage String?` to User model. `validations.ts`: Added `coverImage` to `updateProfileSchema`. `profile.ts (updateProfile)`: Saves coverImage on update/create. `profile.ts (getProfile)`: Returns `coverImage`. `profile/[userId]/page.tsx`: Added cover banner (h-32/h-40) above profile header, overlapping avatar with ring-4 border. `profile/edit/page.tsx`: Added cover photo picker section above avatar — upload via Blob/Cloudinary API, preview, remove button. (S32-3)
+
+#### ⚠️ PENDING (user action required)
+1. **Run schema migration for coverImage** — run `migrate_cover.vbs` from `C:\Users\user\Documents\your-trip\` to add `coverImage` column to the DB.
+2. **Add Vercel env vars** (go to vercel.com → your-trip project → Settings → Environment Variables):
+   - `NEXT_PUBLIC_VAPID_PUBLIC_KEY` = (in .env.local)
+   - `VAPID_PRIVATE_KEY` = (in .env.local)
+   - `VAPID_SUBJECT` = `mailto:pakpoomtee24@gmail.com`
+   - `CRON_SECRET` = (in .env.local)
+
+#### ▶️ Next (S33 candidates)
+- Place submission form (user-submitted places, admin review queue)
+- Explore "Near Me" powered by real geolocation + `getPlacesNearCoords`
+- DM / messaging improvements (read receipts, file attachments)
+- Notifications center polish (bulk mark-read, filter by type)
+
+---
+
 ## Status: Phase 3 | Sprint S31 | 2026-07-17 — Post Edit/Delete for Owners
 
 ### Session Log — 2026-07-17 (Sprint S31)

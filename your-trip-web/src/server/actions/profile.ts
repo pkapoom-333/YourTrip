@@ -30,6 +30,7 @@ export async function updateProfile(input: UpdateProfileInput) {
         ...(parsed.data.dateOfBirth ? { dateOfBirth: new Date(parsed.data.dateOfBirth) } : {}),
         ...(parsed.data.interests !== undefined ? { interests: parsed.data.interests } : {}),
         ...(parsed.data.avatarUrl ? { avatarUrl: parsed.data.avatarUrl } : {}),
+        ...(parsed.data.coverImage !== undefined ? { coverImage: parsed.data.coverImage || null } : {}),
       },
       create: {
         id: user.id,
@@ -38,6 +39,7 @@ export async function updateProfile(input: UpdateProfileInput) {
         username: parsed.data.username,
         ...(parsed.data.interests !== undefined ? { interests: parsed.data.interests } : {}),
         ...(parsed.data.avatarUrl ? { avatarUrl: parsed.data.avatarUrl } : {}),
+        ...(parsed.data.coverImage ? { coverImage: parsed.data.coverImage } : {}),
       },
     });
 
@@ -120,6 +122,7 @@ export async function getProfile(userId?: string) {
         location: user.location,
         website: user.website,
         avatarUrl: user.avatarUrl,
+        coverImage: user.coverImage ?? null,
         isVerified: user.isVerified,
         isGuide: user.isGuide,
         isVerifiedGuide: user.isVerifiedGuide,

@@ -267,3 +267,56 @@ export async function deleteCollection(id: string): Promise<{ error?: string }> 
     return { error: "ไม่สามารถลบคอลเลกชันได้" };
   }
 }
+
+// ─── getPublicCollections ─────────────────────────────────────────────────────
+
+export async function getPublicCollections(
+  take = 20,
+  cursor?: string,
+): Promise<{ data: CollectionListItem[]; nextCursor: string | null }> {
+  try {
+    const rows = await prisma.collection.findMany({
+      where: { isPublic: true },
+      take: take + 1,
+      ...(cursor ? { cursor: { id: cursor }, skip: 1 } : {}),
+      orderBy: [
+        { places: { _count: "desc" } },
+        { updatedAt: "desc" },
+      ],
+      include: {
+        user: { select: { id: true, name: true, avatarUrl: true } },
+        places: {
+          take: 4,
+          orderBy: { order: "asc" },
+          include: {
+            place: { select: { coverImage: true } },
+          },
+        },
+        _count: { select: { places: true } },
+      },
+    });
+
+    const hasMore = rows.length > take;
+    const items = hasMore ? rows.slice(0, take) : rows;
+    const nextCursor = hasMore ? items[items.length - 1].id : null;
+
+    return {
+      data: items.map((c) => ({
+        id: c.id,
+        title: c.title,
+        description: c.description,
+        emoji: c.emoji,
+        isPublic: c.isPublic,
+        placeCount: c._count.places,
+        coverImages: c.places
+          .map((cp) => cp.place.coverImage)
+          .filter((img): img is string => !!img),
+        createdAt: c.createdAt,
+        user: c.user,
+      })),
+      nextCursor,
+    };
+  } catch {
+    return { data: [], nextCursor: null };
+  }
+}

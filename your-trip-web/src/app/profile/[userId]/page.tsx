@@ -35,6 +35,7 @@ interface ProfileState {
   bio: string;
   location: string;
   avatarUrl: string | null;
+  coverImage: string | null;
   postsCount: number;
   followersCount: number;
   followingCount: number;
@@ -93,6 +94,7 @@ export default function UserProfilePage() {
           bio: profileRes.data.bio ?? "",
           location: profileRes.data.location ?? "",
           avatarUrl: profileRes.data.avatarUrl ?? null,
+          coverImage: (profileRes.data as { coverImage?: string | null }).coverImage ?? null,
           postsCount: profileRes.data.postsCount,
           followersCount: profileRes.data.followersCount,
           followingCount: profileRes.data.followingCount,
@@ -275,10 +277,21 @@ export default function UserProfilePage() {
 
       <div className="max-w-2xl mx-auto">
         {/* Profile header */}
-        <div className="bg-white dark:bg-slate-800 border-b border-gray-100 dark:border-slate-700 px-4 md:px-6 pt-4 pb-5">
+        <div className="bg-white dark:bg-slate-800 border-b border-gray-100 dark:border-slate-700 pb-5">
+          {/* Cover photo banner */}
+          <div className="relative h-32 sm:h-40 bg-gradient-to-br from-[#398AB9]/30 via-[#1C658C]/20 to-[#398AB9]/10 dark:from-slate-700 dark:via-slate-600 dark:to-slate-700 overflow-hidden">
+            {profile.coverImage && (
+              <img src={profile.coverImage} alt="cover" className="w-full h-full object-cover" />
+            )}
+            <div className="absolute inset-0 bg-gradient-to-b from-transparent to-black/10" />
+          </div>
+
+          <div className="px-4 md:px-6 pt-3">
           <div className="flex items-center justify-between mb-4">
-            {/* Avatar */}
-            <Avatar src={profile.avatarUrl} name={profile.name} className="w-20 h-20 text-2xl" />
+            {/* Avatar — overlaps the banner */}
+            <div className="-mt-10">
+              <Avatar src={profile.avatarUrl} name={profile.name} className="w-20 h-20 text-2xl ring-4 ring-white dark:ring-slate-800" />
+            </div>
 
             {/* Stats */}
             <div className="flex flex-wrap gap-x-3 sm:gap-x-6 gap-y-1 text-center justify-end">
@@ -421,6 +434,7 @@ export default function UserProfilePage() {
               </Link>
             </div>
           )}
+          </div>{/* /px-4 */}
         </div>
 
         {/* Tabs */}

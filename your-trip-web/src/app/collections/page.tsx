@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import AppShell from "@/components/AppShell";
 import Link from "next/link";
-import { Plus, MapPin, Lock, Globe, Trash2, BookMarked } from "lucide-react";
+import { Plus, MapPin, Lock, Globe, Trash2, BookMarked, Users } from "lucide-react";
 import { getUserCollections, createCollection, deleteCollection, type CollectionListItem } from "@/server/actions/collections";
 import { useToast } from "@/components/shared/Toast";
 
@@ -167,7 +167,7 @@ export default function CollectionsPage() {
     <AppShell>
       <div className="max-w-2xl mx-auto w-full px-4 py-6">
         {/* Header */}
-        <div className="flex items-center justify-between mb-6">
+        <div className="flex items-center justify-between mb-4">
           <div>
             <h1 className="text-xl font-bold text-gray-900 dark:text-slate-100">คอลเลกชันของฉัน</h1>
             <p className="text-sm text-gray-500 dark:text-slate-400 mt-0.5">รวมสถานที่ที่คุณชอบ</p>
@@ -180,6 +180,19 @@ export default function CollectionsPage() {
             สร้างใหม่
           </button>
         </div>
+
+        {/* Community collections link */}
+        <Link href="/collections/discover"
+          className="flex items-center gap-3 bg-gradient-to-r from-[#398AB9]/10 to-[#1C658C]/10 dark:from-[#398AB9]/20 dark:to-[#1C658C]/20 border border-[#398AB9]/20 dark:border-[#398AB9]/30 rounded-2xl p-3 mb-5 hover:from-[#398AB9]/20 hover:to-[#1C658C]/20 transition">
+          <div className="w-9 h-9 bg-[#398AB9] rounded-xl flex items-center justify-center flex-shrink-0">
+            <Users className="w-4.5 h-4.5 text-white" />
+          </div>
+          <div className="flex-1 min-w-0">
+            <p className="text-sm font-semibold text-[#1C658C] dark:text-[#398AB9]">ดูคอลเลกชันชุมชน</p>
+            <p className="text-xs text-gray-500 dark:text-slate-400 mt-0.5">สำรวจสถานที่ที่นักท่องเที่ยวคนอื่นรวบรวมไว้</p>
+          </div>
+          <MapPin className="w-4 h-4 text-[#398AB9] flex-shrink-0" />
+        </Link>
 
         {/* Loading skeleton */}
         {loading && (

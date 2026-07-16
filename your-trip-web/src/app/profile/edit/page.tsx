@@ -19,11 +19,15 @@ const AVATAR_COLORS = [
 export default function EditProfilePage() {
   const router = useRouter();
   const fileRef = useRef<HTMLInputElement>(null);
+  const coverRef = useRef<HTMLInputElement>(null);
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
   const [uploading, setUploading] = useState(false);
+  const [coverUploading, setCoverUploading] = useState(false);
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
   const [avatarPreview, setAvatarPreview] = useState<string | null>(null);
+  const [coverImage, setCoverImage] = useState<string | null>(null);
+  const [coverPreview, setCoverPreview] = useState<string | null>(null);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
   const [form, setForm] = useState({
@@ -58,6 +62,8 @@ export default function EditProfilePage() {
         setAvatarUrl(data.avatarUrl);
         setAvatarPreview(data.avatarUrl);
       }
+      const cov = (data as { coverImage?: string | null }).coverImage;
+      if (cov) { setCoverImage(cov); setCoverPreview(cov); }
     }).catch(() => {});
   }, []);
 
@@ -115,6 +121,38 @@ export default function EditProfilePage() {
     }
   }
 
+  async function handleCoverChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setCoverPreview(URL.createObjectURL(file));
+    setCoverUploading(true);
+    setErrorMsg(null);
+    try {
+      const modeRes = await fetch("/api/upload");
+      const { mode } = await modeRes.json() as { mode: "blob" | "cloudinary" | "unavailable" };
+      let url: string | null = null;
+      if (mode === "blob") {
+        const blob = await blobUpload(
+          `your-trip/covers/${Date.now()}-${file.name}`,
+          file,
+          { access: "public", handleUploadUrl: "/api/upload" }
+        );
+        url = blob.url;
+      } else if (mode === "cloudinary") {
+        const fd = new FormData();
+        fd.append("file", file); fd.append("folder", "covers");
+        const res = await fetch("/api/upload", { method: "POST", body: fd });
+        const json = await res.json() as { url?: string; error?: string };
+        if (!res.ok || !json.url) throw new Error(json.error ?? "อัพโหลดล้มเหลว");
+        url = json.url;
+      } else { throw new Error("ฟีเจอร์อัปโหลดรูปภาพยังไม่พร้อมใช้งาน"); }
+      if (url) setCoverImage(url);
+    } catch (err) {
+      setErrorMsg(err instanceof Error ? err.message : "อัพโหลดล้มเหลว");
+      setCoverPreview(coverImage);
+    } finally { setCoverUploading(false); }
+  }
+
   async function handleSave() {
     setSaving(true);
     setErrorMsg(null);
@@ -128,6 +166,7 @@ export default function EditProfilePage() {
         gender: form.gender,
         dateOfBirth: form.dateOfBirth || undefined,
         avatarUrl: avatarUrl || undefined,
+        coverImage: coverImage || "",
         interests,
       });
       if ("error" in result && result.error) {
@@ -182,6 +221,39 @@ export default function EditProfilePage() {
               {errorMsg}
             </div>
           )}
+
+          {/* Cover photo */}
+          <div className="rounded-2xl overflow-hidden">
+            <p className="text-xs font-semibold text-gray-500 dark:text-slate-400 mb-1.5 flex items-center gap-1.5">
+              <Camera className="w-3.5 h-3.5" /> ภาพปก (Cover Photo)
+            </p>
+            <div
+              className="relative h-28 rounded-xl overflow-hidden bg-gradient-to-br from-[#398AB9]/20 to-[#1C658C]/10 dark:from-slate-700 dark:to-slate-600 cursor-pointer group"
+              onClick={() => !coverUploading && coverRef.current?.click()}>
+              {coverPreview
+                ? <img src={coverPreview} alt="cover" className="w-full h-full object-cover" />
+                : <div className="absolute inset-0 flex flex-col items-center justify-center gap-1 text-gray-400 dark:text-slate-500">
+                    <Camera className="w-6 h-6" />
+                    <span className="text-xs">กดเพื่ออัปโหลดภาพปก</span>
+                  </div>}
+              {coverUploading && (
+                <div className="absolute inset-0 bg-black/40 flex items-center justify-center">
+                  <Loader2 className="w-6 h-6 text-white animate-spin" />
+                </div>
+              )}
+              <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition flex items-center justify-center opacity-0 group-hover:opacity-100">
+                <Camera className="w-6 h-6 text-white" />
+              </div>
+            </div>
+            {coverImage && !coverUploading && (
+              <button onClick={() => { setCoverImage(null); setCoverPreview(null); }}
+                className="mt-1 text-xs text-[#FF4F4F] hover:underline">
+                ลบภาพปก
+              </button>
+            )}
+            <input ref={coverRef} type="file" accept="image/jpeg,image/png,image/webp"
+              className="hidden" onChange={handleCoverChange} />
+          </div>
 
           {/* Avatar */}
           <div className="flex flex-col items-center">
