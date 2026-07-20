@@ -8,11 +8,19 @@ import { ImageUpload, type UploadedImage } from "@/components/ImageUpload";
 import { useUser } from "@/hooks/useUser";
 import { Avatar } from "@/components/shared/Avatar";
 import { searchPlacesForTrip, type PlacePickerItem } from "@/server/actions/places";
+import { searchUsers } from "@/server/actions/profile";
 import {
   MapPin, Tag, X, ChevronLeft, Smile, AlertCircle, Loader2, Eye, EyeOff,
-  Heart, MessageCircle, Bookmark, Share2, Sparkles, Save, Clock,
+  Heart, MessageCircle, Bookmark, Share2, Sparkles, Save, Clock, AtSign,
 } from "lucide-react";
 import { generateCaption } from "@/server/actions/ai-caption";
+
+interface MentionUser {
+  id: string;
+  name: string | null;
+  username: string | null;
+  avatarUrl: string | null;
+}
 
 const MAX_CHARS = 500;
 const MAX_IMAGES = 4;
@@ -73,6 +81,13 @@ export default function CreatePage() {
   const [showPreview, setShowPreview] = useState(false);
   const [aiLoading, setAiLoading] = useState(false);
 
+  // @Mention autocomplete state
+  const [mentionQuery, setMentionQuery] = useState<string | null>(null);
+  const [mentionResults, setMentionResults] = useState<MentionUser[]>([]);
+  const [mentionLoading, setMentionLoading] = useState(false);
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const mentionTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
   // Draft state
   const [draftSavedAt, setDraftSavedAt] = useState<string | null>(null);
   const [showDraftBanner, setShowDraftBanner] = useState(false);
@@ -107,6 +122,63 @@ export default function CreatePage() {
     triggerAutoSave(content, tags, location, placeId);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [content, tags, location, placeId]);
+
+  // Handle textarea change with @mention detection
+  function handleContentChange(e: React.ChangeEvent<HTMLTextAreaElement>) {
+    const val = e.target.value.slice(0, MAX_CHARS);
+    setContent(val);
+
+    // Detect @mention trigger — look at text up to cursor
+    const cursor = e.target.selectionStart ?? val.length;
+    const textToCursor = val.slice(0, cursor);
+    // Match last @ followed by word chars (including empty) not preceded by another word char
+    const match = textToCursor.match(/(?:^|[\s,])@(\w*)$/);
+    if (match !== null) {
+      const q = match[1]; // text after @
+      setMentionQuery(q);
+      if (mentionTimerRef.current) clearTimeout(mentionTimerRef.current);
+      if (q.length === 0) {
+        // Show nothing until at least 1 char typed
+        setMentionResults([]);
+        setMentionLoading(false);
+        return;
+      }
+      setMentionLoading(true);
+      mentionTimerRef.current = setTimeout(async () => {
+        const { data } = await searchUsers(q, 6);
+        setMentionResults(data as MentionUser[]);
+        setMentionLoading(false);
+      }, 300);
+    } else {
+      setMentionQuery(null);
+      setMentionResults([]);
+      if (mentionTimerRef.current) clearTimeout(mentionTimerRef.current);
+    }
+  }
+
+  // Insert selected @mention into content at cursor position
+  function insertMention(username: string) {
+    if (!textareaRef.current) return;
+    const ta = textareaRef.current;
+    const cursor = ta.selectionStart ?? content.length;
+    const textToCursor = content.slice(0, cursor);
+    // Replace the @partial we've typed
+    const match = textToCursor.match(/(?:^|[\s,])@(\w*)$/);
+    if (!match) return;
+    const matchStart = textToCursor.lastIndexOf(`@${match[1]}`);
+    const before = content.slice(0, matchStart);
+    const after = content.slice(cursor);
+    const newContent = `${before}@${username} ${after}`;
+    setContent(newContent.slice(0, MAX_CHARS));
+    setMentionQuery(null);
+    setMentionResults([]);
+    // Restore focus + move cursor after inserted mention
+    setTimeout(() => {
+      ta.focus();
+      const newCursor = matchStart + username.length + 2; // @username<space>
+      ta.setSelectionRange(newCursor, newCursor);
+    }, 0);
+  }
 
   function restoreDraft() {
     if (!pendingDraft) return;
@@ -369,15 +441,53 @@ export default function CreatePage() {
           </div>
 
           {/* Text area */}
-          <div>
+          <div className="relative">
             <textarea
+              ref={textareaRef}
               value={content}
-              onChange={(e) => setContent(e.target.value.slice(0, MAX_CHARS))}
-              placeholder="แชร์ประสบการณ์การท่องเที่ยวของคุณ..."
+              onChange={handleContentChange}
+              onKeyDown={(e) => {
+                // Dismiss mention dropdown on Escape
+                if (e.key === "Escape" && mentionQuery !== null) {
+                  e.preventDefault();
+                  setMentionQuery(null);
+                  setMentionResults([]);
+                }
+              }}
+              placeholder="แชร์ประสบการณ์การท่องเที่ยวของคุณ... พิมพ์ @ เพื่อแท็กเพื่อน"
               rows={5}
               className="w-full text-sm text-gray-800 dark:text-slate-200 placeholder:text-gray-400 dark:placeholder:text-slate-500 resize-none outline-none leading-relaxed bg-transparent"
               autoFocus
             />
+
+            {/* @Mention autocomplete dropdown */}
+            {mentionQuery !== null && (mentionLoading || mentionResults.length > 0) && (
+              <div className="absolute left-0 right-0 top-full mt-1 z-50 bg-white dark:bg-slate-800 rounded-2xl border border-gray-100 dark:border-slate-700 shadow-lg overflow-hidden">
+                <div className="flex items-center gap-1.5 px-3 py-2 border-b border-gray-50 dark:border-slate-700">
+                  <AtSign className="w-3.5 h-3.5 text-[#398AB9]" />
+                  <span className="text-xs text-gray-400 dark:text-slate-500">แท็กผู้ใช้</span>
+                  {mentionLoading && <Loader2 className="w-3 h-3 animate-spin text-[#398AB9] ml-auto" />}
+                </div>
+                {mentionResults.map((u) => (
+                  <button
+                    key={u.id}
+                    type="button"
+                    onMouseDown={(e) => { e.preventDefault(); insertMention(u.username ?? u.id); }}
+                    className="w-full flex items-center gap-2.5 px-3 py-2.5 hover:bg-gray-50 dark:hover:bg-slate-700/60 transition text-left"
+                  >
+                    <Avatar src={u.avatarUrl} name={u.name ?? "?"} size={28} />
+                    <div className="flex-1 min-w-0">
+                      <p className="text-xs font-semibold text-gray-900 dark:text-slate-100 truncate">{u.name}</p>
+                      {u.username && <p className="text-[11px] text-gray-400 dark:text-slate-500">@{u.username}</p>}
+                    </div>
+                  </button>
+                ))}
+                {!mentionLoading && mentionResults.length === 0 && mentionQuery.length > 0 && (
+                  <p className="text-xs text-gray-400 dark:text-slate-500 text-center py-3">ไม่พบผู้ใช้</p>
+                )}
+              </div>
+            )}
+          </div>
             {/* Character count — SVG ring (Twitter-style) */}
             {content.length > 0 && (
               <div className="flex items-center justify-end gap-2 mt-1">

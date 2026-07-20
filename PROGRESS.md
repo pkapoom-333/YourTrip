@@ -1,3 +1,48 @@
+## Status: Phase 3 | Sprint S35 | 2026-07-17 — Admin Queue (verified) + Packing List (verified) + @Mention Autocomplete
+
+### Session Log — 2026-07-17 (Sprint S35)
+
+#### ✅ Completed
+1. **S35-1: Admin place submissions queue** — Already fully implemented in `/admin/submissions/page.tsx` (225 lines): filter tabs (all/pending/approved/rejected), Supabase `place_submissions` table fetch, approve/reject via `updateStatus()`, expandable detail panel with Google Maps link, phone, website, submitter note. Verified as complete — no changes needed.
+2. **S35-2: Trip packing list smart suggestions** — Already fully implemented: `PackingListPanel.tsx` (169 lines) imported in `trips/[id]/page.tsx`, `initPackingList` server action seeds default items by category (documents/electronics/clothing/toiletries/other), `getPackingList`, `addPackingItem`, `togglePackingItem`, `deletePackingItem` all wired. Verified as complete — no changes needed.
+3. **S35-3: @mention autocomplete in post composer** — `src/app/create/page.tsx`: Added `MentionUser` interface, `mentionQuery/mentionResults/mentionLoading` state, `textareaRef`/`mentionTimerRef`. Added `handleContentChange()` — detects `@word` at cursor with regex, debounced 300ms `searchUsers(q,6)` call. Added `insertMention(username)` — replaces `@partial` in content at correct cursor offset. Dropdown shows Avatar + name + @username, `onMouseDown` (not click) to prevent textarea blur, Escape key dismisses. Placeholder text updated to "พิมพ์ @ เพื่อแท็กเพื่อน". `createPost` server action already auto-extracts @mentions from content for notifications.
+
+#### ⚠️ PENDING (user action required)
+1. **Add Vercel env vars** (go to vercel.com → your-trip project → Settings → Environment Variables):
+   - `NEXT_PUBLIC_VAPID_PUBLIC_KEY`, `VAPID_PRIVATE_KEY`, `VAPID_SUBJECT` = `mailto:pakpoomtee24@gmail.com`, `CRON_SECRET`
+
+#### ▶️ Next (S36 candidates)
+- Post detail comments with threaded replies
+- Trending places (most check-ins / most saved this week)  
+- User profile "highlight reels" (best photos from trips)
+- Onboarding flow improvements (step-by-step interest picker)
+
+---
+
+## Status: Phase 3 | Sprint S34 | 2026-07-17 — Near Me GPS + Trip Progress + ExploreClient Restore
+
+### Session Log — 2026-07-17 (Sprint S34)
+
+#### ✅ Completed
+1. **S34-1: Explore "Near Me" GPS button** — `src/app/explore/ExploreClient.tsx`: Added `Navigation` icon import. Added a full-width "สถานที่ใกล้ฉัน" pill button before category tabs that calls `requestGeolocation()`. Active state (when location is granted) shows blue filled button with "ใกล้ฉัน (เปิดอยู่ — แตะเพื่อปิด)". Clears location and resets to rating sort on tap-off. Sort dropdown also has "ใกล้ฉัน" option as before. Also restored ExploreClient.tsx which was truncated at line 852 — restored 239 missing lines from git. (S34-1)
+2. **S34-2: DM read receipts** — Already fully implemented in ChatWindow.tsx: `CheckCheck` (blue) / `Check` (gray) icons on last own message, `otherLastRead` from `conversation_participants.lastReadAt` with Realtime UPDATE subscription, `markConversationRead` called on message load. No code changes needed. (S34-2 verified)
+3. **S34-3: Trip progress tracker** — `src/app/trips/[id]/page.tsx`: Added `completedItems: Set<string>` state loaded from `localStorage(yt_trip_progress_{id})`. `toggleItemComplete()` updates Set + persists. Progress bar strip between budget and weather widgets shows X/Y กิจกรรม with % fill. ItemCard: added `isCompleted`/`onToggleComplete` props, circle checkbox toggle button on each item (emerald when done), fade opacity when completed. Celebration text when all items done. (S34-3)
+
+#### ⚠️ PENDING (user action required)
+1. **Add Vercel env vars** (go to vercel.com → your-trip project → Settings → Environment Variables):
+   - `NEXT_PUBLIC_VAPID_PUBLIC_KEY` = (in .env.local)
+   - `VAPID_PRIVATE_KEY` = (in .env.local)
+   - `VAPID_SUBJECT` = `mailto:pakpoomtee24@gmail.com`
+   - `CRON_SECRET` = (in .env.local)
+
+#### ▶️ Next (S35 candidates)
+- Admin place submissions review queue (/admin/place-submissions)
+- Feed story highlights (pinned stories that don't expire)
+- Trip packing list smart suggestions (based on destination + season)
+- User mention autocomplete in post composer (@username dropdown)
+
+---
+
 ## Status: Phase 3 | Sprint S33 | 2026-07-17 — Notifications Type Filter + Place Submit Photo Upload + TS Fixes
 
 ### Session Log — 2026-07-17 (Sprint S33)

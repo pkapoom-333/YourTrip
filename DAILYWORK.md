@@ -1,15 +1,30 @@
-## 🔥 QUEST BOARD — Sprint S34 "NEAR ME + DM READ RECEIPTS + TRIP PROGRESS" (2026-07-17)
-**เป้า:** Explore Near Me geolocation · DM read receipts · Trip progress tracker · Admin place queue
+## 🔥 QUEST BOARD — Sprint S35 "ADMIN QUEUE + PACKING LIST + MENTION AUTOCOMPLETE" (2026-07-17)
+**เป้า:** Admin place submission review queue · Smart packing list suggestions · @mention autocomplete in post composer
 
 ```
-PROGRESS ░░░░░░░░░░░░░░░░░░░░░░░░ 0%
+PROGRESS ████████████████████████ 100%  CODE COMPLETE
 ```
 
 | # | Quest | XP | Status |
 |---|-------|----|--------|
-| S34-1 | **Explore "Near Me"** — GPS toggle button, `getPlacesNearCoords` action (haversine distance), sort by distance | 400 | ⬜ |
-| S34-2 | **DM read receipts** — mark message read on view, show ✓✓ in ChatWindow per message | 300 | ⬜ |
-| S34-3 | **Trip progress tracker** — checklist toggle on itinerary items, % progress bar in trip header | 350 | ⬜ |
+| S35-1 | **Admin place submissions queue** — `/admin/submissions/page.tsx` (225 lines): filter tabs, approve/reject buttons, detail expand, Google Maps link, Supabase update | 450 | ✅ |
+| S35-2 | **Trip packing list smart suggestions** — `PackingListPanel.tsx` + `initPackingList` server action: categories (documents/electronics/clothing/toiletries), toggle + add + delete, default suggestions seeded from DB | 400 | ✅ |
+| S35-3 | **@mention autocomplete in post composer** — `create/page.tsx`: detect `@` trigger at cursor, debounced `searchUsers(q,6)`, Avatar dropdown, onMouseDown inject `@username ` at cursor, Escape to dismiss | 350 | ✅ |
+
+---
+
+## 🔥 QUEST BOARD — Sprint S34 "NEAR ME + DM READ RECEIPTS + TRIP PROGRESS" (2026-07-17)
+**เป้า:** Explore Near Me geolocation · DM read receipts · Trip progress tracker · Admin place queue
+
+```
+PROGRESS ████████████████████████ 100%  CODE COMPLETE
+```
+
+| # | Quest | XP | Status |
+|---|-------|----|--------|
+| S34-1 | **Explore "Near Me"** — GPS toggle button, `getPlacesNearCoords` action (haversine distance), sort by distance | 400 | ✅ |
+| S34-2 | **DM read receipts** — mark message read on view, show ✓✓ in ChatWindow per message | 300 | ✅ |
+| S34-3 | **Trip progress tracker** — checklist toggle on itinerary items, % progress bar in trip header | 350 | ✅ |
 
 ---
 
