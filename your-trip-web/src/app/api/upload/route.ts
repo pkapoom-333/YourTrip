@@ -180,6 +180,6 @@ export async function POST(req: NextRequest) {
   );
 }
 
-export const config = {
-  api: { bodyParser: false },
-};
+// App Router route handlers don't need bodyParser config — body is parsed
+// only when explicitly calling req.json() / req.formData() / req.text()
+export const runtime = "nodejs";
