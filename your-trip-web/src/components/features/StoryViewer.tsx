@@ -2,8 +2,11 @@
 
 import { useEffect, useRef, useState, useCallback } from "react";
 import { X, ChevronLeft, ChevronRight, Trash2, Eye } from "lucide-react";
-import { markStoryViewed, deleteStory, getStoryViewers, reactToStory, getStoryReactions, STORY_REACTION_EMOJIS } from "@/server/actions/stories";
+import { markStoryViewed, deleteStory, getStoryViewers, reactToStory, getStoryReactions } from "@/server/actions/stories";
 import type { StoryGroup, StoryItem } from "@/server/actions/stories";
+
+// Moved here from stories.ts — "use server" files cannot export non-async values
+const STORY_REACTION_EMOJIS = ["❤️", "🔥", "😍", "😂", "✈️", "👏"] as const;
 
 interface StoryViewerProps {
   groups: StoryGroup[];

@@ -232,8 +232,8 @@ export async function getStoryViewers(storyId: string): Promise<{
 }
 
 // ─── Story Reactions ─────────────────────────────────────────────────────────
-
-export const STORY_REACTION_EMOJIS = ["❤️", "🔥", "😍", "😂", "✈️", "👏"] as const;
+// NOTE: STORY_REACTION_EMOJIS is defined in StoryViewer.tsx — cannot export
+// non-async values from a "use server" file (Next.js restriction)
 
 // Toggle a reaction emoji on a story (upsert / delete)
 export async function reactToStory(storyId: string, emoji: string): Promise<{ ok: boolean; error?: string }> {
