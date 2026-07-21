@@ -475,7 +475,7 @@ export default function CreatePage() {
                     onMouseDown={(e) => { e.preventDefault(); insertMention(u.username ?? u.id); }}
                     className="w-full flex items-center gap-2.5 px-3 py-2.5 hover:bg-gray-50 dark:hover:bg-slate-700/60 transition text-left"
                   >
-                    <Avatar src={u.avatarUrl} name={u.name ?? "?"} size={28} />
+                    <Avatar src={u.avatarUrl} name={u.name ?? "?"} className="w-7 h-7" />
                     <div className="flex-1 min-w-0">
                       <p className="text-xs font-semibold text-gray-900 dark:text-slate-100 truncate">{u.name}</p>
                       {u.username && <p className="text-[11px] text-gray-400 dark:text-slate-500">@{u.username}</p>}
@@ -510,7 +510,6 @@ export default function CreatePage() {
                 </svg>
               </div>
             )}
-          </div>
 
           {/* Image upload */}
           <ImageUpload
