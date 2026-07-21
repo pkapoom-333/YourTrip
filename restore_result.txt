@@ -1,0 +1,3 @@
+START: 17/7/2569 1:33:25
+No index.lock
+git checkout HEAD exit: 0

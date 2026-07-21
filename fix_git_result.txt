@@ -1,0 +1,37 @@
+START: 17/7/2569 1:31:37
+No index.lock found
+git restore --staged exit: 0
+ M DAILYWORK.md
+ M PROGRESS.md
+ M migrate_result.txt
+ M your-trip-web/prisma.config.ts
+ M your-trip-web/src/app/api/place-submission/route.ts
+ M your-trip-web/src/app/notifications/page.tsx
+ M your-trip-web/src/app/place/submit/page.tsx
+?? add_cover.js
+?? alter2_result.txt
+?? alter_table.js
+?? alter_table2.js
+?? alter_table_result.txt
+?? check_result.vbs
+?? cover_result.txt
+?? db_push.vbs
+?? db_push2.vbs
+?? db_push2_result.txt
+?? db_push3.vbs
+?? db_push3_result.txt
+?? db_push4.vbs
+?? db_push4_result.txt
+?? db_push5.vbs
+?? db_push5_result.txt
+?? db_push_copy.txt
+?? db_push_result.txt
+?? fix_git.vbs
+?? fix_git_result.txt
+?? list_result.txt
+?? list_tables.js
+?? run_alter.vbs
+?? run_alter2.vbs
+?? run_cover.vbs
+?? run_list.vbs
+?? test_msg.vbs

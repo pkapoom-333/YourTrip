@@ -1,0 +1,7 @@
+START: 17/7/2569 1:17:41
+Connecting to: aws-1-ap-northeast-1.pooler.supabase.com:5432/postgres
+Attempting connection...
+Connected!
+Adding coverImage column...
+ERROR: relation "User" does not exist
+EXIT CODE: 1 at 17/7/2569 1:17:42

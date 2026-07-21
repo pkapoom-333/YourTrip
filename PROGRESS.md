@@ -1,3 +1,18 @@
+## Status: Phase 3 | Sprint S36 | 2026-07-21 — Comments + Trending + Highlight Reels
+
+### Session Log — 2026-07-21 (Sprint S35→S36 transition)
+
+#### ✅ Completed
+1. **Vercel env vars** — Added `NEXT_PUBLIC_VAPID_PUBLIC_KEY`, `VAPID_PRIVATE_KEY`, `VAPID_SUBJECT`, `CRON_SECRET` to Vercel (Production + Preview). Redeploy needed to activate.
+2. **Bulk commit** — Committed all 128 pending modified files to bring repo up to date.
+
+#### ▶️ Next (S36)
+- S36-1: Post comments with threaded replies
+- S36-2: Trending places section in Explore (check-in/save count last 7 days)
+- S36-3: Profile highlight reels (pinned posts)
+
+---
+
 ## Status: Phase 3 | Sprint S35 | 2026-07-17 — Admin Queue (verified) + Packing List (verified) + @Mention Autocomplete
 
 ### Session Log — 2026-07-17 (Sprint S35)
@@ -7,9 +22,8 @@
 2. **S35-2: Trip packing list smart suggestions** — Already fully implemented: `PackingListPanel.tsx` (169 lines) imported in `trips/[id]/page.tsx`, `initPackingList` server action seeds default items by category (documents/electronics/clothing/toiletries/other), `getPackingList`, `addPackingItem`, `togglePackingItem`, `deletePackingItem` all wired. Verified as complete — no changes needed.
 3. **S35-3: @mention autocomplete in post composer** — `src/app/create/page.tsx`: Added `MentionUser` interface, `mentionQuery/mentionResults/mentionLoading` state, `textareaRef`/`mentionTimerRef`. Added `handleContentChange()` — detects `@word` at cursor with regex, debounced 300ms `searchUsers(q,6)` call. Added `insertMention(username)` — replaces `@partial` in content at correct cursor offset. Dropdown shows Avatar + name + @username, `onMouseDown` (not click) to prevent textarea blur, Escape key dismisses. Placeholder text updated to "พิมพ์ @ เพื่อแท็กเพื่อน". `createPost` server action already auto-extracts @mentions from content for notifications.
 
-#### ⚠️ PENDING (user action required)
-1. **Add Vercel env vars** (go to vercel.com → your-trip project → Settings → Environment Variables):
-   - `NEXT_PUBLIC_VAPID_PUBLIC_KEY`, `VAPID_PRIVATE_KEY`, `VAPID_SUBJECT` = `mailto:pakpoomtee24@gmail.com`, `CRON_SECRET`
+#### ✅ S35-4: Vercel env vars added (2026-07-21)
+- `NEXT_PUBLIC_VAPID_PUBLIC_KEY`, `VAPID_PRIVATE_KEY`, `VAPID_SUBJECT`, `CRON_SECRET` — all added to Vercel (Production and Preview). Redeploy needed to take effect.
 
 #### ▶️ Next (S36 candidates)
 - Post detail comments with threaded replies

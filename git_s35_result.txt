@@ -1,0 +1,7 @@
+warning: in the working copy of 'DAILYWORK.md', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'PROGRESS.md', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'your-trip-web/src/app/create/page.tsx', LF will be replaced by CRLF the next time Git touches it
+[main b969469] Day 39: feat: S35 @mention autocomplete in post composer + verify admin queue + packing list
+ 3 files changed, 178 insertions(+), 8 deletions(-)
+To https://github.com/pkapoom-333/YourTrip.git
+   e4fb9a8..b969469  main -> main

@@ -1,3 +1,18 @@
+## 🔥 QUEST BOARD — Sprint S36 "COMMENTS + TRENDING + HIGHLIGHT REELS" (2026-07-21)
+**เป้า:** Post comments threaded replies · Trending places รายสัปดาห์ · Profile highlight reels
+
+```
+PROGRESS ░░░░░░░░░░░░░░░░░░░░░░░░   0%
+```
+
+| # | Quest | XP | Status |
+|---|-------|----|--------|
+| S36-1 | **Post comments with threaded replies** — comment list under post detail, reply to comment, like comment, `createComment` / `getComments` server actions | 450 | ⬜ |
+| S36-2 | **Trending places** — `/explore` section "กำลังฮิต" — places sorted by check-in count + save count ใน 7 วัน, horizontal scroll card strip | 350 | ⬜ |
+| S36-3 | **Profile highlight reels** — `profile/[username]` แสดง pinned posts / best photos grid section, `pinnedAt` field ใน Post | 300 | ⬜ |
+
+---
+
 ## 🔥 QUEST BOARD — Sprint S35 "ADMIN QUEUE + PACKING LIST + MENTION AUTOCOMPLETE" (2026-07-17)
 **เป้า:** Admin place submission review queue · Smart packing list suggestions · @mention autocomplete in post composer
 

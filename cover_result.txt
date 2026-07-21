@@ -1,0 +1,27 @@
+START: 17/7/2569 1:20:01
+Connected!
+
+Current users columns:
+ - id (text)
+ - email (text)
+ - username (text)
+ - name (text)
+ - avatarUrl (text)
+ - bio (text)
+ - website (text)
+ - location (text)
+ - gender (text)
+ - dateOfBirth (timestamp without time zone)
+ - isVerified (boolean)
+ - createdAt (timestamp without time zone)
+ - updatedAt (timestamp without time zone)
+ - isGuide (boolean)
+ - isVerifiedGuide (boolean)
+ - isOnboarded (boolean)
+ - interests (ARRAY)
+ - isSystemAccount (boolean)
+ - pushSubscription (text)
+
+Adding coverImage column to users table...
+SUCCESS: coverImage column added!
+EXIT CODE: 0

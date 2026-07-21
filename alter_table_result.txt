@@ -1,0 +1,17 @@
+START: 17/7/2569 1:16:29
+Connecting to: aws-1-ap-northeast-1.pooler.supabase.com:5432/postgres
+C:\Users\user\Documents\your-trip\alter_table.js:9
+const sql = postgres(connectionString, {
+            ^
+
+TypeError: postgres is not a function
+    at Object.<anonymous> (C:\Users\user\Documents\your-trip\alter_table.js:9:13)
+    at Module._compile (node:internal/modules/cjs/loader:1529:14)
+    at Module._extensions..js (node:internal/modules/cjs/loader:1613:10)
+    at Module.load (node:internal/modules/cjs/loader:1275:32)
+    at Module._load (node:internal/modules/cjs/loader:1096:12)
+    at Function.executeUserEntryPoint [as runMain] (node:internal/modules/run_main:164:12)
+    at node:internal/main/run_main_module:28:49
+
+Node.js v20.19.2
+EXIT CODE: 1 at 17/7/2569 1:16:29

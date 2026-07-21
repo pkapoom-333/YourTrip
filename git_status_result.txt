@@ -1,0 +1,68 @@
+On branch main
+Your branch is ahead of 'origin/main' by 242 commits.
+  (use "git push" to publish your local commits)
+
+Changes not staged for commit:
+  (use "git add <file>..." to update what will be committed)
+  (use "git restore <file>..." to discard changes in working directory)
+	modified:   ../DAILYWORK.md
+	modified:   ../PROGRESS.md
+	modified:   ../migrate_result.txt
+	modified:   next.config.ts
+	modified:   src/app/api/place-submission/route.ts
+	modified:   src/app/collections/discover/page.tsx
+	modified:   src/app/notifications/page.tsx
+	modified:   src/app/place/submit/page.tsx
+	modified:   src/app/post/[id]/PostDetailClient.tsx
+	modified:   src/components/features/TripGroupChatPanel.tsx
+	modified:   src/server/actions/collections.ts
+	modified:   src/server/actions/profile.ts
+
+Untracked files:
+  (use "git add <file>..." to include in what will be committed)
+	../add_cover.js
+	../alter2_result.txt
+	../alter_table.js
+	../alter_table2.js
+	../alter_table_result.txt
+	../check_result.vbs
+	../cmd_test_result.txt
+	../cover_result.txt
+	../db_push.vbs
+	../db_push2.vbs
+	../db_push2_result.txt
+	../db_push3.vbs
+	../db_push3_result.txt
+	../db_push4.vbs
+	../db_push4_result.txt
+	../db_push5.vbs
+	../db_push5_result.txt
+	../db_push_copy.txt
+	../db_push_result.txt
+	../fix_git.vbs
+	../fix_git_result.txt
+	../generate_result.txt
+	../git_s33.vbs
+	../git_s33b.vbs
+	../git_s33c.vbs
+	../git_status_result.txt
+	../list_result.txt
+	../list_tables.js
+	../restore_files.vbs
+	../restore_files2.vbs
+	../restore_result.txt
+	../restore_result2.txt
+	../run_alter.vbs
+	../run_alter2.vbs
+	../run_cover.vbs
+	../run_generate.vbs
+	../run_git_s33.bat
+	../run_list.vbs
+	../run_tsc.vbs
+	../test_cmd.vbs
+	../test_msg.vbs
+	../test_write.vbs
+	../tsc_result.txt
+	../vbs_test_result.txt
+
+no changes added to commit (use "git add" and/or "git commit -a")
