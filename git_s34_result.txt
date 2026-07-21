@@ -1,8 +1,0 @@
-warning: in the working copy of 'DAILYWORK.md', LF will be replaced by CRLF the next time Git touches it
-warning: in the working copy of 'PROGRESS.md', LF will be replaced by CRLF the next time Git touches it
-warning: in the working copy of 'your-trip-web/src/app/explore/ExploreClient.tsx', LF will be replaced by CRLF the next time Git touches it
-warning: in the working copy of 'your-trip-web/src/app/trips/[id]/page.tsx', LF will be replaced by CRLF the next time Git touches it
-[main e4fb9a8] Day 39: feat: S34 Explore Near Me GPS button + trip progress tracker + restore ExploreClient
- 4 files changed, 130 insertions(+), 6 deletions(-)
-To https://github.com/pkapoom-333/YourTrip.git
-   07a092f..e4fb9a8  main -> main

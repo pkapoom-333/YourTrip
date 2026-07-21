@@ -1,3 +1,0 @@
-START: 17/7/2569 1:14:42
-Datasource "db": PostgreSQL database "postgres", schema "public" at "aws-1-ap-northeast-1.pooler.supabase.com:6543"
-EXIT CODE: 1 at 17/7/2569 1:16:27

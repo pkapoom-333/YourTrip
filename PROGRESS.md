@@ -3,13 +3,17 @@
 ### Session Log — 2026-07-21 (Sprint S35→S36 transition)
 
 #### ✅ Completed
-1. **Vercel env vars** — Added `NEXT_PUBLIC_VAPID_PUBLIC_KEY`, `VAPID_PRIVATE_KEY`, `VAPID_SUBJECT`, `CRON_SECRET` to Vercel (Production + Preview). Redeploy needed to activate.
-2. **Bulk commit** — Committed all 128 pending modified files to bring repo up to date.
+1. **Vercel env vars** — Added `NEXT_PUBLIC_VAPID_PUBLIC_KEY`, `VAPID_PRIVATE_KEY`, `VAPID_SUBJECT`, `CRON_SECRET` to Vercel (Production + Preview). Redeploy trigger on next push.
+2. **Bulk commit `5e6c1d4`** — Committed 128+ pending files, pushed to GitHub main.
+3. **.gitignore update** — Added patterns: `*.vbs`, `*.bat`, `*_result.txt`, `*_log.txt`, `db_push*.txt`, `alter*.txt` etc. + `git rm --cached` log/script files so they stop showing as modified.
 
-#### ▶️ Next (S36)
-- S36-1: Post comments with threaded replies
-- S36-2: Trending places section in Explore (check-in/save count last 7 days)
-- S36-3: Profile highlight reels (pinned posts)
+#### ⚠️ Pending
+- Vercel redeploy (ให้ VAPID + CRON_SECRET มีผล) — trigger ได้เลยตอน push S36
+
+#### ▶️ Next (S36) — เริ่มได้ทันที
+- **S36-1:** Post comments with threaded replies (`createComment` / `getComments` + UI ใต้ post)
+- **S36-2:** Trending places section in Explore (check-in/save count last 7 days)
+- **S36-3:** Profile highlight reels (pinned posts section)
 
 ---
 

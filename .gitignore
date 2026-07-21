@@ -1,15 +1,31 @@
 .claude/worktrees/
 
-# Push helper scripts and logs (not source code)
-push_day*.vbs
-git_push*.vbs
-git_push2.vbs
-git_push3.vbs
-git_push4.vbs
-git_push*.txt
-git-push-output.txt
+# Git helper scripts & logs (not source code)
+*.vbs
+*.bat
+*_result.txt
+*_result2.txt
+*_log.txt
+git_s*.txt
+push_log.txt
 push_output.txt
+git-push-output.txt
+migrate_result.txt
+list_result.txt
+cover_result.txt
+generate_result.txt
+db_push*.txt
+alter*.txt
+fix_git_result.txt
+kill_git_result.txt
+restore_result*.txt
+tsc_result.txt
+vbs_test_result.txt
+cmd_test_result.txt
 DIAGNOSE.txt
 URGENT_READ_ME.txt
 status.html
 STATUS_NOW.txt
+sprint_status.html
+*.js
+!your-trip-web/**/*.js
